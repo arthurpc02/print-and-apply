@@ -24,9 +24,10 @@ enum Estado
     // Sub-estados:
     EMERGENCIA,
     MANUTENCAO,
-    PRONTO,
     REFERENCIANDO_INIT,
-    CICLO,
+    REFERENCIANDO_CICLO,
+    PRONTO,
+    CICLO
 };
 
 typedef struct
@@ -60,15 +61,53 @@ uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função
 // Menu:
 int32_t produto = 1;
 
-int32_t atrasoSensorProduto = 25;       // Tempo para começar as ações após a detecção de um produto
-int32_t atrasoImpressaoEtiqueta = 1150; // Tempo para impressora imprimir a etiqueta
+int32_t atrasoSensorProduto = 25;      
+int32_t atrasoImpressaoEtiqueta = 1500;
+int32_t velocidadeLinearmmps = 250; 
 
 int32_t contadorCiclo = 0;
-int32_t rampa = 14;
+
+int32_t pulsosBracoAplicacao = 750;
+int32_t pulsosBracoProduto = 1750;
+
+int32_t rampa = 10;
 // Menu:
 
+// Variáveis para os motores:
+// Pulsos:
+int32_t pulsosEspatulaRecuoInit = 2600;
+int32_t pulsosEspatulaAvancoInit = 750;
+int32_t pulsosEspatulaFinalizarRecuo = 300;
+
+int32_t pulsosBracoMaximo = 2500;
+int32_t pulsosBracoForaSensor = 1000;
+int32_t pulsosBracoFinalizarRecuo = 450;
+
+int32_t pulsosInicialBraco = 110;
+int32_t pulsosEspatulaAvanco = 1200;
+int32_t pulsosEspatulaRecuo = 2600;
+
+int32_t pulsosBracoFinalizarAplicacao = 150;
+// Pulsos:
+
+// Posições:
+int32_t posicaoEspatulaSensor = 0;
+int32_t posicaoEspatulaReferencia = 0;
+int32_t posicaoEspatulaCorrecao = 0;
+
+int32_t posicaoBracoSensor = 0;
+int32_t posicaoBracoReferencia = 0;
+int32_t posicaoBracoCorrecao = 0;
+// Posições:
+// Variáveis para os motores:
+
+uint32_t velocidadeLinearPulsos = 0;
+uint32_t aceleracaoLinearPulsos = 0;
+
+int32_t duracaoAplicacao = 200;  // Tempo de duração da aplicação
 
 int32_t contadorAbsoluto = 0;
+const uint16_t quantidadeParaBackups = 100;
 
 int16_t testeStatusImpressora = 0;
 int16_t tempoRequestStatusImpressora = 10000;
@@ -81,6 +120,17 @@ int16_t tempoLedStatus = 500;
 uint16_t fsm_emergencia = fase1;
 uint16_t fsm_manutencao = fase1;
 
+uint16_t fsm_referenciando_init = fase1;
+uint16_t fsm_referenciando_init_espatula = fase1;
+uint16_t fsm_referenciando_init_motor = fase1;
+
+uint16_t fsm_referenciando_ciclo = fase1;
+uint16_t fsm_referenciando_ciclo_espatula = fase1;
+uint16_t fsm_referenciando_ciclo_motor = fase1;
+
+uint16_t fsm_pronto_init = fase1;
+uint16_t fsm_pronto_ciclo = fase1;
+
 uint16_t fsm_ciclo = fase1;
 
 uint16_t fsm_erro_aplicacao = fase1;
@@ -92,8 +142,11 @@ uint16_t fsm_erro_intertravamento = fase1;
 // Flag's:
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
+bool flag_continuo = false;
+bool flag_intertravamentoIn = true;
 bool flag_emergencia = false;
 bool flag_debugEnabled = false;
+
 // Flag's:
 // Parâmetros:
 //////////////////////////////////////////////////////////////////////
@@ -102,10 +155,15 @@ bool flag_debugEnabled = false;
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 1000u, &produto);
-Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 10u, 2000u, &produto);
+Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 10u, 3000u, &produto);
+Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 1u, 10u, 350u, &produto);
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
-Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "ms", 1u, 1u, 200u);
+
+Menu menu_pulsosBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &pulsosBracoAplicacao, "pulsos", 10u, 10u, 1000u);
+Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 10u, 10u, 1000u);
+
+Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 // Criando menu:
 
 //////////////////////////////////////////////////////////////////////
@@ -116,6 +174,11 @@ void createTasks();
 void t_requestStatusImpressoraZebra(void *p);
 void imprimirZebra();
 void trataDadosImpressora(String);
+
+void motorSetup();
+void motorEnable();
+void motorDisable();
+void motorRun();
 
 int checkSensorProduto();
 int checkSensorHomeInit();
@@ -138,6 +201,7 @@ void loadProductFromEEPROM(uint16_t);
 void presetEEPROM();
 
 void t_emergencia(void *p);
+void t_intretravamentoIN(void *p);
 
 void t_manutencao(void *p);
 void liberaMenusDeManutencao();
@@ -165,6 +229,8 @@ void piscaLedStatus();
 void t_blink(void *p);
 
 void t_debug(void *p);
+
+void pin_mode();
 // Prototypes:
 
 //////////////////////////////////////////////////////////////////////
@@ -174,6 +240,7 @@ void createTasks()
     xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 4096, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     xTaskCreatePinnedToCore(t_requestStatusImpressoraZebra, "status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
@@ -232,6 +299,55 @@ void trataDadosImpressora(String mensagemImpressora)
             flag_comandoPlay = false;
         }
     }
+}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+void motorSetup()
+{
+    const int32_t velocidadeReferencia = 1000;
+    const int32_t velocidadeReferenciaEspatula = 2000;
+    const int32_t aceleracaoReferencia = 10000;
+
+    motor.setMaxSpeed(velocidadeReferencia); // escolhe velocidade em que o motor vai trabalhar
+    motor.setAcceleration(aceleracaoReferencia);
+    motor.setPinsInverted(DIRECAO_HORA); // muda direção do motor
+
+    motor_espatula.setMaxSpeed(velocidadeReferenciaEspatula);
+    motor_espatula.setAcceleration(aceleracaoReferencia);
+    motor_espatula.setPinsInverted(DIRECAO_ANTIHORA);
+
+    Serial.print("Velocidade Setup Braco: ");
+    Serial.println(velocidadeReferencia);
+    Serial.print("Velocidade Setup Espatula: ");
+    Serial.println(velocidadeReferenciaEspatula);
+    Serial.print("Aceleracao Setup: ");
+    Serial.println(aceleracaoReferencia);
+}
+
+void motorEnable()
+{
+    setBits(PIN_ENABLE_MOTORES);
+}
+
+void motorDisable()
+{
+    resetBits(PIN_ENABLE_MOTORES);
+}
+
+void motorRun()
+{
+    const uint32_t pi = 3.14159265359;
+    const uint32_t raio = 20;
+    const uint32_t subdivisao = 50;
+    const uint32_t pulsosporVolta = 200;
+
+    velocidadeLinearPulsos = round((velocidadeLinearmmps * pulsosporVolta * subdivisao) / (2 * pi * raio));
+    aceleracaoLinearPulsos = round((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * rampa));
+
+    motor.setMaxSpeed(velocidadeLinearPulsos);
+    motor.setAcceleration(aceleracaoLinearPulsos);
+
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -377,8 +493,6 @@ int checkBotaoStart()
 // Checa se os botoes foram pressionados e já atualiza o display
 void t_ihm(void *p)
 {
-    uint32_t timer_display = 0;
-
     String cont_str = "Contador: ";
 
     cont_str.concat(contadorAbsoluto);
@@ -391,6 +505,10 @@ void t_ihm(void *p)
     ihm.addMenuToIndex(&menu_produto);
 
     ihm.addMenuToIndex(&menu_atrasoSensorProduto);
+    ihm.addMenuToIndex(&menu_atrasoImpressaoEtiqueta);
+    ihm.addMenuToIndex(&menu_velocidadeLinearmmps);
+
+    ihm.addMenuToIndex(&menu_contador);
 
     ihm.focus(&menu_produto); // Direciona a ihm para iniciar nesse menu
 
@@ -410,7 +528,6 @@ void t_ihm(void *p)
                 {
                     checkMenu->addVar(MAIS);
                 }
-                timer_display = millis();
             }
             else if (checkBotaoBaixo())
             {
@@ -424,35 +541,16 @@ void t_ihm(void *p)
                 {
                     checkMenu->addVar(MENOS);
                 }
-                timer_display = millis();
             }
             else if (checkBotaoEsquerda())
-            {
                 ihm.changeMenu(PREVIOUS);
-                timer_display = millis();
-            }
             else if (checkBotaoDireita())
-            {
                 ihm.changeMenu(NEXT);
-                timer_display = millis();
-            }
         }
 
-        if (millis() - timer_display >= resetDisplay)
-        {
-            flag_restartDisplay = true;
-            timer_display = millis();
-        }
-        if (flag_restartDisplay)
-        {
-            Wire.flush();
-            ihm.displayFull();
-
-            flag_restartDisplay = false;
-        }
         ihm.task();
 
-        delay(25);
+        delay(20);
     }
 }
 
@@ -575,7 +673,6 @@ bool checkBotaoDireita()
 void t_eeprom(void *p)
 {
     const uint16_t intervaloEntreBackups = 5000; // ms
-    const uint16_t quantidadeParaBackups = 100;
 
     while (1)
     {
@@ -583,7 +680,11 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
-
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeLinearmmps, velocidadeLinearmmps);
+        
+        EEPROM.put(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
+        EEPROM.put(EPR_pulsosBracoProduto, pulsosBracoProduto);
+        
         EEPROM.put(EPR_rampa, rampa);
 
         if ((contadorAbsoluto % quantidadeParaBackups) == 0)
@@ -605,6 +706,9 @@ void restoreBackupParameters()
 {
     EEPROM.get(EPR_produto, produto);
 
+    EEPROM.get(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
+    EEPROM.get(EPR_pulsosBracoProduto, pulsosBracoProduto);
+
     EEPROM.get(EPR_rampa, rampa);
     
     loadProductFromEEPROM(produto);
@@ -614,7 +718,9 @@ void restoreBackupParameters()
 // os parâmetros de cada produto são então carregados nas suas devidas variáveis globais.
 void loadProductFromEEPROM(uint16_t prod)
 {
-    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoSensorP, atrasoSensorProduto);
+    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
+    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
+    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_velocidadeLinearmmps, velocidadeLinearmmps);
 }
 
 // use essa função para restar os valores de todos os produtos.
@@ -624,7 +730,9 @@ void presetEEPROM()
 {
     for (int i = 0; i < EPR_maxProdutos; i++)
     {
-        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoSP, atrasoSensorProduto);
+        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
+        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
+        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_velocidadeLinearmmps, velocidadeLinearmmps);
     }
 }
 
@@ -639,11 +747,55 @@ void t_emergencia(void *p)
     }
 }
 
+void t_intretravamentoIN(void *p)
+{
+    static uint32_t timer_hold_on = 0;
+    static uint32_t timer_hold_off = 0;
+    const uint16_t timeout_hold = 750; // ms
+
+    bool flag_intertravamentoIn_Hold_On = false;
+
+    while (1)
+    {
+        flag_intertravamentoIn_Hold_On = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+
+        if (flag_intertravamentoIn_Hold_On == HIGH)
+        {
+            if (millis() - (timer_hold_on) >= timeout_hold)
+            {
+                flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+                timer_hold_on = millis();
+                timer_hold_off = millis();
+            }
+            else
+            {
+                timer_hold_off = millis();
+            }
+        }
+        else if (flag_intertravamentoIn_Hold_On == LOW)
+        {
+            if (millis() - (timer_hold_off) >= timeout_hold)
+            {
+                flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+                timer_hold_off = millis();
+                timer_hold_on = millis();
+            }
+            else
+            {
+                timer_hold_on = millis();
+            }
+        }
+
+        delay(500);
+    }
+}
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 void t_manutencao(void *p)
 {
-    uint32_t timer_manutencao = 0;
+    static uint32_t timer_manutencao = 0;
+    const uint16_t tempoParaAtivarMenuManutencao = 3000;
 
     while (1)
     {
@@ -668,11 +820,15 @@ void t_manutencao(void *p)
 
 void liberaMenusDeManutencao()
 {
+    ihm.addMenuToIndex(&menu_pulsosBracoAplicacao);
+    ihm.addMenuToIndex(&menu_pulsosBracoProduto);
     ihm.addMenuToIndex(&menu_rampa);
 }
 
 void bloqueiaMenusDeManutencao()
 {
+    ihm.removeMenuFromIndex();
+    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
 }
 
@@ -892,6 +1048,41 @@ void t_debug(void *p)
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+void pin_mode()
+{
+    // Outputs:
+    pinMode(PIN_STATUS, OUTPUT);
+
+    pinMode(PIN_OUTPUT_EN, OUTPUT);
+    pinMode(PIN_OUTPUT_DATA, OUTPUT);
+    pinMode(PIN_IO_CLOCK, OUTPUT);
+    pinMode(PIN_IO_LATCH, OUTPUT);
+
+    pinMode(PIN_DIR, OUTPUT);
+    pinMode(PWM_VENTILADOR, OUTPUT);
+
+    pinMode(PIN_PUL, OUTPUT);
+    pinMode(PIN_PUL_ESP, OUTPUT);
+    pinMode(PIN_DIR_ESP, OUTPUT);
+    pinMode(PIN_HSDO4, OUTPUT);
+
+    pinMode(PIN_RS485_EN, OUTPUT);
+    // Outputs:
+
+    //  Inputs:
+    pinMode(PIN_INPUT_DATA, INPUT);
+
+    pinMode(PIN_SENSOR_PRODUTO, INPUT);
+    pinMode(PIN_SENSOR_HOME, INPUT);
+    pinMode(PIN_SENSOR_APLICACAO, INPUT);
+    pinMode(PIN_SENSOR_ESPATULA, INPUT);
+
+    pinMode(PIN_EMERGENCIA, INPUT);
+    //  Inputs:
+}
+// Functions:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 #endif

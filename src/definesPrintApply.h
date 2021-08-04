@@ -11,19 +11,26 @@
 #define EEPROM_SIZE 512
 #define EPR_maxProdutos 15      // qual o número máximo de produtos/receitas/programas a máquina vai armazenar
 #define EPR_offsetProduto 20    // quanto de memória, em bytes, um produto ocupa
-#define EPR_offsetEspecificos 28 // as variaveis que dependem de produto são armazenadas depois desse endereço, as que não dependem de produto, antes.
+#define EPR_offsetEspecificos 12 // as variaveis que dependem de produto são armazenadas depois desse endereço, as que não dependem de produto, antes.
 
 /* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
 são PARÂMETROS NÃO-ESPECÍFICOS: */
 #define EPR_produto 0
 
-#define EPR_contadorAbsoluto 4
+#define EPR_pulsosBracoAplicacao 4
+#define EPR_pulsosBracoProduto 8
 
-#define EPR_rampa 8
+#define EPR_rampa 12
+
+#define EPR_contadorAbsoluto 16
+/* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
+são PARÂMETROS NÃO-ESPECÍFICOS: */
 
 // PARÂMETROS ESPECÍFICOS: salvos uma vez para cada produto
 #define EPR_atrasoSensorProduto 0
-#define EPR_atrasoImpressaoEtiqueta 0
+#define EPR_atrasoImpressaoEtiqueta 4
+#define EPR_velocidadeLinearmmps 8
+// PARÂMETROS ESPECÍFICOS: salvos uma vez para cada produto
 // Eeprom:
 
 // Fases:
@@ -77,7 +84,15 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 // Habilita Motores:
 #define PIN_ENABLE_MOTORES DO3
 // Habilita Motores:
+
+#define DIRECAO_HORA 0
+#define DIRECAO_ANTIHORA 1
 // Motores:
+
+// Intertravamento:
+#define INTERTRAVAMENTO_IN_1 DI3
+#define PIN_INTERTRAVAMENTO_OUT RLO1
+// Intertravamento:
 
 // Sinalização:
 #define LED_STATUS DO5
