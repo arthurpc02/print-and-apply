@@ -80,10 +80,7 @@ void loop()
 
     if (flag_emergencia == false) // Condição para sair de Parada de Emergência
     {
-      if (fsm.sub_estado == MANUTENCAO)
-        bloqueiaMenusDeManutencao();
-
-      else if (flag_intertravamentoIn)
+      if (flag_intertravamentoIn)
       {
         fsm.estado = ERRO;
         fsm_erro_intertravamento = fase1;
@@ -91,7 +88,7 @@ void loop()
         fsm_erro_impressora = fase10;
       }
 
-      else if (flag_statusImpressora)
+      if (flag_statusImpressora)
       {
         fsm.estado = ERRO;
         fsm_erro_impressora = fase1;
@@ -99,6 +96,11 @@ void loop()
         fsm_erro_intertravamento = fase10;
       }
 
+      if (fsm.sub_estado == MANUTENCAO)
+      {
+        bloqueiaMenusDeManutencao();
+        fsm.sub_estado = EMERGENCIA;
+      }
       else
       {
         flag_continuo = false;
@@ -110,7 +112,6 @@ void loop()
         fsm_manutencao = fase1;
 
         fsm_referenciando_init = fase1;
-        fsm_pronto_init = fase1;
       }
     }
 
@@ -123,6 +124,8 @@ void loop()
     static uint32_t timer_etiqueta = 0;
     static uint32_t timer_aplicacao = 0;
     static uint32_t timer_ciclo = 0;
+    static uint32_t timer_enableMotor = 0;
+    
 
     if (flag_intertravamentoIn)
     {
@@ -146,11 +149,16 @@ void loop()
       {
         motorEnable();
         motorSetup();
+
+        ihm.focus(&menu_contador);
         ihm.showStatus2msg(F("-REFERENCIANDO INIT-"));
 
         fsm_referenciando_init = fase2;
         fsm_referenciando_init_espatula = fase2;
         fsm_referenciando_init_motor = fase2;
+
+        timer_enableMotor = millis();
+
         Serial.println("REFERENCIANDO INIT -- Fase 1...");
       }
 
@@ -160,19 +168,22 @@ void loop()
         {
           motor_espatula.move(-pulsosEspatulaRecuoInit);
           fsm_referenciando_init_espatula = fase4;
+          Serial.println("REFERENCIANDO INIT -- Fase 2-1...");
         }
         else
         {
           motor_espatula.move(pulsosEspatulaAvancoInit);
           fsm_referenciando_init_espatula = fase3;
+          Serial.println("REFERENCIANDO INIT -- Fase 2-2...");
         }
       }
       else if (fsm_referenciando_init_espatula == fase3)
       {
         if (motor_espatula.distanceToGo() == 0)
         {
-          motor_espatula.move(-(pulsosEspatulaRecuoInit));
+          motor_espatula.move(-pulsosEspatulaRecuoInit);
           fsm_referenciando_init_espatula = fase4;
+          Serial.println("REFERENCIANDO INIT -- Fase 3...");
         }
       }
       else if (fsm_referenciando_init_espatula == fase4)
@@ -182,6 +193,7 @@ void loop()
           posicaoEspatulaSensor = motor_espatula.currentPosition();
           motor_espatula.stop();
           fsm_referenciando_init_espatula = fase5;
+          Serial.println("REFERENCIANDO INIT -- Fase 4...");
         }
       }
       else if (fsm_referenciando_init_espatula == fase5)
@@ -190,6 +202,7 @@ void loop()
         {
           motor_espatula.move(-pulsosEspatulaFinalizarRecuo);
           fsm_referenciando_init_espatula = fase6;
+          Serial.println("REFERENCIANDO INIT -- Fase 5...");
         }
       }
       else if (fsm_referenciando_init_espatula == fase6)
@@ -200,43 +213,51 @@ void loop()
           posicaoEspatulaCorrecao = posicaoEspatulaReferencia - posicaoEspatulaSensor;
           motor_espatula.setCurrentPosition(posicaoEspatulaCorrecao);
           fsm_referenciando_init_espatula = fase7;
+          Serial.println("REFERENCIANDO INIT -- Fase 6...");
         }
       }
 
       if (fsm_referenciando_init_motor == fase2)
       {
-        if (checkSensorHomeInit())
+        if (millis() - timer_enableMotor >= tempoParaEstabilizarMotorBraco)
         {
-          motor.move(pulsosBracoForaSensor);
           fsm_referenciando_init_motor = fase3;
-        }
-        else
-        {
-          motor.move(-pulsosBracoMaximo);
-          fsm_referenciando_init_motor = fase4;
         }
       }
       else if (fsm_referenciando_init_motor == fase3)
       {
-        if (motor.distanceToGo() == 0)
+        if (checkSensorHomeInit())
         {
-          motor.move(-pulsosBracoMaximo);
+          motor.move(-pulsosBracoForaSensor);
           fsm_referenciando_init_motor = fase4;
+          Serial.println("REFERENCIANDO INIT -- Fase 2 - Motor 1...");
+        }
+        else
+        {
+          motor.move(pulsosBracoMaximo);
+          fsm_referenciando_init_motor = fase5;
+          Serial.println("REFERENCIANDO INIT -- Fase 3 - Motor 2...");
         }
       }
+
       else if (fsm_referenciando_init_motor == fase4)
+      {
+        if (motor.distanceToGo() == 0)
+        {
+          motor.move(pulsosBracoMaximo);
+          fsm_referenciando_init_motor = fase5;
+          Serial.println("REFERENCIANDO INIT -- Fase 4 - Motor...");
+        }
+      }
+      else if (fsm_referenciando_init_motor == fase5)
       {
         if (checkSensorHome())
         {
           posicaoBracoSensor = motor.currentPosition();
           motor.stop();
-          fsm_referenciando_init_motor = fase5;
+          fsm_referenciando_init_motor = fase6;
+          Serial.println("REFERENCIANDO INIT -- Fase 5 - Motor...");
         }
-      }
-      else if (fsm_referenciando_init_motor == fase5)
-      {
-        motor.move(-pulsosBracoFinalizarRecuo);
-        fsm_referenciando_init_motor = fase6;
       }
       else if (fsm_referenciando_init_motor == fase6)
       {
@@ -246,66 +267,81 @@ void loop()
           posicaoBracoCorrecao = posicaoBracoReferencia - posicaoBracoSensor;
           motor.setCurrentPosition(posicaoBracoCorrecao);
           fsm_referenciando_init_motor = fase7;
+          Serial.println("REFERENCIANDO INIT -- Fase 6 - Motor...");
         }
       }
 
       else if (fsm_referenciando_init_espatula == fase7 && fsm_referenciando_init_motor == fase7)
       {
-        motor.move(pulsosInicialBraco);
+        motor.move(-pulsosBracoInicial);
         motor_espatula.moveTo(pulsosEspatulaAvanco);
+
         ventiladorWrite(VENTILADOR_CANAL, 100);
         imprimirZebra();
-        timer_etiqueta = millis();
+
         fsm_referenciando_init_espatula = fase8;
+        Serial.println("REFERENCIANDO INIT -- Fase Mista...");
       }
 
       else if (fsm_referenciando_init_espatula == fase8)
       {
         if (motor_espatula.distanceToGo() == 0)
         {
-          if (millis() - timer_etiqueta >= atrasoImpressaoEtiqueta)
-          {
-            motor_espatula.moveTo(-pulsosEspatulaRecuo);
-            fsm_referenciando_init_espatula = fase9;
-          }
+          timer_etiqueta = millis();
+          fsm_referenciando_init_espatula = fase9;
+          Serial.println("REFERENCIANDO INIT -- Fase 8...");
         }
       }
       else if (fsm_referenciando_init_espatula == fase9)
+      {
+        if (millis() - timer_etiqueta >= atrasoImpressaoEtiqueta)
+        {
+          motor_espatula.moveTo(-pulsosEspatulaRecuo);
+          fsm_referenciando_init_espatula = fase10;
+          Serial.println("REFERENCIANDO INIT -- Fase 9...");
+        }
+      }
+      else if (fsm_referenciando_init_espatula == fase10)
       {
         if (checkSensorEspatula())
         {
           posicaoEspatulaSensor = motor_espatula.currentPosition();
           motor_espatula.stop();
-          fsm_referenciando_init_espatula = fase10;
+          fsm_referenciando_init_espatula = fase11;
+          Serial.println("REFERENCIANDO INIT -- Fase 10...");
         }
       }
-      else if (fsm_referenciando_init_espatula == fase10)
+      else if (fsm_referenciando_init_espatula == fase11)
       {
         if (motor_espatula.distanceToGo() == 0)
         {
           motor_espatula.move(-pulsosEspatulaFinalizarRecuo);
-          fsm_referenciando_init_espatula = fase11;
+          fsm_referenciando_init_espatula = fase12;
           fsm_referenciando_init_motor = fase8;
+          Serial.println("REFERENCIANDO INIT -- Fase 11...");
         }
       }
 
       else if (fsm_referenciando_init_motor == fase8)
       {
-        motor.moveTo(pulsosBracoAplicacao);
+        motor.move(-pulsosBracoAplicacao);
         fsm_referenciando_init_motor = fase9;
+        Serial.println("REFERENCIANDO INIT -- Fase 8 - Motor...");
       }
 
       else if (fsm_referenciando_init == fase2)
       {
-        if (fsm_referenciando_init_espatula == fase11 && fsm_referenciando_init_motor == fase9)
+        if (fsm_referenciando_init_espatula == fase12 && fsm_referenciando_init_motor == fase9)
         {
           if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
           {
             fsm.sub_estado = PRONTO;
             fsm_pronto_init = fase1;
+            fsm_pronto_ciclo = fase4;
             fsm_referenciando_init = fase4;
             fsm_referenciando_init_espatula = fase12;
             fsm_referenciando_init_motor = fase10;
+            Serial.println("REFERENCIANDO INIT -- Fim de referencia...");
           }
         }
       }
@@ -404,11 +440,6 @@ void loop()
       }
       else if (fsm_referenciando_ciclo_motor == fase5)
       {
-        motor.move(-pulsosBracoFinalizarRecuo);
-        fsm_referenciando_ciclo_motor = fase6;
-      }
-      else if (fsm_referenciando_ciclo_motor == fase6)
-      {
         if (motor.distanceToGo() == 0)
         {
           posicaoBracoReferencia = motor.currentPosition();
@@ -420,7 +451,7 @@ void loop()
 
       else if (fsm_referenciando_ciclo_espatula == fase7 && fsm_referenciando_ciclo_motor == fase7)
       {
-        motor.move(pulsosInicialBraco);
+        motor.move(pulsosBracoInicial);
         motor_espatula.moveTo(pulsosEspatulaAvanco);
         ventiladorWrite(VENTILADOR_CANAL, 100);
         imprimirZebra();
@@ -542,19 +573,24 @@ void loop()
         timer_atrasoSensorProduto = millis();
         timer_ciclo = millis();
         fsm_ciclo = fase2;
+        Serial.println("CICLO FASE 1...");
       }
       else if (fsm_ciclo == fase2)
       {
         if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
         {
-          motor.moveTo(pulsosBracoProduto);
+          motor.move(-pulsosBracoProduto);
           fsm_ciclo = fase3;
+          Serial.println("CICLO FASE 2...");
         }
       }
       else if (fsm_ciclo == fase3)
       {
         if (checkSensorAplicacao())
+        {
           fsm_ciclo = fase4;
+          Serial.println("CICLO FASE 3...");
+        }
         else if (motor.distanceToGo() == 0)
         {
           fsm.estado = ERRO;
@@ -565,8 +601,9 @@ void loop()
       }
       else if (fsm_ciclo == fase4)
       {
-        motor.move(pulsosBracoFinalizarAplicacao);
+        motor.move(-pulsosBracoFinalizarAplicacao);
         fsm_ciclo = fase5;
+        Serial.println("CICLO FASE 4...");
       }
       else if (fsm_ciclo == fase5)
       {
@@ -575,6 +612,7 @@ void loop()
           ventiladorWrite(VENTILADOR_CANAL, 25);
           timer_aplicacao = millis();
           fsm_ciclo = fase6;
+          Serial.println("CICLO FASE 5...");
         }
       }
       else if (fsm_ciclo == fase6)
@@ -583,6 +621,7 @@ void loop()
         {
           incrementaContador();
           fsm_ciclo = fase7;
+          Serial.println("CICLO FASE 6...");
         }
       }
       else if (fsm_ciclo == fase7)
@@ -590,6 +629,7 @@ void loop()
         fsm.sub_estado = REFERENCIANDO_CICLO;
         fsm_referenciando_ciclo = fase1;
         fsm_ciclo = fase8;
+        Serial.println("CICLO FASE 7...");
       }
     }
 
@@ -605,6 +645,8 @@ void loop()
 
   case ERRO:
   {
+    static uint32_t timer_erro_aplicacao = 0;
+
     piscaLedStatus();
 
     if (fsm_erro_aplicacao == fase1)
@@ -612,13 +654,18 @@ void loop()
       ihm.showStatus2msg(F("PRODUTO N ENCONTRADO"));
       ventiladorWrite(VENTILADOR_CANAL, 0);
       fsm_erro_aplicacao = fase2;
+      Serial.println("Erro de Aplicacao...");
+      timer_erro_aplicacao = millis();
     }
     else if (fsm_erro_aplicacao == fase2)
     {
-      fsm.estado = ATIVO;
-      fsm.sub_estado = REFERENCIANDO_INIT;
-      fsm_referenciando_init = fase1;
-      fsm_erro_aplicacao = fase4;
+      if (millis() - timer_erro_aplicacao >= 5000)
+      {
+        fsm.estado = ATIVO;
+        fsm.sub_estado = REFERENCIANDO_INIT;
+        fsm_referenciando_init = fase1;
+        fsm_erro_aplicacao = fase4;
+      }
     }
 
     if (fsm_erro_impressora == fase1)

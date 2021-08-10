@@ -142,7 +142,7 @@ void protocoloIhm::envio485(String mensagem)
     Serial.println (mensagem);
     Serial.flush();
     
-    delay(10);
+    delay(25);
     digitalWrite(PIN_RS485_EN, RS485_RECEIVE);
 }
 // Função de envio da mensagem pelo RS485:

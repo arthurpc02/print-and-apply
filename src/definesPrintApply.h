@@ -10,19 +10,20 @@
 // Eeprom: (512 bytes no esp32)
 #define EEPROM_SIZE 512
 #define EPR_maxProdutos 15      // qual o número máximo de produtos/receitas/programas a máquina vai armazenar
-#define EPR_offsetProduto 20    // quanto de memória, em bytes, um produto ocupa
+#define EPR_offsetProduto 24    // quanto de memória, em bytes, um produto ocupa
 #define EPR_offsetEspecificos 12 // as variaveis que dependem de produto são armazenadas depois desse endereço, as que não dependem de produto, antes.
 
 /* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
 são PARÂMETROS NÃO-ESPECÍFICOS: */
 #define EPR_produto 0
 
-#define EPR_pulsosBracoAplicacao 4
-#define EPR_pulsosBracoProduto 8
+#define EPR_pulsosBracoInicial 4
+#define EPR_pulsosBracoAplicacao 8
+#define EPR_pulsosBracoProduto 12
 
-#define EPR_rampa 12
+#define EPR_rampa 16
 
-#define EPR_contadorAbsoluto 16
+#define EPR_contadorAbsoluto 20
 /* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
 são PARÂMETROS NÃO-ESPECÍFICOS: */
 
@@ -77,7 +78,7 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 #define PIN_DIR PIN_DO1
 // Motor Principal:
 // Motor Espátula:
-#define PIN_PUL_ESP PIN_SCL
+#define PIN_PUL_ESP PIN_SCL          
 #define PIN_DIR_ESP PIN_SDA
 // Motor Espátula:
 

@@ -61,14 +61,15 @@ uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função
 // Menu:
 int32_t produto = 1;
 
-int32_t atrasoSensorProduto = 25;      
-int32_t atrasoImpressaoEtiqueta = 1500;
-int32_t velocidadeLinearmmps = 250; 
+int32_t atrasoSensorProduto = 25;
+int32_t atrasoImpressaoEtiqueta = 4000;
+int32_t velocidadeLinearmmps = 150;
 
 int32_t contadorCiclo = 0;
 
-int32_t pulsosBracoAplicacao = 750;
-int32_t pulsosBracoProduto = 1750;
+int32_t pulsosBracoInicial = 5250;
+int32_t pulsosBracoAplicacao = 16000;
+int32_t pulsosBracoProduto = 16000;
 
 int32_t rampa = 10;
 // Menu:
@@ -79,15 +80,13 @@ int32_t pulsosEspatulaRecuoInit = 2600;
 int32_t pulsosEspatulaAvancoInit = 750;
 int32_t pulsosEspatulaFinalizarRecuo = 300;
 
-int32_t pulsosBracoMaximo = 2500;
-int32_t pulsosBracoForaSensor = 1000;
-int32_t pulsosBracoFinalizarRecuo = 450;
+int32_t pulsosBracoMaximo = 60000;
+int32_t pulsosBracoForaSensor = 10000;
 
-int32_t pulsosInicialBraco = 110;
 int32_t pulsosEspatulaAvanco = 1200;
 int32_t pulsosEspatulaRecuo = 2600;
 
-int32_t pulsosBracoFinalizarAplicacao = 150;
+int32_t pulsosBracoFinalizarAplicacao = 500;
 // Pulsos:
 
 // Posições:
@@ -101,10 +100,16 @@ int32_t posicaoBracoCorrecao = 0;
 // Posições:
 // Variáveis para os motores:
 
-uint32_t velocidadeLinearPulsos = 0;
-uint32_t aceleracaoLinearPulsos = 0;
+const int32_t pi = 3.14159265358979;
+const int32_t raio = 20;
+const int32_t subdivisao = 50;
+const int32_t pulsosporVolta = 200;
+const int32_t resolucao = round((pulsosporVolta *  subdivisao) / (2 * pi * raio));
 
-int32_t duracaoAplicacao = 200;  // Tempo de duração da aplicação
+int32_t velocidadeLinearPulsos = 0;
+int32_t aceleracaoLinearPulsos = 0;
+
+int32_t duracaoAplicacao = 200; // Tempo de duração da aplicação
 
 int32_t contadorAbsoluto = 0;
 const uint16_t quantidadeParaBackups = 100;
@@ -114,6 +119,8 @@ int16_t tempoRequestStatusImpressora = 10000;
 String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
+
+int32_t tempoParaEstabilizarMotorBraco = 2000;
 
 // Processo:
 // Fases da fsm:
@@ -145,7 +152,7 @@ bool flag_statusImpressora = false;
 bool flag_continuo = false;
 bool flag_intertravamentoIn = true;
 bool flag_emergencia = false;
-bool flag_debugEnabled = false;
+bool flag_debugEnabled = true;
 
 // Flag's:
 // Parâmetros:
@@ -155,13 +162,14 @@ bool flag_debugEnabled = false;
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 1000u, &produto);
-Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 10u, 3000u, &produto);
-Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 1u, 10u, 350u, &produto);
+Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 10u, 10000u, &produto);
+Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 10u, 10u, 350u, &produto);
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
-Menu menu_pulsosBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &pulsosBracoAplicacao, "pulsos", 10u, 10u, 1000u);
-Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 10u, 10u, 1000u);
+Menu menu_pulsosBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &pulsosBracoInicial, "pulsos", 50u, 100u, 30000u);
+Menu menu_pulsosBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &pulsosBracoAplicacao, "pulsos", 50u, 100u, 30000u);
+Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 50u, 100u, 30000u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 // Criando menu:
@@ -242,7 +250,7 @@ void createTasks()
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 4096, NULL, PRIORITY_1, &h_eeprom, CORE_0);
+    xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     xTaskCreatePinnedToCore(t_requestStatusImpressoraZebra, "status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
@@ -305,9 +313,9 @@ void trataDadosImpressora(String mensagemImpressora)
 //////////////////////////////////////////////////////////////////////
 void motorSetup()
 {
-    const int32_t velocidadeReferencia = 1000;
+    const int32_t velocidadeReferencia = 10000;
     const int32_t velocidadeReferenciaEspatula = 2000;
-    const int32_t aceleracaoReferencia = 10000;
+    const int32_t aceleracaoReferencia = 40000;
 
     motor.setMaxSpeed(velocidadeReferencia); // escolhe velocidade em que o motor vai trabalhar
     motor.setAcceleration(aceleracaoReferencia);
@@ -337,16 +345,23 @@ void motorDisable()
 
 void motorRun()
 {
-    const uint32_t pi = 3.14159265359;
-    const uint32_t raio = 20;
-    const uint32_t subdivisao = 50;
-    const uint32_t pulsosporVolta = 200;
+    int32_t pulsosRampa = resolucao * rampa;
 
-    velocidadeLinearPulsos = round((velocidadeLinearmmps * pulsosporVolta * subdivisao) / (2 * pi * raio));
-    aceleracaoLinearPulsos = round((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * rampa));
+    velocidadeLinearPulsos = round(velocidadeLinearmmps * resolucao);
+    aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
 
     motor.setMaxSpeed(velocidadeLinearPulsos);
     motor.setAcceleration(aceleracaoLinearPulsos);
+
+    Serial.print("Velocidade Braco: ");
+    Serial.println(velocidadeLinearPulsos);
+
+    Serial.print("Aceleracao: ");
+    Serial.println(aceleracaoLinearPulsos);
+
+    Serial.print("Resolucao: ");
+    Serial.println(resolucao);
+
 
 }
 
@@ -401,6 +416,7 @@ int checkSensorHome()
         if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_LOW)
         {
             flag_sh = 0;
+            Serial.println("Sensor de Home -- ON");
             return 1;
         }
     }
@@ -497,6 +513,7 @@ void t_ihm(void *p)
 
     cont_str.concat(contadorAbsoluto);
     ihm.configDefaultMsg(cont_str);
+    ihm.configDefaultMsg2("PRINT APPLY LINEAR");
     delay(1000);
 
     ihm.setup();
@@ -543,14 +560,19 @@ void t_ihm(void *p)
                 }
             }
             else if (checkBotaoEsquerda())
+            {
                 ihm.changeMenu(PREVIOUS);
+            }
+
             else if (checkBotaoDireita())
+            {
                 ihm.changeMenu(NEXT);
+            }
         }
 
         ihm.task();
 
-        delay(20);
+        delay(25);
     }
 }
 
@@ -678,14 +700,15 @@ void t_eeprom(void *p)
     {
         EEPROM.put(EPR_produto, produto);
 
+        EEPROM.put(EPR_pulsosBracoInicial, pulsosBracoInicial);
+        EEPROM.put(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
+        EEPROM.put(EPR_pulsosBracoProduto, pulsosBracoProduto);
+
+        EEPROM.put(EPR_rampa, rampa);
+
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeLinearmmps, velocidadeLinearmmps);
-        
-        EEPROM.put(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
-        EEPROM.put(EPR_pulsosBracoProduto, pulsosBracoProduto);
-        
-        EEPROM.put(EPR_rampa, rampa);
 
         if ((contadorAbsoluto % quantidadeParaBackups) == 0)
             EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
@@ -706,11 +729,12 @@ void restoreBackupParameters()
 {
     EEPROM.get(EPR_produto, produto);
 
+    EEPROM.get(EPR_pulsosBracoInicial, pulsosBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
     EEPROM.get(EPR_pulsosBracoProduto, pulsosBracoProduto);
 
     EEPROM.get(EPR_rampa, rampa);
-    
+
     loadProductFromEEPROM(produto);
 }
 
@@ -820,6 +844,7 @@ void t_manutencao(void *p)
 
 void liberaMenusDeManutencao()
 {
+    ihm.addMenuToIndex(&menu_pulsosBracoInicial);
     ihm.addMenuToIndex(&menu_pulsosBracoAplicacao);
     ihm.addMenuToIndex(&menu_pulsosBracoProduto);
     ihm.addMenuToIndex(&menu_rampa);
@@ -827,6 +852,7 @@ void liberaMenusDeManutencao()
 
 void bloqueiaMenusDeManutencao()
 {
+    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
@@ -1035,14 +1061,14 @@ void t_debug(void *p)
 {
     while (1)
     {
-        // Serial.print("SP: ");
-        // Serial.println(digitalRead(PIN_SENSOR_PRODUTO));
-        // Serial.print("SH: ");
-        // Serial.println(digitalRead(PIN_SENSOR_HOME));
-        // Serial.print("SA: ");
-        // Serial.println(digitalRead(PIN_SENSOR_APLICACAO));
-        // Serial.print("SE: ");
-        // Serial.println(digitalRead(PIN_SENSOR_ESPATULA));
+        Serial.print("SP: ");
+        Serial.println(digitalRead(PIN_SENSOR_PRODUTO));
+        Serial.print("SH: ");
+        Serial.println(digitalRead(PIN_SENSOR_HOME));
+        Serial.print("SA: ");
+        Serial.println(digitalRead(PIN_SENSOR_APLICACAO));
+        Serial.print("SE: ");
+        Serial.println(digitalRead(PIN_SENSOR_ESPATULA));
 
         delay(2000);
     }
