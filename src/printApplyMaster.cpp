@@ -122,7 +122,6 @@ void loop()
   {
     static uint32_t timer_atrasoSensorProduto = 0;
     static uint32_t timer_etiqueta = 0;
-    static uint32_t timer_aplicacao = 0;
     static uint32_t timer_ciclo = 0;
     static uint32_t timer_enableMotor = 0;
 
@@ -262,6 +261,7 @@ void loop()
 
       else if (fsm_referenciando_init_espatula == fase6 && fsm_referenciando_init_motor == fase7)
       {
+        pulsosBracoInicial = posicaoBracoInicial * resolucao;
         motor.move(-pulsosBracoInicial);
         motor_espatula.move(pulsosEspatulaAvanco);
 
@@ -370,6 +370,7 @@ void loop()
 
       else if (fsm_referenciando_ciclo_espatula == fase6 && fsm_referenciando_ciclo_motor == fase5)
       {
+        pulsosBracoInicial = posicaoBracoInicial * resolucao;
         motor.move(-pulsosBracoInicial);
         motor_espatula.moveTo(pulsosEspatulaAvanco);
         ventiladorWrite(VENTILADOR_CANAL, 100);
@@ -405,6 +406,7 @@ void loop()
 
       else if (fsm_referenciando_ciclo_motor == fase6)
       {
+        pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
         motor.move(-pulsosBracoAplicacao);
         fsm_referenciando_ciclo_motor = fase7;
         Serial.println("REFERENCIANDO CICLO Motor -- Fase 6...");
@@ -419,7 +421,7 @@ void loop()
             fsm.sub_estado = PRONTO;
             fsm_pronto_ciclo = fase1;
             fsm_referenciando_ciclo = fase1;
-            fsm_referenciando_ciclo_espatula = fase12;
+            fsm_referenciando_ciclo_espatula = fase10;
             fsm_referenciando_ciclo_motor = fase8;
             Serial.println("REFERENCIANDO CICLO Motor -- Fim de referencia ciclo...");
           }
@@ -444,6 +446,7 @@ void loop()
         {
           if (motor_espatula.distanceToGo() == 0)
           {
+            ihm.showStatus2msg(F("APROXIMANDO BRACO..."));
             ventiladorWrite(VENTILADOR_CANAL, 100);
             imprimirZebra();
             timer_etiqueta = millis();
@@ -473,6 +476,7 @@ void loop()
       }
       else if (fsm_pronto_init == fase5)
       {
+        pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
         motor.move(-pulsosBracoAplicacao);
         ihm.showStatus2msg(F("AGUARDANDO PRODUTO.."));
         fsm_pronto_init = fase6;
@@ -529,6 +533,7 @@ void loop()
       {
         if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
         {
+          pulsosBracoProduto = posicaoBracoProduto * resolucao;
           motor.move(-pulsosBracoProduto);
           fsm_ciclo = fase3;
           Serial.println("CICLO FASE 2...");
@@ -538,8 +543,12 @@ void loop()
       {
         if (checkSensorAplicacao())
         {
+          posicaoBracoDeteccaoProduto = motor.currentPosition();
+          pulsosBracoEspacamento = espacamentoProdutomm * resolucao;
           fsm_ciclo = fase4;
           Serial.println("CICLO FASE 3...");
+          Serial.print("Posicao Deteccao: ");
+          Serial.println(posicaoBracoDeteccaoProduto);
         }
         else if (motor.distanceToGo() == 0)
         {
@@ -551,35 +560,46 @@ void loop()
       }
       else if (fsm_ciclo == fase4)
       {
-        motor.move(-pulsosBracoFinalizarAplicacao);
-        fsm_ciclo = fase5;
-        Serial.println("CICLO FASE 4...");
+        if (pulsosBracoEspacamento <= pulsosRampa)
+        {
+          pulsosBracoEspacamento = pulsosRampa + 1000;
+          fsm_ciclo = fase5;
+        }
+        else
+        {
+          fsm_ciclo = fase5;
+        }
       }
       else if (fsm_ciclo == fase5)
       {
-        if (motor.distanceToGo() == 0)
+        if(motor.currentPosition() == (posicaoBracoDeteccaoProduto - (pulsosBracoEspacamento - pulsosRampa)))
         {
-          ventiladorWrite(VENTILADOR_CANAL, 25);
-          timer_aplicacao = millis();
+          motor.stop();
           fsm_ciclo = fase6;
           Serial.println("CICLO FASE 5...");
         }
       }
       else if (fsm_ciclo == fase6)
       {
-        if (millis() - timer_aplicacao >= duracaoAplicacao)
+        if (motor.distanceToGo() == 0)
         {
-          incrementaContador();
+          ventiladorWrite(VENTILADOR_CANAL, 25);
           fsm_ciclo = fase7;
           Serial.println("CICLO FASE 6...");
         }
       }
       else if (fsm_ciclo == fase7)
       {
+          incrementaContador();
+          fsm_ciclo = fase8;
+          Serial.println("CICLO FASE 7...");
+      }
+      else if (fsm_ciclo == fase8)
+      {
         fsm.sub_estado = REFERENCIANDO_CICLO;
         fsm_referenciando_ciclo = fase1;
-        fsm_ciclo = fase8;
-        Serial.println("CICLO FASE 7...");
+        fsm_ciclo = fase9;
+        Serial.println("CICLO FASE 8...");
       }
     }
 

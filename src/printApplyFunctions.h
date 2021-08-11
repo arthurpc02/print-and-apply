@@ -64,27 +64,33 @@ int32_t produto = 1;
 int32_t atrasoSensorProduto = 25;
 int32_t atrasoImpressaoEtiqueta = 1000;
 int32_t velocidadeLinearmmps = 150;
+int32_t espacamentoProdutomm = 20;
+
+int32_t posicaoBracoInicial = 10;
+int32_t posicaoBracoAplicacao = 250;
+int32_t posicaoBracoProduto = 100;
 
 int32_t contadorCiclo = 0;
-
-int32_t pulsosBracoInicial = 1000;
-int32_t pulsosBracoAplicacao = 20000;
-int32_t pulsosBracoProduto = 20000;
-int32_t pulsosBracoFinalizarAplicacao = 1000;
 
 int32_t rampa = 10;
 // Menu:
 
 // Variáveis para os motores:
 // Pulsos:
-int32_t pulsosEspatulaRecuoInit = 2600;
-int32_t pulsosEspatulaAvancoInit = 750;
+const int32_t pulsosEspatulaRecuoInit = 2600;
+const int32_t pulsosEspatulaAvancoInit = 750;
 
-int32_t pulsosBracoMaximo = 60000;
-int32_t pulsosBracoForaSensor = 10000;
+const int32_t pulsosEspatulaAvanco = 2500;
+const int32_t pulsosEspatulaRecuo = 3000;
 
-int32_t pulsosEspatulaAvanco = 2500;
-int32_t pulsosEspatulaRecuo = 3000;
+const int32_t pulsosBracoMaximo = 60000;
+const int32_t pulsosBracoForaSensor = 10000;
+
+int32_t pulsosBracoEspacamento = 0;
+
+int32_t pulsosBracoInicial = 0;
+int32_t pulsosBracoAplicacao = 0;
+int32_t pulsosBracoProduto = 0;
 // Pulsos:
 
 // Posições:
@@ -95,6 +101,7 @@ int32_t posicaoEspatulaCorrecao = 0;
 int32_t posicaoBracoSensor = 0;
 int32_t posicaoBracoReferencia = 0;
 int32_t posicaoBracoCorrecao = 0;
+int32_t posicaoBracoDeteccaoProduto = 0;
 // Posições:
 // Variáveis para os motores:
 
@@ -106,8 +113,7 @@ const int32_t resolucao = round((pulsosporVolta *  subdivisao) / (2 * pi * raio)
 
 int32_t velocidadeLinearPulsos = 0;
 uint32_t aceleracaoLinearPulsos = 0;
-
-int32_t duracaoAplicacao = 200; // Tempo de duração da aplicação
+int32_t pulsosRampa = 0;
 
 int32_t contadorAbsoluto = 0;
 const uint16_t quantidadeParaBackups = 100;
@@ -152,6 +158,7 @@ bool flag_continuo = false;
 bool flag_intertravamentoIn = true;
 bool flag_emergencia = false;
 bool flag_debugEnabled = false;
+bool flag_restartDisplay = false;
 
 // Flag's:
 // Parâmetros:
@@ -166,10 +173,10 @@ Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidade
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
-Menu menu_pulsosBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &pulsosBracoInicial, "pulsos", 50u, 100u, 30000u);
-Menu menu_pulsosBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &pulsosBracoAplicacao, "pulsos", 50u, 100u, 30000u);
-Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 50u, 100u, 20000u);
-Menu menu_pulsosBracoFinalizarAplicacao = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoFinalizarAplicacao, "pulsos", 50u, 100u, 5000u);
+Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 5u, 50u);
+Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 500u);
+Menu menu_posicaoBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &posicaoBracoProduto, "mm", 10u, 10u, 150u);
+Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO, &espacamentoProdutomm, "mm", 5u, 20u, 200u, &produto);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 // Criando menu:
@@ -345,7 +352,7 @@ void motorDisable()
 
 void motorRun()
 {
-    int32_t pulsosRampa = resolucao * rampa;
+    pulsosRampa = resolucao * rampa;
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
 
@@ -513,6 +520,9 @@ int checkBotaoStart()
 // Checa se os botoes foram pressionados e já atualiza o display
 void t_ihm(void *p)
 {
+    uint32_t timer_display = 0;
+    const uint32_t resetDisplay = 10000;
+
     String cont_str = "Contador: ";
 
     cont_str.concat(contadorAbsoluto);
@@ -549,6 +559,8 @@ void t_ihm(void *p)
                 {
                     checkMenu->addVar(MAIS);
                 }
+
+                timer_display = millis();
             }
             else if (checkBotaoBaixo())
             {
@@ -562,16 +574,33 @@ void t_ihm(void *p)
                 {
                     checkMenu->addVar(MENOS);
                 }
+
+                timer_display = millis();
             }
             else if (checkBotaoEsquerda())
             {
                 ihm.changeMenu(PREVIOUS);
+                timer_display = millis();
             }
 
             else if (checkBotaoDireita())
             {
                 ihm.changeMenu(NEXT);
+                timer_display = millis();
             }
+        }
+
+        if (millis() - timer_display >= resetDisplay)
+        {
+            flag_restartDisplay = true;
+            timer_display = millis();
+        }
+        if (flag_restartDisplay)
+        {
+            Wire.flush();
+            ihm.displayFull();
+
+            flag_restartDisplay = false;
         }
 
         ihm.task();
@@ -704,10 +733,10 @@ void t_eeprom(void *p)
     {
         EEPROM.put(EPR_produto, produto);
 
-        EEPROM.put(EPR_pulsosBracoInicial, pulsosBracoInicial);
-        EEPROM.put(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
-        EEPROM.put(EPR_pulsosBracoProduto, pulsosBracoProduto);
-        EEPROM.put(EPR_pulsosBracoFinalizarAplicacao, pulsosBracoFinalizarAplicacao);
+        EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);
+        EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
+        EEPROM.put(EPR_pulsosBracoProduto, posicaoBracoProduto);
+        EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);
 
         EEPROM.put(EPR_rampa, rampa);
 
@@ -734,10 +763,10 @@ void restoreBackupParameters()
 {
     EEPROM.get(EPR_produto, produto);
 
-    EEPROM.get(EPR_pulsosBracoInicial, pulsosBracoInicial);
-    EEPROM.get(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
-    EEPROM.get(EPR_pulsosBracoProduto, pulsosBracoProduto);
-    EEPROM.get(EPR_pulsosBracoFinalizarAplicacao, pulsosBracoFinalizarAplicacao);
+    EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
+    EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
+    EEPROM.get(EPR_pulsosBracoProduto, posicaoBracoProduto);
+    EEPROM.get(EPR_espacamentoProdutomm, espacamentoProdutomm);
     
     EEPROM.get(EPR_rampa, rampa);
 
@@ -850,10 +879,10 @@ void t_manutencao(void *p)
 
 void liberaMenusDeManutencao()
 {
-    ihm.addMenuToIndex(&menu_pulsosBracoInicial);
-    ihm.addMenuToIndex(&menu_pulsosBracoAplicacao);
-    ihm.addMenuToIndex(&menu_pulsosBracoProduto);
-    ihm.addMenuToIndex(&menu_pulsosBracoFinalizarAplicacao);
+    ihm.addMenuToIndex(&menu_posicaoBracoInicial);
+    ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
+    ihm.addMenuToIndex(&menu_posicaoBracoProduto);
+    ihm.addMenuToIndex(&menu_espacamentoProdutomm);
     ihm.addMenuToIndex(&menu_rampa);
 }
 

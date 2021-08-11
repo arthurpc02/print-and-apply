@@ -20,7 +20,7 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 #define EPR_pulsosBracoInicial 4
 #define EPR_pulsosBracoAplicacao 8
 #define EPR_pulsosBracoProduto 12
-#define EPR_pulsosBracoFinalizarAplicacao 16
+#define EPR_espacamentoProdutomm 16
 
 #define EPR_rampa 20
 
