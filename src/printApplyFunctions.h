@@ -70,6 +70,7 @@ int32_t contadorCiclo = 0;
 int32_t pulsosBracoInicial = 5250;
 int32_t pulsosBracoAplicacao = 16000;
 int32_t pulsosBracoProduto = 16000;
+int32_t pulsosBracoFinalizarAplicacao = 1000;
 
 int32_t rampa = 10;
 // Menu:
@@ -78,15 +79,12 @@ int32_t rampa = 10;
 // Pulsos:
 int32_t pulsosEspatulaRecuoInit = 2600;
 int32_t pulsosEspatulaAvancoInit = 750;
-int32_t pulsosEspatulaFinalizarRecuo = 300;
 
 int32_t pulsosBracoMaximo = 60000;
 int32_t pulsosBracoForaSensor = 10000;
 
-int32_t pulsosEspatulaAvanco = 1200;
-int32_t pulsosEspatulaRecuo = 2600;
-
-int32_t pulsosBracoFinalizarAplicacao = 500;
+int32_t pulsosEspatulaAvanco = 2750;
+int32_t pulsosEspatulaRecuo = 3500;
 // Pulsos:
 
 // Posições:
@@ -107,7 +105,7 @@ const int32_t pulsosporVolta = 200;
 const int32_t resolucao = round((pulsosporVolta *  subdivisao) / (2 * pi * raio));
 
 int32_t velocidadeLinearPulsos = 0;
-int32_t aceleracaoLinearPulsos = 0;
+uint32_t aceleracaoLinearPulsos = 0;
 
 int32_t duracaoAplicacao = 200; // Tempo de duração da aplicação
 
@@ -143,6 +141,7 @@ uint16_t fsm_ciclo = fase1;
 uint16_t fsm_erro_aplicacao = fase1;
 uint16_t fsm_erro_impressora = fase1;
 uint16_t fsm_erro_intertravamento = fase1;
+
 // Fases da fsm:
 // Processo:
 
@@ -152,7 +151,7 @@ bool flag_statusImpressora = false;
 bool flag_continuo = false;
 bool flag_intertravamentoIn = true;
 bool flag_emergencia = false;
-bool flag_debugEnabled = true;
+bool flag_debugEnabled = false;
 
 // Flag's:
 // Parâmetros:
@@ -162,14 +161,15 @@ bool flag_debugEnabled = true;
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 1000u, &produto);
-Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 10u, 10000u, &produto);
-Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 10u, 10u, 350u, &produto);
+Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 50u, 50u, 10000u, &produto);
+Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 10u, 10u, 550u, &produto);
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
 Menu menu_pulsosBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &pulsosBracoInicial, "pulsos", 50u, 100u, 30000u);
 Menu menu_pulsosBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &pulsosBracoAplicacao, "pulsos", 50u, 100u, 30000u);
 Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 50u, 100u, 30000u);
+Menu menu_pulsosBracoFinalizarAplicacao = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoFinalizarAplicacao, "pulsos", 50u, 100u, 5000u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 // Criando menu:
@@ -346,6 +346,11 @@ void motorDisable()
 void motorRun()
 {
     int32_t pulsosRampa = resolucao * rampa;
+    const int32_t velocidadeEspatula = 5000;
+    const int32_t aceleracaoEspatula = 40000;
+
+    motor_espatula.setMaxSpeed(velocidadeEspatula);
+    motor_espatula.setAcceleration(aceleracaoEspatula);
 
     velocidadeLinearPulsos = round(velocidadeLinearmmps * resolucao);
     aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
@@ -703,6 +708,7 @@ void t_eeprom(void *p)
         EEPROM.put(EPR_pulsosBracoInicial, pulsosBracoInicial);
         EEPROM.put(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
         EEPROM.put(EPR_pulsosBracoProduto, pulsosBracoProduto);
+        EEPROM.put(EPR_pulsosBracoFinalizarAplicacao, pulsosBracoFinalizarAplicacao);
 
         EEPROM.put(EPR_rampa, rampa);
 
@@ -732,7 +738,8 @@ void restoreBackupParameters()
     EEPROM.get(EPR_pulsosBracoInicial, pulsosBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, pulsosBracoAplicacao);
     EEPROM.get(EPR_pulsosBracoProduto, pulsosBracoProduto);
-
+    EEPROM.get(EPR_pulsosBracoFinalizarAplicacao, pulsosBracoFinalizarAplicacao);
+    
     EEPROM.get(EPR_rampa, rampa);
 
     loadProductFromEEPROM(produto);
@@ -847,11 +854,13 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_pulsosBracoInicial);
     ihm.addMenuToIndex(&menu_pulsosBracoAplicacao);
     ihm.addMenuToIndex(&menu_pulsosBracoProduto);
+    ihm.addMenuToIndex(&menu_pulsosBracoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa);
 }
 
 void bloqueiaMenusDeManutencao()
 {
+    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
