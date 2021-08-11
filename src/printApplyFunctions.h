@@ -62,14 +62,14 @@ uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função
 int32_t produto = 1;
 
 int32_t atrasoSensorProduto = 25;
-int32_t atrasoImpressaoEtiqueta = 4000;
+int32_t atrasoImpressaoEtiqueta = 1000;
 int32_t velocidadeLinearmmps = 150;
 
 int32_t contadorCiclo = 0;
 
-int32_t pulsosBracoInicial = 5250;
-int32_t pulsosBracoAplicacao = 16000;
-int32_t pulsosBracoProduto = 16000;
+int32_t pulsosBracoInicial = 1000;
+int32_t pulsosBracoAplicacao = 20000;
+int32_t pulsosBracoProduto = 20000;
 int32_t pulsosBracoFinalizarAplicacao = 1000;
 
 int32_t rampa = 10;
@@ -83,8 +83,8 @@ int32_t pulsosEspatulaAvancoInit = 750;
 int32_t pulsosBracoMaximo = 60000;
 int32_t pulsosBracoForaSensor = 10000;
 
-int32_t pulsosEspatulaAvanco = 2750;
-int32_t pulsosEspatulaRecuo = 3500;
+int32_t pulsosEspatulaAvanco = 2500;
+int32_t pulsosEspatulaRecuo = 3000;
 // Pulsos:
 
 // Posições:
@@ -118,7 +118,7 @@ String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
 
-int32_t tempoParaEstabilizarMotorBraco = 2000;
+int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 // Processo:
 // Fases da fsm:
@@ -168,7 +168,7 @@ Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
 Menu menu_pulsosBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &pulsosBracoInicial, "pulsos", 50u, 100u, 30000u);
 Menu menu_pulsosBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &pulsosBracoAplicacao, "pulsos", 50u, 100u, 30000u);
-Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 50u, 100u, 30000u);
+Menu menu_pulsosBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoProduto, "pulsos", 50u, 100u, 20000u);
 Menu menu_pulsosBracoFinalizarAplicacao = Menu("Posicao Produto", PARAMETRO_MANU, &pulsosBracoFinalizarAplicacao, "pulsos", 50u, 100u, 5000u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
@@ -346,8 +346,8 @@ void motorDisable()
 void motorRun()
 {
     int32_t pulsosRampa = resolucao * rampa;
-    const int32_t velocidadeEspatula = 5000;
-    const int32_t aceleracaoEspatula = 40000;
+    const int32_t velocidadeEspatula = 8000;
+    const int32_t aceleracaoEspatula = 80000;
 
     motor_espatula.setMaxSpeed(velocidadeEspatula);
     motor_espatula.setAcceleration(aceleracaoEspatula);
@@ -398,7 +398,6 @@ int checkSensorHomeInit()
 {
     if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_LOW)
     {
-        Serial.println("Sensor de Home -- ON");
         return 1;
     }
 
