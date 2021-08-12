@@ -124,6 +124,7 @@ void loop()
     static uint32_t timer_etiqueta = 0;
     static uint32_t timer_ciclo = 0;
     static uint32_t timer_enableMotor = 0;
+    static uint32_t timer_finalizarAplicacao = 0;
 
     if (flag_intertravamentoIn)
     {
@@ -145,8 +146,8 @@ void loop()
     {
       if (fsm_referenciando_init == fase1)
       {
-        motorEnable();
         motorSetup();
+        motorEnable();
 
         ihm.focus(&menu_contador);
         ihm.showStatus2msg(F("-REFERENCIANDO INIT-"));
@@ -572,7 +573,7 @@ void loop()
       }
       else if (fsm_ciclo == fase5)
       {
-        if(motor.currentPosition() == (posicaoBracoDeteccaoProduto - (pulsosBracoEspacamento - pulsosRampa)))
+        if (motor.currentPosition() == (posicaoBracoDeteccaoProduto - (pulsosBracoEspacamento - pulsosRampa)))
         {
           motor.stop();
           fsm_ciclo = fase6;
@@ -590,16 +591,20 @@ void loop()
       }
       else if (fsm_ciclo == fase7)
       {
-          incrementaContador();
-          fsm_ciclo = fase8;
-          Serial.println("CICLO FASE 7...");
+        incrementaContador();
+        fsm_ciclo = fase8;
+        Serial.println("CICLO FASE 7...");
+        timer_finalizarAplicacao = millis();
       }
       else if (fsm_ciclo == fase8)
       {
-        fsm.sub_estado = REFERENCIANDO_CICLO;
-        fsm_referenciando_ciclo = fase1;
-        fsm_ciclo = fase9;
-        Serial.println("CICLO FASE 8...");
+        if (millis() - timer_finalizarAplicacao >= tempoFinalizarAplicacao)
+        {
+          fsm.sub_estado = REFERENCIANDO_CICLO;
+          fsm_referenciando_ciclo = fase1;
+          fsm_ciclo = fase9;
+          Serial.println("CICLO FASE 8...");
+        }
       }
     }
 

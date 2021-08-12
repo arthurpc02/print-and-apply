@@ -61,7 +61,7 @@ uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função
 // Menu:
 int32_t produto = 1;
 
-int32_t atrasoSensorProduto = 25;
+int32_t atrasoSensorProduto = 30;
 int32_t atrasoImpressaoEtiqueta = 1000;
 int32_t velocidadeLinearmmps = 150;
 int32_t espacamentoProdutomm = 20;
@@ -69,6 +69,8 @@ int32_t espacamentoProdutomm = 20;
 int32_t posicaoBracoInicial = 10;
 int32_t posicaoBracoAplicacao = 250;
 int32_t posicaoBracoProduto = 100;
+
+int32_t tempoFinalizarAplicacao = 250;
 
 int32_t contadorCiclo = 0;
 
@@ -176,7 +178,8 @@ Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 5u, 50u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 500u);
 Menu menu_posicaoBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &posicaoBracoProduto, "mm", 10u, 10u, 150u);
-Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO, &espacamentoProdutomm, "mm", 5u, 20u, 200u, &produto);
+Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
+Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 // Criando menu:
@@ -320,24 +323,28 @@ void trataDadosImpressora(String mensagemImpressora)
 //////////////////////////////////////////////////////////////////////
 void motorSetup()
 {
-    const int32_t velocidadeReferencia = 10000;
+    const int32_t velocidadeReferencia = 100;
     const int32_t velocidadeReferenciaEspatula = 2000;
-    const int32_t aceleracaoReferencia = 40000;
+    const int32_t aceleracaoReferenciaEspatula = 20000;
 
-    motor.setMaxSpeed(velocidadeReferencia); // escolhe velocidade em que o motor vai trabalhar
-    motor.setAcceleration(aceleracaoReferencia);
+    pulsosRampa = resolucao * rampa;
+
+    int32_t velocidadeLinearPulsosBracoInit = round(velocidadeReferencia * resolucao);
+    int32_t aceleracaoLinearPulsosBracoInit = round(((velocidadeLinearPulsosBracoInit * velocidadeLinearPulsosBracoInit) / (2 * pulsosRampa)));
+
+    motor.setMaxSpeed(velocidadeLinearPulsosBracoInit); // escolhe velocidade em que o motor vai trabalhar
+    motor.setAcceleration(aceleracaoLinearPulsosBracoInit);
     motor.setPinsInverted(DIRECAO_HORA); // muda direção do motor
 
     motor_espatula.setMaxSpeed(velocidadeReferenciaEspatula);
-    motor_espatula.setAcceleration(aceleracaoReferencia);
+    motor_espatula.setAcceleration(aceleracaoReferenciaEspatula);
     motor_espatula.setPinsInverted(DIRECAO_ANTIHORA);
 
     Serial.print("Velocidade Setup Braco: ");
-    Serial.println(velocidadeReferencia);
-    Serial.print("Velocidade Setup Espatula: ");
-    Serial.println(velocidadeReferenciaEspatula);
-    Serial.print("Aceleracao Setup: ");
-    Serial.println(aceleracaoReferencia);
+    Serial.println(velocidadeLinearPulsosBracoInit);
+    Serial.print("Aceleracao Setup Braco: ");
+    Serial.println(aceleracaoLinearPulsosBracoInit);
+    
 }
 
 void motorEnable()
@@ -352,9 +359,10 @@ void motorDisable()
 
 void motorRun()
 {
-    pulsosRampa = resolucao * rampa;
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
+
+    pulsosRampa = resolucao * rampa;
 
     motor_espatula.setMaxSpeed(velocidadeEspatula);
     motor_espatula.setAcceleration(aceleracaoEspatula);
@@ -736,7 +744,10 @@ void t_eeprom(void *p)
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
         EEPROM.put(EPR_pulsosBracoProduto, posicaoBracoProduto);
+
         EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);
+
+        EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
 
         EEPROM.put(EPR_rampa, rampa);
 
@@ -766,8 +777,11 @@ void restoreBackupParameters()
     EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
     EEPROM.get(EPR_pulsosBracoProduto, posicaoBracoProduto);
+
     EEPROM.get(EPR_espacamentoProdutomm, espacamentoProdutomm);
-    
+
+    EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
+
     EEPROM.get(EPR_rampa, rampa);
 
     loadProductFromEEPROM(produto);
@@ -883,11 +897,13 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
     ihm.addMenuToIndex(&menu_posicaoBracoProduto);
     ihm.addMenuToIndex(&menu_espacamentoProdutomm);
+    ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa);
 }
 
 void bloqueiaMenusDeManutencao()
 {
+    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
