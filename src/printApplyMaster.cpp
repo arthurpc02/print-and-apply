@@ -374,6 +374,7 @@ void loop()
         pulsosBracoInicial = posicaoBracoInicial * resolucao;
         motor.move(-pulsosBracoInicial);
         motor_espatula.moveTo(pulsosEspatulaAvanco);
+
         ventiladorWrite(VENTILADOR_CANAL, 100);
         imprimirZebra();
         timer_etiqueta = millis();
@@ -385,23 +386,28 @@ void loop()
       {
         if (motor_espatula.distanceToGo() == 0)
         {
-          if (millis() - timer_etiqueta >= atrasoImpressaoEtiqueta)
-          {
-            motor_espatula.moveTo(-pulsosEspatulaRecuo);
-            fsm_referenciando_ciclo_espatula = fase8;
-            Serial.println("REFERENCIANDO CICLO -- Fase 7...");
-          }
+          fsm_referenciando_ciclo_espatula = fase8;
+          Serial.println("REFERENCIANDO CICLO - FASE 7 ...");
         }
       }
       else if (fsm_referenciando_ciclo_espatula == fase8)
+      {
+        if (millis() - timer_etiqueta >= atrasoImpressaoEtiqueta)
+        {
+          motor_espatula.moveTo(-pulsosEspatulaRecuo);
+          fsm_referenciando_ciclo_espatula = fase9;
+          Serial.println("REFERENCIANDO CICLO -- Fase 8...");
+        }
+      }
+      else if (fsm_referenciando_ciclo_espatula == fase9)
       {
         if (checkSensorEspatula())
         {
           posicaoEspatulaSensor = motor_espatula.currentPosition();
           motor_espatula.stop();
-          fsm_referenciando_ciclo_espatula = fase9;
+          fsm_referenciando_ciclo_espatula = fase10;
           fsm_referenciando_ciclo_motor = fase6;
-          Serial.println("REFERENCIANDO CICLO -- Fase 8...");
+          Serial.println("REFERENCIANDO CICLO -- Fase 9...");
         }
       }
 
@@ -415,14 +421,14 @@ void loop()
 
       else if (fsm_referenciando_ciclo == fase2)
       {
-        if (fsm_referenciando_ciclo_espatula == fase9 && fsm_referenciando_ciclo_motor == fase7)
+        if (fsm_referenciando_ciclo_espatula == fase10 && fsm_referenciando_ciclo_motor == fase7)
         {
           if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
           {
             fsm.sub_estado = PRONTO;
             fsm_pronto_ciclo = fase1;
             fsm_referenciando_ciclo = fase1;
-            fsm_referenciando_ciclo_espatula = fase10;
+            fsm_referenciando_ciclo_espatula = fase11;
             fsm_referenciando_ciclo_motor = fase8;
             Serial.println("REFERENCIANDO CICLO Motor -- Fim de referencia ciclo...");
           }
@@ -444,6 +450,18 @@ void loop()
       else if (fsm_pronto_init == fase2)
       {
         if (checkBotaoStart()) // Inicia o ciclo com o botão START acionado e entra em modo contínuo
+        {
+          if (motor_espatula.distanceToGo() == 0)
+          {
+            ihm.showStatus2msg(F("APROXIMANDO BRACO..."));
+            ventiladorWrite(VENTILADOR_CANAL, 100);
+            imprimirZebra();
+            timer_etiqueta = millis();
+            fsm_pronto_init = fase3;
+            Serial.println("PRONTO INIT -- FASE 2...");
+          }
+        }
+        else if (flag_continuo)
         {
           if (motor_espatula.distanceToGo() == 0)
           {
@@ -564,7 +582,7 @@ void loop()
         if (pulsosBracoEspacamento <= pulsosRampa)
         {
           pulsosBracoEspacamento = pulsosRampa + 1000;
-          
+
           Serial.println("CICLO FASE 4...");
           fsm_ciclo = fase5;
         }
@@ -581,6 +599,13 @@ void loop()
           motor.stop();
           fsm_ciclo = fase6;
           Serial.println("CICLO FASE 5...");
+        }
+        else if (motor.distanceToGo() == 0)
+        {
+          fsm.estado = ERRO;
+          fsm_erro_aplicacao = fase1;
+          fsm_erro_intertravamento = fase10;
+          fsm_erro_impressora = fase10;
         }
       }
       else if (fsm_ciclo == fase6)
@@ -643,6 +668,7 @@ void loop()
         fsm.sub_estado = REFERENCIANDO_INIT;
         fsm_referenciando_init = fase1;
         fsm_erro_aplicacao = fase4;
+        flag_continuo = true;
       }
     }
 

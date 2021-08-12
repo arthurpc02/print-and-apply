@@ -156,11 +156,11 @@ uint16_t fsm_erro_intertravamento = fase1;
 // Flag's:
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
-bool flag_continuo = false;
 bool flag_intertravamentoIn = true;
 bool flag_emergencia = false;
 bool flag_debugEnabled = false;
 bool flag_restartDisplay = false;
+bool flag_continuo = false;
 
 // Flag's:
 // Parâmetros:
@@ -176,7 +176,7 @@ Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidade
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 5u, 50u);
-Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 500u);
+Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 400u);
 Menu menu_posicaoBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &posicaoBracoProduto, "mm", 10u, 10u, 150u);
 Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
