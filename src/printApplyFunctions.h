@@ -68,7 +68,6 @@ int32_t espacamentoProdutomm = 20;
 
 int32_t posicaoBracoInicial = 10;
 int32_t posicaoBracoAplicacao = 250;
-int32_t posicaoBracoProduto = 100;
 
 int32_t tempoFinalizarAplicacao = 250;
 
@@ -104,6 +103,9 @@ int32_t posicaoBracoSensor = 0;
 int32_t posicaoBracoReferencia = 0;
 int32_t posicaoBracoCorrecao = 0;
 int32_t posicaoBracoDeteccaoProduto = 0;
+
+int32_t posicaoBracoProduto = 100;
+const int32_t posicaoBracoTotal = 560;
 // Posições:
 // Variáveis para os motores:
 
@@ -176,8 +178,7 @@ Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidade
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 5u, 50u);
-Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 400u);
-Menu menu_posicaoBracoProduto = Menu("Posicao Produto", PARAMETRO_MANU, &posicaoBracoProduto, "mm", 10u, 10u, 150u);
+Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
 Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 
@@ -743,7 +744,6 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-        EEPROM.put(EPR_pulsosBracoProduto, posicaoBracoProduto);
 
         EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);
 
@@ -776,7 +776,6 @@ void restoreBackupParameters()
 
     EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-    EEPROM.get(EPR_pulsosBracoProduto, posicaoBracoProduto);
 
     EEPROM.get(EPR_espacamentoProdutomm, espacamentoProdutomm);
 
@@ -895,7 +894,6 @@ void liberaMenusDeManutencao()
 {
     ihm.addMenuToIndex(&menu_posicaoBracoInicial);
     ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
-    ihm.addMenuToIndex(&menu_posicaoBracoProduto);
     ihm.addMenuToIndex(&menu_espacamentoProdutomm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa);
@@ -903,7 +901,6 @@ void liberaMenusDeManutencao()
 
 void bloqueiaMenusDeManutencao()
 {
-    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();

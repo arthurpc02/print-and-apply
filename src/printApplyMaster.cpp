@@ -552,6 +552,7 @@ void loop()
       {
         if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
         {
+          posicaoBracoProduto = posicaoBracoTotal - (posicaoBracoInicial + posicaoBracoAplicacao);
           pulsosBracoProduto = posicaoBracoProduto * resolucao;
           motor.move(-pulsosBracoProduto);
           fsm_ciclo = fase3;
