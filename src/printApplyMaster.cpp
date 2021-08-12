@@ -648,8 +648,6 @@ void loop()
 
   case ERRO:
   {
-    static uint32_t timer_erro_aplicacao = 0;
-
     piscaLedStatus();
 
     if (fsm_erro_aplicacao == fase1)
@@ -658,18 +656,14 @@ void loop()
       ventiladorWrite(VENTILADOR_CANAL, 0);
       fsm_erro_aplicacao = fase2;
       Serial.println("Erro de Aplicacao...");
-      timer_erro_aplicacao = millis();
     }
     else if (fsm_erro_aplicacao == fase2)
     {
-      if (millis() - timer_erro_aplicacao >= 1000)
-      {
         fsm.estado = ATIVO;
         fsm.sub_estado = REFERENCIANDO_INIT;
         fsm_referenciando_init = fase1;
         fsm_erro_aplicacao = fase4;
         flag_continuo = true;
-      }
     }
 
     if (fsm_erro_impressora == fase1)
