@@ -564,10 +564,13 @@ void loop()
         if (pulsosBracoEspacamento <= pulsosRampa)
         {
           pulsosBracoEspacamento = pulsosRampa + 1000;
+          
+          Serial.println("CICLO FASE 4...");
           fsm_ciclo = fase5;
         }
         else
         {
+          Serial.println("CICLO FASE 4...");
           fsm_ciclo = fase5;
         }
       }
@@ -634,7 +637,7 @@ void loop()
     }
     else if (fsm_erro_aplicacao == fase2)
     {
-      if (millis() - timer_erro_aplicacao >= 5000)
+      if (millis() - timer_erro_aplicacao >= 1000)
       {
         fsm.estado = ATIVO;
         fsm.sub_estado = REFERENCIANDO_INIT;

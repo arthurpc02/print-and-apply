@@ -61,7 +61,7 @@ uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função
 // Menu:
 int32_t produto = 1;
 
-int32_t atrasoSensorProduto = 30;
+int32_t atrasoSensorProduto = 100;
 int32_t atrasoImpressaoEtiqueta = 1000;
 int32_t velocidadeLinearmmps = 150;
 int32_t espacamentoProdutomm = 20;
@@ -82,7 +82,7 @@ int32_t rampa = 10;
 const int32_t pulsosEspatulaRecuoInit = 2600;
 const int32_t pulsosEspatulaAvancoInit = 750;
 
-const int32_t pulsosEspatulaAvanco = 2500;
+const int32_t pulsosEspatulaAvanco = 2250;
 const int32_t pulsosEspatulaRecuo = 3000;
 
 const int32_t pulsosBracoMaximo = 60000;
@@ -169,7 +169,7 @@ bool flag_restartDisplay = false;
 // Criando menu:
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 
-Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 1000u, &produto);
+Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
 Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 50u, 50u, 10000u, &produto);
 Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 10u, 10u, 550u, &produto);
 
@@ -325,7 +325,7 @@ void motorSetup()
 {
     const int32_t velocidadeReferencia = 100;
     const int32_t velocidadeReferenciaEspatula = 2000;
-    const int32_t aceleracaoReferenciaEspatula = 20000;
+    const int32_t aceleracaoReferenciaEspatula = 10000;
 
     pulsosRampa = resolucao * rampa;
 
