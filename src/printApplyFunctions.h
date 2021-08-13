@@ -81,7 +81,7 @@ int32_t rampa = 10;
 const int32_t pulsosEspatulaRecuoInit = 2600;
 const int32_t pulsosEspatulaAvancoInit = 750;
 
-const int32_t pulsosEspatulaAvanco = 2250;
+const int32_t pulsosEspatulaAvanco = 2350;
 const int32_t pulsosEspatulaRecuo = 3000;
 
 const int32_t pulsosBracoMaximo = 60000;
@@ -104,8 +104,7 @@ int32_t posicaoBracoReferencia = 0;
 int32_t posicaoBracoCorrecao = 0;
 int32_t posicaoBracoDeteccaoProduto = 0;
 
-int32_t posicaoBracoProduto = 100;
-const int32_t posicaoBracoTotal = 560;
+int32_t posicaoBracoProduto = 440;
 // Posições:
 // Variáveis para os motores:
 
@@ -116,6 +115,7 @@ const int32_t pulsosporVolta = 200;
 const int32_t resolucao = round((pulsosporVolta *  subdivisao) / (2 * pi * raio));
 
 int32_t velocidadeLinearPulsos = 0;
+int32_t velocidadeCiclo = 0;
 uint32_t aceleracaoLinearPulsos = 0;
 int32_t pulsosRampa = 0;
 
@@ -128,6 +128,7 @@ String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
 
+int32_t tempoReinicioEspatula = 50;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 // Processo:
@@ -177,7 +178,7 @@ Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidade
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
-Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 5u, 50u);
+Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 50u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
 Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
@@ -300,8 +301,13 @@ void playZebra()
 void trataDadosImpressora(String mensagemImpressora)
 {
     testeStatusImpressora = mensagemImpressora.indexOf(printerStatus, 45);
-    // if (mensagemImpressora.compareTo(" ") == 0)
-    // flag_statusImpressora = true;
+    // if (mensagemImpressora.compareTo(" \n") == 0)
+    // {
+    //     testeStatusImpressora = 0;
+    // }
+    
+    // Serial.print("Status impressora: "); Serial.println(testeStatusImpressora);
+
     if (testeStatusImpressora != -1)
     {
         flag_statusImpressora = true;
@@ -346,6 +352,7 @@ void motorSetup()
     Serial.print("Aceleracao Setup Braco: ");
     Serial.println(aceleracaoLinearPulsosBracoInit);
     
+    velocidadeCiclo = velocidadeLinearPulsosBracoInit;
 }
 
 void motorEnable()
@@ -371,8 +378,13 @@ void motorRun()
     velocidadeLinearPulsos = round(velocidadeLinearmmps * resolucao);
     aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
 
-    motor.setMaxSpeed(velocidadeLinearPulsos);
-    motor.setAcceleration(aceleracaoLinearPulsos);
+    if (velocidadeCiclo != velocidadeLinearPulsos)
+    {
+        motor.setMaxSpeed(velocidadeLinearPulsos);
+        motor.setAcceleration(aceleracaoLinearPulsos);
+        velocidadeCiclo = velocidadeLinearPulsos;
+    }
+    
 
     Serial.print("Velocidade Braco: ");
     Serial.println(velocidadeLinearPulsos);
