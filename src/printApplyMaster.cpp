@@ -211,7 +211,8 @@ void loop()
           posicaoBracoCorrecao = posicaoBracoReferencia - posicaoBracoSensor;
           motor.setCurrentPosition(posicaoBracoCorrecao);
           fsm_referenciando_init_motor = fase7;
-          Serial.print("Posicao 0: "); Serial.println(posicaoBracoCorrecao);
+          Serial.print("Posicao 0: ");
+          Serial.println(posicaoBracoCorrecao);
           Serial.println("REFERENCIANDO INIT -- Fase 6 - Motor...");
         }
       }
@@ -267,6 +268,8 @@ void loop()
         pulsosBracoInicial = posicaoBracoInicial * resolucao;
         motor.moveTo(-pulsosBracoInicial);
         motor_espatula.moveTo(pulsosEspatulaAvanco);
+
+        ventiladorWrite(VENTILADOR_CANAL, 50);
 
         fsm_referenciando_init = fase3;
         fsm_referenciando_init_espatula = fase7;
@@ -479,7 +482,7 @@ void loop()
             imprimirZebra();
             timer_etiqueta = millis();
             fsm_pronto_init = fase3;
-            Serial.println("PRONTO INIT -- FASE 2...");
+            Serial.println("PRONTO INIT -- FASE 2 CONTINUO...");
           }
         }
       }
@@ -506,19 +509,29 @@ void loop()
       {
         pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
         motor.moveTo(-pulsosBracoAplicacao);
-        ihm.showStatus2msg(F("AGUARDANDO PRODUTO.."));
+
         fsm_pronto_init = fase6;
         Serial.println("PRONTO INIT -- FASE 5...");
       }
       else if (fsm_pronto_init == fase6)
       {
+        if (motor.distanceToGo() == 0)
+        {
+          ihm.showStatus2msg(F("AGUARDANDO PRODUTO.."));
+          fsm_pronto_init = fase7;
+          Serial.println("PRONTO INIT -- FASE 6...");
+        }
+      }
+      else if (fsm_pronto_init == fase7)
+      {
+        motorRun();
         if (checkSensorProduto())
         {
           ihm.showStatus2msg(F("--------CICLO-------"));
           fsm.sub_estado = CICLO;
           fsm_ciclo = fase1;
-          fsm_pronto_init = fase7;
-          Serial.println("PRONTO INIT -- FASE 6...");
+          fsm_pronto_init = fase8;
+          Serial.println("PRONTO INIT -- FASE 7...");
         }
       }
 
@@ -536,12 +549,14 @@ void loop()
       }
       else if (fsm_pronto_ciclo == fase3)
       {
+        motorRun();
         if (checkSensorProduto())
         {
           ihm.showStatus2msg(F("--------CICLO-------"));
           fsm.sub_estado = CICLO;
           fsm_ciclo = fase1;
           fsm_pronto_ciclo = fase4;
+          Serial.println("PRONTO CICLO -- FASE 3...");
         }
       }
     }
@@ -550,7 +565,6 @@ void loop()
     {
       if (fsm_ciclo == fase1)
       {
-        motorRun();
         vTaskSuspend(h_eeprom);
         timer_atrasoSensorProduto = millis();
         timer_ciclo = millis();
@@ -565,8 +579,6 @@ void loop()
           motor.moveTo(-pulsosBracoProduto);
           fsm_ciclo = fase3;
           Serial.println("CICLO FASE 2...");
-          Serial.print("Posicao Produto: ");
-          Serial.println(posicaoBracoProduto);
         }
       }
       else if (fsm_ciclo == fase3)
@@ -577,8 +589,6 @@ void loop()
           pulsosBracoEspacamento = espacamentoProdutomm * resolucao;
           fsm_ciclo = fase4;
           Serial.println("CICLO FASE 3...");
-          Serial.print("Posicao Deteccao: ");
-          Serial.println(posicaoBracoDeteccaoProduto);
         }
         else if (motor.distanceToGo() == 0)
         {

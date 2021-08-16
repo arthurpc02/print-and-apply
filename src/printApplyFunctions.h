@@ -112,7 +112,7 @@ const int32_t pi = 3.14159265358979;
 const int32_t raio = 20;
 const int32_t subdivisao = 50;
 const int32_t pulsosporVolta = 200;
-const int32_t resolucao = round((pulsosporVolta *  subdivisao) / (2 * pi * raio));
+const int32_t resolucao = round((pulsosporVolta * subdivisao) / (2 * pi * raio));
 
 int32_t velocidadeLinearPulsos = 0;
 int32_t velocidadeCiclo = 0;
@@ -305,7 +305,7 @@ void trataDadosImpressora(String mensagemImpressora)
     // {
     //     testeStatusImpressora = 0;
     // }
-    
+
     // Serial.print("Status impressora: "); Serial.println(testeStatusImpressora);
 
     if (testeStatusImpressora != -1)
@@ -332,7 +332,7 @@ void motorSetup()
 {
     const int32_t velocidadeReferencia = 100;
     const int32_t velocidadeReferenciaEspatula = 2000;
-    const int32_t aceleracaoReferenciaEspatula = 10000;
+    const int32_t aceleracaoReferenciaEspatula = 5000;
 
     pulsosRampa = resolucao * rampa;
 
@@ -351,7 +351,7 @@ void motorSetup()
     Serial.println(velocidadeLinearPulsosBracoInit);
     Serial.print("Aceleracao Setup Braco: ");
     Serial.println(aceleracaoLinearPulsosBracoInit);
-    
+
     velocidadeCiclo = velocidadeLinearPulsosBracoInit;
 }
 
@@ -370,32 +370,29 @@ void motorRun()
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
 
-    pulsosRampa = resolucao * rampa;
-
-    motor_espatula.setMaxSpeed(velocidadeEspatula);
-    motor_espatula.setAcceleration(aceleracaoEspatula);
-
-    velocidadeLinearPulsos = round(velocidadeLinearmmps * resolucao);
-    aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
-
     if (velocidadeCiclo != velocidadeLinearPulsos)
     {
+        pulsosRampa = resolucao * rampa;
+
+        motor_espatula.setMaxSpeed(velocidadeEspatula);
+        motor_espatula.setAcceleration(aceleracaoEspatula);
+
+        velocidadeLinearPulsos = round(velocidadeLinearmmps * resolucao);
+        aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
+
         motor.setMaxSpeed(velocidadeLinearPulsos);
         motor.setAcceleration(aceleracaoLinearPulsos);
         velocidadeCiclo = velocidadeLinearPulsos;
+
+        Serial.print("Velocidade Braco: ");
+        Serial.println(velocidadeLinearPulsos);
+
+        Serial.print("Aceleracao: ");
+        Serial.println(aceleracaoLinearPulsos);
+
+        Serial.print("Resolucao: ");
+        Serial.println(resolucao);
     }
-    
-
-    Serial.print("Velocidade Braco: ");
-    Serial.println(velocidadeLinearPulsos);
-
-    Serial.print("Aceleracao: ");
-    Serial.println(aceleracaoLinearPulsos);
-
-    Serial.print("Resolucao: ");
-    Serial.println(resolucao);
-
-
 }
 
 //////////////////////////////////////////////////////////////////////
