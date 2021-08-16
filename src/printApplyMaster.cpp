@@ -269,7 +269,7 @@ void loop()
         motor.moveTo(-pulsosBracoInicial);
         motor_espatula.moveTo(pulsosEspatulaAvanco);
 
-        ventiladorWrite(VENTILADOR_CANAL, 50);
+        ventiladorWrite(VENTILADOR_CANAL, 100);
 
         fsm_referenciando_init = fase3;
         fsm_referenciando_init_espatula = fase7;
@@ -466,7 +466,6 @@ void loop()
           if (motor_espatula.distanceToGo() == 0)
           {
             ihm.showStatus2msg(F("APROXIMANDO BRACO..."));
-            ventiladorWrite(VENTILADOR_CANAL, 100);
             imprimirZebra();
             timer_etiqueta = millis();
             fsm_pronto_init = fase3;
