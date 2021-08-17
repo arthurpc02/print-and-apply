@@ -297,6 +297,7 @@ void loop()
         fsm_referenciando_ciclo = fase2;
         fsm_referenciando_ciclo_espatula = fase2;
         fsm_referenciando_ciclo_motor = fase2;
+        timer_reinicio_espatula = millis();
         Serial.println("REFERENCIANDO CICLO -- Fase 1...");
       }
 

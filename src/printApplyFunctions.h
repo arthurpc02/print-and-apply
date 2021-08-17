@@ -38,6 +38,7 @@ typedef struct
 Fsm fsm;
 
 SemaphoreHandle_t mtx_ios;
+SemaphoreHandle_t mutex_rs485;
 
 AccelStepper motor(AccelStepper::DRIVER, PIN_PUL, PIN_DIR);
 AccelStepper motor_espatula(AccelStepper::DRIVER, PIN_PUL_ESP, PIN_DIR_ESP);
@@ -128,7 +129,7 @@ String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
 
-int32_t tempoReinicioEspatula = 50;
+int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 // Processo:
@@ -192,6 +193,7 @@ Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 void createTasks();
 
 void t_requestStatusImpressoraZebra(void *p);
+void t_receiveStatusImpressoraZebra(void *p);
 void imprimirZebra();
 void trataDadosImpressora(String);
 
@@ -264,6 +266,7 @@ void createTasks()
     xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     xTaskCreatePinnedToCore(t_requestStatusImpressoraZebra, "status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
     if (flag_debugEnabled)
@@ -278,13 +281,23 @@ void t_requestStatusImpressoraZebra(void *p)
 
     while (1)
     {
+        xSemaphoreTake(mutex_rs485, portMAX_DELAY);
         ihm.statusImpressoraRS485();
+        xSemaphoreGive(mutex_rs485);
+        delay(tempoRequestStatusImpressora);
+    }
+}
+
+void t_receiveStatusImpressoraZebra(void *p)
+{
+    while (1)
+    {
         if (rs485.available() > 0)
         {
             String frame = rs485.readString();
             trataDadosImpressora(frame);
         }
-        delay(tempoRequestStatusImpressora);
+        delay(500);
     }
 }
 
@@ -300,13 +313,10 @@ void playZebra()
 
 void trataDadosImpressora(String mensagemImpressora)
 {
-    testeStatusImpressora = mensagemImpressora.indexOf(printerStatus, 45);
-    // if (mensagemImpressora.compareTo(" \n") == 0)
-    // {
-    //     testeStatusImpressora = 0;
-    // }
+    if (mensagemImpressora.compareTo(" ") == 0)
+        Serial.print("Mensagem impressora: Vazia... ");
 
-    // Serial.print("Status impressora: "); Serial.println(testeStatusImpressora);
+    testeStatusImpressora = mensagemImpressora.indexOf(printerStatus, 45);
 
     if (testeStatusImpressora != -1)
     {
@@ -538,18 +548,21 @@ int checkBotaoStart()
 // Checa se os botoes foram pressionados e já atualiza o display
 void t_ihm(void *p)
 {
+    mutex_rs485 = xSemaphoreCreateMutex();
+
     uint32_t timer_display = 0;
     const uint32_t resetDisplay = 10000;
-
     String cont_str = "Contador: ";
 
     cont_str.concat(contadorAbsoluto);
     ihm.configDefaultMsg(cont_str);
     ihm.configDefaultMsg2("PRINT APPLY LINEAR");
-    delay(1000);
 
+    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
     ihm.setup();
-    delay(5000);
+    xSemaphoreGive(mutex_rs485);
+
+    delay(3000);
 
     ihm.addMenuToIndex(&menu_produto);
 
@@ -565,6 +578,7 @@ void t_ihm(void *p)
     {
         if (fsm.estado == PARADA_EMERGENCIA || fsm.sub_estado == PRONTO)
         {
+            xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             if (checkBotaoCima())
             {
                 Menu *checkMenu = ihm.getMenu();
@@ -606,6 +620,8 @@ void t_ihm(void *p)
                 ihm.changeMenu(NEXT);
                 timer_display = millis();
             }
+
+            xSemaphoreGive(mutex_rs485);
         }
 
         if (millis() - timer_display >= resetDisplay)
