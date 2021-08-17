@@ -335,7 +335,7 @@ void loop()
           fsm_referenciando_ciclo_espatula = fase3;
         }
       }
-      if (fsm_referenciando_ciclo_espatula == fase3)
+      else if (fsm_referenciando_ciclo_espatula == fase3)
       {
         if (checkSensorEspatulaInit())
         {
