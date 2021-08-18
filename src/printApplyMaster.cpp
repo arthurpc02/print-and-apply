@@ -36,33 +36,42 @@ void loop()
 
   switch (fsm.estado)
   {
-  case PARADA_EMERGENCIA:
+  case PARADA_EMERGENCIA_VERTICAL:
   {
-    if (fsm.sub_estado == EMERGENCIA)
+    if (fsm.sub_estado == EMERGENCIA_VERTICAL)
     {
       if (fsm_emergencia == fase1)
       {
         motor.stop();
         motor_espatula.stop();
-        motorDisable();
+        motorSetup();
         ventiladorWrite(VENTILADOR_CANAL, 0);
-
         fsm_emergencia = fase2;
-        fsm_manutencao = fase1;
       }
       else if (fsm_emergencia == fase2)
       {
         setBits(PIN_INTERTRAVAMENTO_OUT);
         setBits(LED_STATUS);
-
+        ihm.focus(&menu_produto);
+        ihm.showStatus2msg(F("-----EMERGENCIA-----"));
+        vTaskResume(h_eeprom);
         fsm_emergencia = fase3;
       }
       else if (fsm_emergencia == fase3)
       {
-        ihm.focus(&menu_produto);
-        ihm.showStatus2msg(F("-----EMERGENCIA-----"));
-        vTaskResume(h_eeprom);
+        pulsosBracoEmergencia = posicaoBracoEmergencia * resolucao;
+        motor.moveTo(-pulsosBracoEmergencia);
         fsm_emergencia = fase4;
+      }
+      else if (fsm_emergencia == fase4)
+      { 
+        if(motor.distanceToGo() == 0)
+        {
+          motorDisable();
+          fsm_emergencia = fase5;
+          flag_manutencao = true;
+          fsm_manutencao = fase1;
+        }
       }
     }
 
@@ -99,11 +108,13 @@ void loop()
       if (fsm.sub_estado == MANUTENCAO)
       {
         bloqueiaMenusDeManutencao();
-        fsm.sub_estado = EMERGENCIA;
+        fsm.sub_estado = EMERGENCIA_VERTICAL;
+        flag_manutencao = false;
       }
       else
       {
         flag_continuo = false;
+        flag_manutencao = false;
 
         fsm.estado = ATIVO;
         fsm.sub_estado = REFERENCIANDO_INIT;
@@ -303,30 +314,9 @@ void loop()
 
       if (fsm_referenciando_ciclo_motor == fase2)
       {
-        motor.move(pulsosBracoMaximo);
+        motor.moveTo(-pulsosBracoInicial);
         fsm_referenciando_ciclo_motor = fase3;
         Serial.println("REFERENCIANDO CICLO Motor -- Fase 2 - Motor 2...");
-      }
-      else if (fsm_referenciando_ciclo_motor == fase3)
-      {
-        if (checkSensorHome())
-        {
-          posicaoBracoSensor = motor.currentPosition();
-          motor.stop();
-          fsm_referenciando_ciclo_motor = fase4;
-          Serial.println("REFERENCIANDO CICLO Motor -- Fase 3...");
-        }
-      }
-      else if (fsm_referenciando_ciclo_motor == fase4)
-      {
-        if (motor.distanceToGo() == 0)
-        {
-          posicaoBracoReferencia = motor.currentPosition();
-          posicaoBracoCorrecao = posicaoBracoReferencia - posicaoBracoSensor;
-          motor.setCurrentPosition(posicaoBracoCorrecao);
-          fsm_referenciando_ciclo_motor = fase5;
-          Serial.println("REFERENCIANDO CICLO Motor -- Fase 4...");
-        }
       }
 
       if (fsm_referenciando_ciclo_espatula == fase2)
@@ -382,7 +372,7 @@ void loop()
         }
       }
 
-      else if (fsm_referenciando_ciclo_espatula == fase7 && fsm_referenciando_ciclo_motor == fase5)
+      else if (fsm_referenciando_ciclo_espatula == fase7 && fsm_referenciando_ciclo_motor == fase3)
       {
         pulsosBracoInicial = posicaoBracoInicial * resolucao;
         motor.moveTo(-pulsosBracoInicial);
@@ -419,22 +409,22 @@ void loop()
           posicaoEspatulaSensor = motor_espatula.currentPosition();
           motor_espatula.stop();
           fsm_referenciando_ciclo_espatula = fase11;
-          fsm_referenciando_ciclo_motor = fase6;
+          fsm_referenciando_ciclo_motor = fase4;
           Serial.println("REFERENCIANDO CICLO -- Fase 9...");
         }
       }
 
-      else if (fsm_referenciando_ciclo_motor == fase6)
+      else if (fsm_referenciando_ciclo_motor == fase4)
       {
         pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
         motor.moveTo(-pulsosBracoAplicacao);
-        fsm_referenciando_ciclo_motor = fase7;
-        Serial.println("REFERENCIANDO CICLO Motor -- Fase 6...");
+        fsm_referenciando_ciclo_motor = fase5;
+        Serial.println("REFERENCIANDO CICLO Motor -- Fase 4...");
       }
 
       else if (fsm_referenciando_ciclo == fase2)
       {
-        if (fsm_referenciando_ciclo_espatula == fase11 && fsm_referenciando_ciclo_motor == fase7)
+        if (fsm_referenciando_ciclo_espatula == fase11 && fsm_referenciando_ciclo_motor == fase5)
         {
           if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
           {
@@ -442,7 +432,7 @@ void loop()
             fsm_pronto_ciclo = fase1;
             fsm_referenciando_ciclo = fase1;
             fsm_referenciando_ciclo_espatula = fase12;
-            fsm_referenciando_ciclo_motor = fase8;
+            fsm_referenciando_ciclo_motor = fase6;
             Serial.println("REFERENCIANDO CICLO Motor -- Fim de referencia ciclo...");
           }
         }
@@ -660,8 +650,8 @@ void loop()
     // Condição para sair de ATIVO:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA;
-      fsm.sub_estado = EMERGENCIA;
+      fsm.estado = PARADA_EMERGENCIA_VERTICAL;
+      fsm.sub_estado = EMERGENCIA_VERTICAL;
     }
     // Condição para sair de ATIVO:
     break;
@@ -735,8 +725,8 @@ void loop()
     // Condição para sair do ERRO:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA;
-      fsm.sub_estado = EMERGENCIA;
+      fsm.estado = PARADA_EMERGENCIA_VERTICAL;
+      fsm.sub_estado = EMERGENCIA_VERTICAL;
     }
     // Condição para sair do ERRO:
     break;

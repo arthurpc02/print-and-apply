@@ -18,11 +18,11 @@
 enum Estado
 {
     // Estados:
-    PARADA_EMERGENCIA,
+    PARADA_EMERGENCIA_VERTICAL,
     ATIVO,
     ERRO,
     // Sub-estados:
-    EMERGENCIA,
+    EMERGENCIA_VERTICAL,
     MANUTENCAO,
     REFERENCIANDO_INIT,
     REFERENCIANDO_CICLO,
@@ -32,8 +32,8 @@ enum Estado
 
 typedef struct
 {
-    Estado estado = PARADA_EMERGENCIA;
-    Estado sub_estado = EMERGENCIA;
+    Estado estado = PARADA_EMERGENCIA_VERTICAL;
+    Estado sub_estado = EMERGENCIA_VERTICAL;
 } Fsm;
 Fsm fsm;
 
@@ -93,6 +93,8 @@ int32_t pulsosBracoEspacamento = 0;
 int32_t pulsosBracoInicial = 0;
 int32_t pulsosBracoAplicacao = 0;
 int32_t pulsosBracoProduto = 0;
+
+int32_t pulsosBracoEmergencia = 0;
 // Pulsos:
 
 // Posições:
@@ -106,6 +108,8 @@ int32_t posicaoBracoCorrecao = 0;
 int32_t posicaoBracoDeteccaoProduto = 0;
 
 int32_t posicaoBracoProduto = 440;
+
+int32_t posicaoBracoEmergencia = 440;
 // Posições:
 // Variáveis para os motores:
 
@@ -165,7 +169,7 @@ bool flag_emergencia = false;
 bool flag_debugEnabled = false;
 bool flag_restartDisplay = false;
 bool flag_continuo = false;
-
+bool flag_manutencao = false;
 // Flag's:
 // Parâmetros:
 //////////////////////////////////////////////////////////////////////
@@ -579,7 +583,7 @@ void t_ihm(void *p)
 
     while (1)
     {
-        if (fsm.estado == PARADA_EMERGENCIA || fsm.sub_estado == PRONTO)
+        if (fsm.estado == PARADA_EMERGENCIA_VERTICAL || fsm.sub_estado == PRONTO)
         {
             xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             if (checkBotaoCima())
@@ -899,7 +903,7 @@ void t_manutencao(void *p)
 
     while (1)
     {
-        if (fsm.estado == PARADA_EMERGENCIA)
+        if (flag_manutencao)
         {
             if ((input_state & bit(BUTTON_DIREITA)) == bit(BUTTON_DIREITA)) //botao direita
             {
