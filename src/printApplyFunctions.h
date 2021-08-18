@@ -124,7 +124,7 @@ int32_t contadorAbsoluto = 0;
 const uint16_t quantidadeParaBackups = 100;
 
 int16_t testeStatusImpressora = 0;
-int16_t tempoRequestStatusImpressora = 10000;
+int32_t tempoRequestStatusImpressora = 10000;
 String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
@@ -290,14 +290,17 @@ void t_requestStatusImpressoraZebra(void *p)
 
 void t_receiveStatusImpressoraZebra(void *p)
 {
+    delay(tempoRequestStatusImpressora);
+
     while (1)
     {
         if (rs485.available() > 0)
         {
             String frame = rs485.readString();
+            xSemaphoreGive(mutex_rs485);
             trataDadosImpressora(frame);
         }
-        delay(500);
+        delay(1000);
     }
 }
 
