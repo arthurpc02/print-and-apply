@@ -79,7 +79,7 @@ int32_t rampa = 10;
 
 // Variáveis para os motores:
 // Pulsos:
-const int32_t pulsosEspatulaRecuoInit = 2600;
+const int32_t pulsosEspatulaRecuoInit = 3000;
 const int32_t pulsosEspatulaAvancoInit = 750;
 
 const int32_t pulsosEspatulaAvanco = 2350;
@@ -183,7 +183,7 @@ Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidade
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
-Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 50u);
+Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
 Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
@@ -348,7 +348,7 @@ void trataDadosImpressora(String mensagemImpressora)
 void motorSetup()
 {
     const int32_t velocidadeReferencia = 100;
-    const int32_t velocidadeReferenciaEspatula = 2000;
+    const int32_t velocidadeReferenciaEspatula = 1000;
     const int32_t aceleracaoReferenciaEspatula = 5000;
 
     pulsosRampa = resolucao * rampa;
