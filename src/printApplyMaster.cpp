@@ -45,8 +45,10 @@ void loop()
         motor.stop();
         motor_espatula.stop();
         motorSetup();
+        motorEnable();
         ventiladorWrite(VENTILADOR_CANAL, 0);
         fsm_emergencia = fase2;
+        Serial.println("EMERGENCIA FASE 1 ");
       }
       else if (fsm_emergencia == fase2)
       {
@@ -56,21 +58,61 @@ void loop()
         ihm.showStatus2msg(F("-----EMERGENCIA-----"));
         vTaskResume(h_eeprom);
         fsm_emergencia = fase3;
+        Serial.println("EMERGENCIA FASE 2 ");
       }
       else if (fsm_emergencia == fase3)
       {
-        pulsosBracoEmergencia = posicaoBracoEmergencia * resolucao;
-        motor.moveTo(-pulsosBracoEmergencia);
-        fsm_emergencia = fase4;
+        if (checkSensorHomeInit())
+        {
+          pulsosBracoEmergencia = posicaoBracoEmergencia * resolucao;
+          motor.moveTo(-pulsosBracoEmergencia);
+          fsm_emergencia = fase6;
+          Serial.println("EMERGENCIA FASE 3-1 ");
+        }
+        else
+        {
+          motor.move(pulsosBracoMaximo);
+          fsm_emergencia = fase4;
+          Serial.println("EMERGENCIA FASE 3-2 ");
+        }
       }
       else if (fsm_emergencia == fase4)
-      { 
-        if(motor.distanceToGo() == 0)
+      {
+        if (checkSensorHome())
+        {
+          posicaoBracoSensor = motor.currentPosition();
+          motor.stop();
+          fsm_emergencia = fase5;
+          Serial.println("EMERGENCIA FASE 4 ");
+        }
+      }
+      else if (fsm_emergencia == fase5)
+      {
+        if (motor.distanceToGo() == 0)
+        {
+          posicaoBracoReferencia = motor.currentPosition();
+          posicaoBracoCorrecao = posicaoBracoReferencia - posicaoBracoSensor;
+          motor.setCurrentPosition(posicaoBracoCorrecao);
+          fsm_emergencia = fase6;
+          Serial.println("EMERGENCIA FASE 5 ");
+        }
+      }
+      else if (fsm_emergencia == fase6)
+      {
+        pulsosBracoEmergencia = posicaoBracoEmergencia * resolucao;
+        motor.moveTo(-pulsosBracoEmergencia);
+        fsm_emergencia = fase7;
+        Serial.println("EMERGENCIA FASE 6 ");
+      }
+      else if (fsm_emergencia == fase7)
+      {
+        if (motor.distanceToGo() == 0)
         {
           motorDisable();
-          fsm_emergencia = fase5;
+          fsm_emergencia = fase8;
           flag_manutencao = true;
           fsm_manutencao = fase1;
+          Serial.println("EMERGENCIA FASE 7 ");
         }
       }
     }

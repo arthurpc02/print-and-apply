@@ -109,7 +109,7 @@ int32_t posicaoBracoDeteccaoProduto = 0;
 
 int32_t posicaoBracoProduto = 440;
 
-int32_t posicaoBracoEmergencia = 440;
+int32_t posicaoBracoEmergencia = 462;
 // Posições:
 // Variáveis para os motores:
 
