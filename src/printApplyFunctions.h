@@ -120,7 +120,7 @@ const int32_t pulsosporVolta = 200;
 const int32_t resolucao = round((pulsosporVolta * subdivisao) / (2 * pi * raio));
 
 int32_t velocidadeLinearPulsos = 0;
-int32_t velocidadeCiclo = 0;
+int32_t velocidadeCiclommps = 0;
 uint32_t aceleracaoLinearPulsos = 0;
 int32_t pulsosRampa = 0;
 
@@ -347,8 +347,8 @@ void trataDadosImpressora(String mensagemImpressora)
 //////////////////////////////////////////////////////////////////////
 void motorSetup()
 {
-    const int32_t velocidadeReferencia = 100;
-    const int32_t velocidadeReferenciaEspatula = 1000;
+    const int32_t velocidadeReferencia = 150;
+    const int32_t velocidadeReferenciaEspatula = 2000;
     const int32_t aceleracaoReferenciaEspatula = 5000;
 
     pulsosRampa = resolucao * rampa;
@@ -369,7 +369,7 @@ void motorSetup()
     Serial.print("Aceleracao Setup Braco: ");
     Serial.println(aceleracaoLinearPulsosBracoInit);
 
-    velocidadeCiclo = velocidadeLinearPulsosBracoInit;
+    velocidadeCiclommps = velocidadeReferencia;
 }
 
 void motorEnable()
@@ -387,7 +387,7 @@ void motorRun()
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
 
-    if (velocidadeCiclo != velocidadeLinearPulsos)
+    if (velocidadeCiclommps != velocidadeLinearmmps)
     {
         pulsosRampa = resolucao * rampa;
 
@@ -399,7 +399,7 @@ void motorRun()
 
         motor.setMaxSpeed(velocidadeLinearPulsos);
         motor.setAcceleration(aceleracaoLinearPulsos);
-        velocidadeCiclo = velocidadeLinearPulsos;
+        velocidadeCiclommps = velocidadeLinearmmps;
 
         Serial.print("Velocidade Braco: ");
         Serial.println(velocidadeLinearPulsos);
