@@ -269,7 +269,6 @@ void createTasks()
     xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
-    xTaskCreatePinnedToCore(t_requestStatusImpressoraZebra, "status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
@@ -281,15 +280,11 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 void t_requestStatusImpressoraZebra(void *p)
 {
-    delay(tempoRequestStatusImpressora);
+    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
+    ihm.statusImpressoraRS485();
+    xSemaphoreGive(mutex_rs485);
 
-    while (1)
-    {
-        xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-        ihm.statusImpressoraRS485();
-        xSemaphoreGive(mutex_rs485);
-        delay(tempoRequestStatusImpressora);
-    }
+    vTaskDelete(NULL);
 }
 
 void t_receiveStatusImpressoraZebra(void *p)

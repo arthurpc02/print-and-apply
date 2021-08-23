@@ -38,6 +38,14 @@ void loop()
   {
   case PARADA_EMERGENCIA_VERTICAL:
   {
+    static uint32_t timer_requestStatusImpressora = 0;
+
+    if (millis() - timer_requestStatusImpressora >= 10000)
+    {
+      xTaskCreatePinnedToCore(t_requestStatusImpressoraZebra, "request status task", 4096, NULL, PRIORITY_1, NULL, CORE_0);
+      timer_requestStatusImpressora = millis();
+    }
+
     if (fsm.sub_estado == EMERGENCIA_VERTICAL)
     {
       if (fsm_emergencia == fase1)
