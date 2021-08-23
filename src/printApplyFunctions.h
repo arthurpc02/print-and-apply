@@ -547,7 +547,7 @@ void t_ihm(void *p)
     mutex_rs485 = xSemaphoreCreateMutex();
 
     uint32_t timer_display = 0;
-    const uint32_t resetDisplay = 10000;
+    const uint32_t resetDisplay = 120000;
     String cont_str = "Contador: ";
 
     cont_str.concat(contadorAbsoluto);
