@@ -365,11 +365,6 @@ void motorSetup()
     motor_espatula.setAcceleration(aceleracaoReferenciaEspatula);
     motor_espatula.setPinsInverted(DIRECAO_ANTIHORA);
 
-    Serial.print("Velocidade Setup Braco: ");
-    Serial.println(velocidadeLinearPulsosBracoInit);
-    Serial.print("Aceleracao Setup Braco: ");
-    Serial.println(aceleracaoLinearPulsosBracoInit);
-
     velocidadeCiclommps = velocidadeReferencia;
 }
 
@@ -463,7 +458,6 @@ int checkSensorHome()
         if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_LOW)
         {
             flag_sh = 0;
-            Serial.println("Sensor de Home -- ON");
             return 1;
         }
     }
@@ -474,7 +468,6 @@ int checkSensorEspatulaInit()
 {
     if (digitalRead(PIN_SENSOR_ESPATULA) == ACTIVE_LOW)
     {
-        Serial.println("Sensor de Espatula -- ON");
         return 1;
     }
 

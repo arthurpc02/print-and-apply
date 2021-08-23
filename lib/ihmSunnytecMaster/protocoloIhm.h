@@ -47,7 +47,7 @@ Tamanho máximo de informações 20 caractéres (LCD: 20x4)
 // Estrutura do protocolo:
 
 // Comandos ZPL:
-#define FUNC_IMP_ETIQUETA "~PR"
+#define FUNC_IMP_ETIQUETA "~PS"
 #define FUNC_PLAY_ETIQUETA "~PS"
 #define FUNC_STATUS_IMP "~HQES"
 // Comandos ZPL:
