@@ -128,7 +128,7 @@ int32_t contadorAbsoluto = 0;
 const uint16_t quantidadeParaBackups = 100;
 
 int16_t testeStatusImpressora = 0;
-int32_t tempoRequestStatusImpressora = 10000;
+int32_t tempoRequestStatusImpressora = 15000;
 String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
@@ -300,6 +300,7 @@ void t_receiveStatusImpressoraZebra(void *p)
     {
         if (rs485.available() > 0)
         {
+            xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             String frame = rs485.readString();
             xSemaphoreGive(mutex_rs485);
             trataDadosImpressora(frame);
@@ -320,8 +321,8 @@ void playZebra()
 
 void trataDadosImpressora(String mensagemImpressora)
 {
-    if (mensagemImpressora.compareTo(" ") == 0)
-        Serial.print("Mensagem impressora: Vazia... ");
+    // if (mensagemImpressora.compareTo(" ") == 0)
+    //     Serial.print("Mensagem impressora: Vazia... ");
 
     testeStatusImpressora = mensagemImpressora.indexOf(printerStatus, 45);
 

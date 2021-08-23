@@ -242,6 +242,7 @@ void loop()
         if (millis() - timer_enableMotor >= tempoParaEstabilizarMotorBraco)
         {
           fsm_referenciando_init_motor = fase3;
+          Serial.println("REFERENCIANDO INIT -- Fase 2 - Motor");
         }
       }
       else if (fsm_referenciando_init_motor == fase3)
@@ -250,13 +251,13 @@ void loop()
         {
           motor.move(-pulsosBracoForaSensor);
           fsm_referenciando_init_motor = fase4;
-          Serial.println("REFERENCIANDO INIT -- Fase 3 - Motor 1...");
+          Serial.println("REFERENCIANDO INIT -- Fase 3-1 - Motor...");
         }
         else
         {
           motor.move(pulsosBracoMaximo);
           fsm_referenciando_init_motor = fase5;
-          Serial.println("REFERENCIANDO INIT -- Fase 3 - Motor 2...");
+          Serial.println("REFERENCIANDO INIT -- Fase 3-2 - Motor ...");
         }
       }
       else if (fsm_referenciando_init_motor == fase4)
@@ -397,6 +398,7 @@ void loop()
         if (millis() - timer_reinicio_espatula >= tempoReinicioEspatula)
         {
           fsm_referenciando_ciclo_espatula = fase3;
+          Serial.println("REFERENCIANDO CICLO -- Fase 2");
         }
       }
       else if (fsm_referenciando_ciclo_espatula == fase3)
@@ -441,7 +443,7 @@ void loop()
           posicaoEspatulaCorrecao = posicaoEspatulaReferencia - posicaoEspatulaSensor;
           motor_espatula.setCurrentPosition(posicaoEspatulaCorrecao);
           fsm_referenciando_ciclo_espatula = fase7;
-          Serial.println("REFERENCIANDO CICLO -- Fase 5...");
+          Serial.println("REFERENCIANDO CICLO -- Fase 6...");
         }
       }
 
@@ -461,7 +463,7 @@ void loop()
         {
           timer_etiqueta = millis();
           fsm_referenciando_ciclo_espatula = fase9;
-          Serial.println("REFERENCIANDO CICLO - FASE 7 ...");
+          Serial.println("REFERENCIANDO CICLO - Fase 8 ...");
         }
       }
       else if (fsm_referenciando_ciclo_espatula == fase9)
@@ -470,7 +472,7 @@ void loop()
         {
           motor_espatula.moveTo(-pulsosEspatulaRecuo);
           fsm_referenciando_ciclo_espatula = fase10;
-          Serial.println("REFERENCIANDO CICLO -- Fase 8...");
+          Serial.println("REFERENCIANDO CICLO -- Fase 9 ...");
         }
       }
       else if (fsm_referenciando_ciclo_espatula == fase10)
@@ -480,30 +482,31 @@ void loop()
           posicaoEspatulaSensor = motor_espatula.currentPosition();
           motor_espatula.stop();
           fsm_referenciando_ciclo_espatula = fase11;
-          fsm_referenciando_ciclo_motor = fase4;
-          Serial.println("REFERENCIANDO CICLO -- Fase 9...");
+          fsm_referenciando_ciclo_motor = fase5;
+          Serial.println("REFERENCIANDO CICLO -- Fase 10...");
         }
       }
 
-      else if (fsm_referenciando_ciclo_motor == fase4)
+      else if (fsm_referenciando_ciclo_motor == fase5)
       {
         pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
         motor.moveTo(-pulsosBracoAplicacao);
-        fsm_referenciando_ciclo_motor = fase5;
-        Serial.println("REFERENCIANDO CICLO Motor -- Fase 4...");
+        fsm_referenciando_ciclo_motor = fase6;
+        Serial.println("REFERENCIANDO CICLO Motor -- Fase 5...");
       }
 
       else if (fsm_referenciando_ciclo == fase2)
       {
-        if (fsm_referenciando_ciclo_espatula == fase11 && fsm_referenciando_ciclo_motor == fase5)
+        if (fsm_referenciando_ciclo_espatula == fase11 && fsm_referenciando_ciclo_motor == fase6)
         {
           if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
           {
             fsm.sub_estado = PRONTO;
             fsm_pronto_ciclo = fase1;
+            fsm_pronto_init = fase8;
             fsm_referenciando_ciclo = fase1;
             fsm_referenciando_ciclo_espatula = fase12;
-            fsm_referenciando_ciclo_motor = fase6;
+            fsm_referenciando_ciclo_motor = fase7;
             Serial.println("REFERENCIANDO CICLO Motor -- Fim de referencia ciclo...");
           }
         }
