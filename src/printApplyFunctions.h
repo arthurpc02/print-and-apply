@@ -343,8 +343,8 @@ void trataDadosImpressora(String mensagemImpressora)
 //////////////////////////////////////////////////////////////////////
 void motorSetup()
 {
-    const int32_t velocidadeReferencia = 150;
-    const int32_t velocidadeReferenciaEspatula = 2000;
+    const int32_t velocidadeReferencia = 165;
+    const int32_t velocidadeReferenciaEspatula = 1750;
     const int32_t aceleracaoReferenciaEspatula = 5000;
 
     pulsosRampa = resolucao * rampa;

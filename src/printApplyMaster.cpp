@@ -424,7 +424,6 @@ void loop()
       {
         motor_espatula.moveTo(pulsosEspatulaAvanco);
         ventiladorWrite(VENTILADOR_CANAL, 100);
-        imprimirZebra();
 
         fsm_referenciando_ciclo_espatula = fase8;
         Serial.println("REFERENCIANDO CICLO -- Fase MISTA...");
@@ -434,6 +433,7 @@ void loop()
       {
         if (motor_espatula.distanceToGo() == 0)
         {
+          imprimirZebra();
           timer_etiqueta = millis();
           fsm_referenciando_ciclo_espatula = fase9;
         }
@@ -499,7 +499,7 @@ void loop()
           if (motor_espatula.distanceToGo() == 0)
           {
             ihm.showStatus2msg(F("APROXIMANDO BRACO..."));
-            imprimirZebra();
+            // imprimirZebra();
             timer_etiqueta = millis();
             fsm_pronto_init = fase3;
           }
@@ -650,7 +650,7 @@ void loop()
       {
         if (motor.distanceToGo() == 0)
         {
-          ventiladorWrite(VENTILADOR_CANAL, 25);
+          // ventiladorWrite(VENTILADOR_CANAL, 25);
           fsm_ciclo = fase7;
         }
       }
