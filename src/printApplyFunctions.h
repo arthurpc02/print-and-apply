@@ -75,6 +75,7 @@ int32_t tempoFinalizarAplicacao = 250;
 int32_t contadorCiclo = 0;
 
 int32_t rampa = 10;
+int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
 // Menu:
 
 // Variáveis para os motores:
@@ -189,6 +190,7 @@ Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &es
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
+Menu menu_statusIntertravamentoIn = Menu("Intertravamento In", PARAMETRO_STRING, "     ON ou OFF      ");
 // Criando menu:
 
 //////////////////////////////////////////////////////////////////////
@@ -228,6 +230,7 @@ void presetEEPROM();
 
 void t_emergencia(void *p);
 void t_intretravamentoIN(void *p);
+void updateIntertravamentoIn();
 
 void t_manutencao(void *p);
 void liberaMenusDeManutencao();
@@ -583,6 +586,8 @@ void t_ihm(void *p)
                     menu_produto.addVar(MAIS);
                     loadProductFromEEPROM(produto);
                 }
+                else if (checkMenu == &menu_statusIntertravamentoIn)
+                    updateIntertravamentoIn();
                 else
                 {
                     checkMenu->addVar(MAIS);
@@ -598,6 +603,8 @@ void t_ihm(void *p)
                     menu_produto.addVar(MENOS);
                     loadProductFromEEPROM(produto);
                 }
+                else if (checkMenu == &menu_statusIntertravamentoIn)
+                    updateIntertravamentoIn();
                 else
                 {
                     checkMenu->addVar(MENOS);
@@ -765,12 +772,10 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-
         EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);
-
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
-
         EEPROM.put(EPR_rampa, rampa);
+        EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
 
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
@@ -785,9 +790,9 @@ void t_eeprom(void *p)
     }
 }
 
-/* Salva os parâmetros do equipamento de tempos em tempos os primeiros endereços 
-são reservados para parâmetros não-específicos, os demais endereços são separados 
-por produto/receita o produto é exibido para o usuário no display como 1 a 10, 
+/* Salva os parâmetros do equipamento de tempos em tempos os primeiros endereços
+são reservados para parâmetros não-específicos, os demais endereços são separados
+por produto/receita o produto é exibido para o usuário no display como 1 a 10,
 mas o software sempre trata ele como produto -1, para conter o zero. */
 
 // Recupera os parâmetros salvos na eeprom
@@ -797,12 +802,11 @@ void restoreBackupParameters()
 
     EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-
     EEPROM.get(EPR_espacamentoProdutomm, espacamentoProdutomm);
-
     EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
-
     EEPROM.get(EPR_rampa, rampa);
+    EEPROM.get(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
+    EEPROM.get(EPR_contadorAbsoluto, contadorAbsoluto);
 
     loadProductFromEEPROM(produto);
 }
@@ -850,37 +854,62 @@ void t_intretravamentoIN(void *p)
 
     while (1)
     {
-        flag_intertravamentoIn_Hold_On = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-
-        if (flag_intertravamentoIn_Hold_On == HIGH)
+        if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_ON)
         {
-            if (millis() - (timer_hold_on) >= timeout_hold)
+            flag_intertravamentoIn_Hold_On = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+
+            if (flag_intertravamentoIn_Hold_On == HIGH)
             {
-                flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-                timer_hold_on = millis();
-                timer_hold_off = millis();
+                if (millis() - (timer_hold_on) >= timeout_hold)
+                {
+                    flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+                    timer_hold_on = millis();
+                    timer_hold_off = millis();
+                }
+                else
+                {
+                    timer_hold_off = millis();
+                }
             }
-            else
+            else if (flag_intertravamentoIn_Hold_On == LOW)
             {
-                timer_hold_off = millis();
+                if (millis() - (timer_hold_off) >= timeout_hold)
+                {
+                    flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+                    timer_hold_off = millis();
+                    timer_hold_on = millis();
+                }
+                else
+                {
+                    timer_hold_on = millis();
+                }
             }
         }
-        else if (flag_intertravamentoIn_Hold_On == LOW)
+
+        else
         {
-            if (millis() - (timer_hold_off) >= timeout_hold)
-            {
-                flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-                timer_hold_off = millis();
-                timer_hold_on = millis();
-            }
-            else
-            {
-                timer_hold_on = millis();
-            }
+            statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
+            menu_statusIntertravamentoIn.changeMsg(F("OFF"));
         }
 
         delay(500);
     }
+}
+
+void updateIntertravamentoIn()
+{
+    if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_OFF)
+    {
+        statusIntertravamentoIn = INTERTRAVAMENTO_IN_ON;
+        menu_statusIntertravamentoIn.changeMsg(F("ON"));
+    }
+    else
+    {
+        statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
+        menu_statusIntertravamentoIn.changeMsg(F("OFF"));
+    }
+
+    ihm.signalVariableChange();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -894,7 +923,7 @@ void t_manutencao(void *p)
     {
         if (flag_manutencao)
         {
-            if ((input_state & bit(BUTTON_DIREITA)) == bit(BUTTON_DIREITA)) //botao direita
+            if ((input_state & bit(BUTTON_DIREITA)) == bit(BUTTON_DIREITA)) // botao direita
             {
                 if (millis() - timer_manutencao >= tempoParaAtivarMenuManutencao)
                 {
@@ -918,10 +947,12 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_espacamentoProdutomm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa);
+    ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
 }
 
 void bloqueiaMenusDeManutencao()
 {
+    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();

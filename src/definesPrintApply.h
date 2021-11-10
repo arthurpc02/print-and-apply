@@ -11,7 +11,7 @@
 #define EEPROM_SIZE 512
 #define EPR_maxProdutos 15      // qual o número máximo de produtos/receitas/programas a máquina vai armazenar
 #define EPR_offsetProduto 12    // quanto de memória, em bytes, um produto ocupa
-#define EPR_offsetEspecificos 28 // as variaveis que dependem de produto são armazenadas depois desse endereço, as que não dependem de produto, antes.
+#define EPR_offsetEspecificos 32 // as variaveis que dependem de produto são armazenadas depois desse endereço, as que não dependem de produto, antes.
 
 /* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
 são PARÂMETROS NÃO-ESPECÍFICOS: */
@@ -26,6 +26,9 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 #define EPR_rampa 20
 
 #define EPR_contadorAbsoluto 24
+
+#define EPR_statusIntertravamentoIn 28
+
 /* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
 são PARÂMETROS NÃO-ESPECÍFICOS: */
 
@@ -96,6 +99,11 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 #define INTERTRAVAMENTO_IN_1 DI3
 #define PIN_INTERTRAVAMENTO_OUT RLO1
 // Intertravamento:
+
+// Status Intertravamento:
+#define INTERTRAVAMENTO_IN_OFF 0
+#define INTERTRAVAMENTO_IN_ON 1
+// Status Intertravamento:
 
 // Sinalização:
 #define LED_STATUS DO5
