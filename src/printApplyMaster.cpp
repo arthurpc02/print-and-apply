@@ -1,4 +1,5 @@
-// Projeto Print & Apply Linear - Software desenvolvido para a placa industrial v2.0 comunicando com a IHM - v1.0
+/* Projeto Print Apply - Software desenvolvido para a 
+placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // Funções Print & Apply - v1.0
 

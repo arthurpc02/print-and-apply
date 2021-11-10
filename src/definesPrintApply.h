@@ -1,3 +1,6 @@
+/* Projeto Print Apply - Software desenvolvido para a 
+placa industrial V2.0 comunicando com a IHM - v1.0 */
+
 // Defines utilizados no Projeto Print Apply Linear
 
 #ifndef DEFINESPRINTAPPLY_H
