@@ -37,7 +37,7 @@ void loop()
 
   switch (fsm.estado)
   {
-  case PARADA_EMERGENCIA_VERTICAL:
+  case PARADA_EMERGENCIA:
   {
     static uint32_t timer_requestStatusImpressora = 0;
 
@@ -47,7 +47,7 @@ void loop()
       timer_requestStatusImpressora = millis();
     }
 
-    if (fsm.sub_estado == EMERGENCIA_VERTICAL)
+    if (fsm.sub_estado == EMERGENCIA_TOP)
     {
       if (fsm_emergencia == fase1)
       {
@@ -171,7 +171,7 @@ void loop()
       if (fsm.sub_estado == MANUTENCAO)
       {
         bloqueiaMenusDeManutencao();
-        fsm.sub_estado = EMERGENCIA_VERTICAL;
+        fsm.sub_estado = EMERGENCIA_TOP;
         flag_manutencao = false;
       }
       else
@@ -675,8 +675,8 @@ void loop()
     // Condição para sair de ATIVO:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA_VERTICAL;
-      fsm.sub_estado = EMERGENCIA_VERTICAL;
+      fsm.estado = PARADA_EMERGENCIA;
+      fsm.sub_estado = EMERGENCIA_TOP;
     }
     // Condição para sair de ATIVO:
     break;
@@ -750,8 +750,8 @@ void loop()
     // Condição para sair do ERRO:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA_VERTICAL;
-      fsm.sub_estado = EMERGENCIA_VERTICAL;
+      fsm.estado = PARADA_EMERGENCIA;
+      fsm.sub_estado = EMERGENCIA_TOP;
     }
     // Condição para sair do ERRO:
     break;
