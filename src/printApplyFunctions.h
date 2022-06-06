@@ -13,7 +13,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 #include <SunnyAccelStepper.h>
 #include <definesPrintApply.h>
-#include <esp32Industrial_v2.h>
+#include <esp32Industrial_v2.1.h>
 #include <ihmSunnytecMaster.h>
 
 enum Estado
