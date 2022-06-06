@@ -1,4 +1,5 @@
-// Projeto Print Apply - Software desenvolvido para a placa industrial v2.0 comunicando com a IHM - v1.0
+/* Projeto Print Apply - Software desenvolvido para a 
+placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // Biblioteca Print Apply - v1.0
 
@@ -22,7 +23,7 @@ enum Estado
     ATIVO,
     ERRO,
     // Sub-estados:
-    EMERGENCIA,
+    EMERGENCIA_TOP,
     MANUTENCAO,
     REFERENCIANDO_INIT,
     REFERENCIANDO_CICLO,
@@ -33,7 +34,7 @@ enum Estado
 typedef struct
 {
     Estado estado = PARADA_EMERGENCIA;
-    Estado sub_estado = EMERGENCIA;
+    Estado sub_estado = EMERGENCIA_TOP;
 } Fsm;
 Fsm fsm;
 
@@ -75,11 +76,12 @@ int32_t tempoFinalizarAplicacao = 250;
 int32_t contadorCiclo = 0;
 
 int32_t rampa = 10;
+int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
 // Menu:
 
 // Variáveis para os motores:
 // Pulsos:
-const int32_t pulsosEspatulaRecuoInit = 2600;
+const int32_t pulsosEspatulaRecuoInit = 3000;
 const int32_t pulsosEspatulaAvancoInit = 750;
 
 const int32_t pulsosEspatulaAvanco = 2350;
@@ -93,6 +95,8 @@ int32_t pulsosBracoEspacamento = 0;
 int32_t pulsosBracoInicial = 0;
 int32_t pulsosBracoAplicacao = 0;
 int32_t pulsosBracoProduto = 0;
+
+int32_t pulsosBracoEmergencia = 0;
 // Pulsos:
 
 // Posições:
@@ -106,6 +110,8 @@ int32_t posicaoBracoCorrecao = 0;
 int32_t posicaoBracoDeteccaoProduto = 0;
 
 int32_t posicaoBracoProduto = 440;
+
+int32_t posicaoBracoEmergencia = 462;
 // Posições:
 // Variáveis para os motores:
 
@@ -116,7 +122,7 @@ const int32_t pulsosporVolta = 200;
 const int32_t resolucao = round((pulsosporVolta * subdivisao) / (2 * pi * raio));
 
 int32_t velocidadeLinearPulsos = 0;
-int32_t velocidadeCiclo = 0;
+int32_t velocidadeCiclommps = 0;
 uint32_t aceleracaoLinearPulsos = 0;
 int32_t pulsosRampa = 0;
 
@@ -124,7 +130,7 @@ int32_t contadorAbsoluto = 0;
 const uint16_t quantidadeParaBackups = 100;
 
 int16_t testeStatusImpressora = 0;
-int32_t tempoRequestStatusImpressora = 10000;
+int32_t tempoRequestStatusImpressora = 15000;
 String printerStatus = "1";
 
 int16_t tempoLedStatus = 500;
@@ -165,7 +171,7 @@ bool flag_emergencia = false;
 bool flag_debugEnabled = false;
 bool flag_restartDisplay = false;
 bool flag_continuo = false;
-
+bool flag_manutencao = false;
 // Flag's:
 // Parâmetros:
 //////////////////////////////////////////////////////////////////////
@@ -179,12 +185,13 @@ Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidade
 
 Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
 
-Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 50u);
+Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
 Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
+Menu menu_statusIntertravamentoIn = Menu("Intertravamento In", PARAMETRO_STRING, "     ON ou OFF      ");
 // Criando menu:
 
 //////////////////////////////////////////////////////////////////////
@@ -224,6 +231,7 @@ void presetEEPROM();
 
 void t_emergencia(void *p);
 void t_intretravamentoIN(void *p);
+void updateIntertravamentoIn();
 
 void t_manutencao(void *p);
 void liberaMenusDeManutencao();
@@ -265,7 +273,6 @@ void createTasks()
     xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
-    xTaskCreatePinnedToCore(t_requestStatusImpressoraZebra, "status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
@@ -277,15 +284,11 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 void t_requestStatusImpressoraZebra(void *p)
 {
-    delay(tempoRequestStatusImpressora);
+    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
+    ihm.statusImpressoraRS485();
+    xSemaphoreGive(mutex_rs485);
 
-    while (1)
-    {
-        xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-        ihm.statusImpressoraRS485();
-        xSemaphoreGive(mutex_rs485);
-        delay(tempoRequestStatusImpressora);
-    }
+    vTaskDelete(NULL);
 }
 
 void t_receiveStatusImpressoraZebra(void *p)
@@ -296,6 +299,7 @@ void t_receiveStatusImpressoraZebra(void *p)
     {
         if (rs485.available() > 0)
         {
+            xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             String frame = rs485.readString();
             xSemaphoreGive(mutex_rs485);
             trataDadosImpressora(frame);
@@ -316,8 +320,8 @@ void playZebra()
 
 void trataDadosImpressora(String mensagemImpressora)
 {
-    if (mensagemImpressora.compareTo(" ") == 0)
-        Serial.print("Mensagem impressora: Vazia... ");
+    // if (mensagemImpressora.compareTo(" ") == 0)
+    //     Serial.print("Mensagem impressora: Vazia... ");
 
     testeStatusImpressora = mensagemImpressora.indexOf(printerStatus, 45);
 
@@ -343,8 +347,8 @@ void trataDadosImpressora(String mensagemImpressora)
 //////////////////////////////////////////////////////////////////////
 void motorSetup()
 {
-    const int32_t velocidadeReferencia = 100;
-    const int32_t velocidadeReferenciaEspatula = 2000;
+    const int32_t velocidadeReferencia = 165;
+    const int32_t velocidadeReferenciaEspatula = 1750;
     const int32_t aceleracaoReferenciaEspatula = 5000;
 
     pulsosRampa = resolucao * rampa;
@@ -360,12 +364,7 @@ void motorSetup()
     motor_espatula.setAcceleration(aceleracaoReferenciaEspatula);
     motor_espatula.setPinsInverted(DIRECAO_ANTIHORA);
 
-    Serial.print("Velocidade Setup Braco: ");
-    Serial.println(velocidadeLinearPulsosBracoInit);
-    Serial.print("Aceleracao Setup Braco: ");
-    Serial.println(aceleracaoLinearPulsosBracoInit);
-
-    velocidadeCiclo = velocidadeLinearPulsosBracoInit;
+    velocidadeCiclommps = velocidadeReferencia;
 }
 
 void motorEnable()
@@ -383,7 +382,7 @@ void motorRun()
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
 
-    if (velocidadeCiclo != velocidadeLinearPulsos)
+    if (velocidadeCiclommps != velocidadeLinearmmps)
     {
         pulsosRampa = resolucao * rampa;
 
@@ -395,7 +394,7 @@ void motorRun()
 
         motor.setMaxSpeed(velocidadeLinearPulsos);
         motor.setAcceleration(aceleracaoLinearPulsos);
-        velocidadeCiclo = velocidadeLinearPulsos;
+        velocidadeCiclommps = velocidadeLinearmmps;
 
         Serial.print("Velocidade Braco: ");
         Serial.println(velocidadeLinearPulsos);
@@ -458,7 +457,6 @@ int checkSensorHome()
         if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_LOW)
         {
             flag_sh = 0;
-            Serial.println("Sensor de Home -- ON");
             return 1;
         }
     }
@@ -469,7 +467,6 @@ int checkSensorEspatulaInit()
 {
     if (digitalRead(PIN_SENSOR_ESPATULA) == ACTIVE_LOW)
     {
-        Serial.println("Sensor de Espatula -- ON");
         return 1;
     }
 
@@ -554,7 +551,7 @@ void t_ihm(void *p)
     mutex_rs485 = xSemaphoreCreateMutex();
 
     uint32_t timer_display = 0;
-    const uint32_t resetDisplay = 10000;
+    const uint32_t resetDisplay = 120000;
     String cont_str = "Contador: ";
 
     cont_str.concat(contadorAbsoluto);
@@ -590,6 +587,8 @@ void t_ihm(void *p)
                     menu_produto.addVar(MAIS);
                     loadProductFromEEPROM(produto);
                 }
+                else if (checkMenu == &menu_statusIntertravamentoIn)
+                    updateIntertravamentoIn();
                 else
                 {
                     checkMenu->addVar(MAIS);
@@ -605,6 +604,8 @@ void t_ihm(void *p)
                     menu_produto.addVar(MENOS);
                     loadProductFromEEPROM(produto);
                 }
+                else if (checkMenu == &menu_statusIntertravamentoIn)
+                    updateIntertravamentoIn();
                 else
                 {
                     checkMenu->addVar(MENOS);
@@ -772,12 +773,10 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-
         EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);
-
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
-
         EEPROM.put(EPR_rampa, rampa);
+        EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
 
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
@@ -792,9 +791,9 @@ void t_eeprom(void *p)
     }
 }
 
-/* Salva os parâmetros do equipamento de tempos em tempos os primeiros endereços 
-são reservados para parâmetros não-específicos, os demais endereços são separados 
-por produto/receita o produto é exibido para o usuário no display como 1 a 10, 
+/* Salva os parâmetros do equipamento de tempos em tempos os primeiros endereços
+são reservados para parâmetros não-específicos, os demais endereços são separados
+por produto/receita o produto é exibido para o usuário no display como 1 a 10,
 mas o software sempre trata ele como produto -1, para conter o zero. */
 
 // Recupera os parâmetros salvos na eeprom
@@ -804,12 +803,11 @@ void restoreBackupParameters()
 
     EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-
     EEPROM.get(EPR_espacamentoProdutomm, espacamentoProdutomm);
-
     EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
-
     EEPROM.get(EPR_rampa, rampa);
+    EEPROM.get(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
+    EEPROM.get(EPR_contadorAbsoluto, contadorAbsoluto);
 
     loadProductFromEEPROM(produto);
 }
@@ -857,37 +855,62 @@ void t_intretravamentoIN(void *p)
 
     while (1)
     {
-        flag_intertravamentoIn_Hold_On = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-
-        if (flag_intertravamentoIn_Hold_On == HIGH)
+        if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_ON)
         {
-            if (millis() - (timer_hold_on) >= timeout_hold)
+            flag_intertravamentoIn_Hold_On = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+
+            if (flag_intertravamentoIn_Hold_On == HIGH)
             {
-                flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-                timer_hold_on = millis();
-                timer_hold_off = millis();
+                if (millis() - (timer_hold_on) >= timeout_hold)
+                {
+                    flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+                    timer_hold_on = millis();
+                    timer_hold_off = millis();
+                }
+                else
+                {
+                    timer_hold_off = millis();
+                }
             }
-            else
+            else if (flag_intertravamentoIn_Hold_On == LOW)
             {
-                timer_hold_off = millis();
+                if (millis() - (timer_hold_off) >= timeout_hold)
+                {
+                    flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
+                    timer_hold_off = millis();
+                    timer_hold_on = millis();
+                }
+                else
+                {
+                    timer_hold_on = millis();
+                }
             }
         }
-        else if (flag_intertravamentoIn_Hold_On == LOW)
+
+        else
         {
-            if (millis() - (timer_hold_off) >= timeout_hold)
-            {
-                flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-                timer_hold_off = millis();
-                timer_hold_on = millis();
-            }
-            else
-            {
-                timer_hold_on = millis();
-            }
+            statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
+            menu_statusIntertravamentoIn.changeMsg(F("OFF"));
         }
 
         delay(500);
     }
+}
+
+void updateIntertravamentoIn()
+{
+    if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_OFF)
+    {
+        statusIntertravamentoIn = INTERTRAVAMENTO_IN_ON;
+        menu_statusIntertravamentoIn.changeMsg(F("ON"));
+    }
+    else
+    {
+        statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
+        menu_statusIntertravamentoIn.changeMsg(F("OFF"));
+    }
+
+    ihm.signalVariableChange();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -899,9 +922,9 @@ void t_manutencao(void *p)
 
     while (1)
     {
-        if (fsm.estado == PARADA_EMERGENCIA)
+        if (flag_manutencao)
         {
-            if ((input_state & bit(BUTTON_DIREITA)) == bit(BUTTON_DIREITA)) //botao direita
+            if ((input_state & bit(BUTTON_DIREITA)) == bit(BUTTON_DIREITA)) // botao direita
             {
                 if (millis() - timer_manutencao >= tempoParaAtivarMenuManutencao)
                 {
@@ -925,10 +948,12 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_espacamentoProdutomm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa);
+    ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
 }
 
 void bloqueiaMenusDeManutencao()
 {
+    ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
     ihm.removeMenuFromIndex();
