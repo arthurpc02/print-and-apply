@@ -22,6 +22,7 @@ enum Estado
     PARADA_EMERGENCIA,
     ATIVO,
     ERRO,
+    ESTADO_TESTE,
     // Sub-estados:
     EMERGENCIA_TOP,
     MANUTENCAO,
@@ -33,7 +34,7 @@ enum Estado
 
 typedef struct
 {
-    Estado estado = PARADA_EMERGENCIA;
+    Estado estado = ESTADO_TESTE;
     Estado sub_estado = EMERGENCIA_TOP;
 } Fsm;
 Fsm fsm;
@@ -265,13 +266,13 @@ void pin_mode();
 //////////////////////////////////////////////////////////////////////
 void createTasks()
 {
-    xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
-    xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
+    // xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
     if (flag_debugEnabled)

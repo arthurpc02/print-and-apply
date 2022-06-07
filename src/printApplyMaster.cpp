@@ -8,19 +8,19 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("Print & Apply ready");
+  Serial.println("Print & Apply setup");
 
   mtx_ios = xSemaphoreCreateMutex();
 
   EEPROM.begin(EEPROM_SIZE);
-  restoreBackupParameters();
+  // restoreBackupParameters();
   // presetEEPROM();
 
   desligaTodosOutput();
 
   createTasks();
 
-  pin_mode();
+  pinInitialization();
   ventiladorConfig();
   motorSetup();
 
@@ -751,6 +751,39 @@ void loop()
       fsm.sub_estado = EMERGENCIA_TOP;
     }
     // Condição para sair do ERRO:
+    break;
+  }
+  case ESTADO_TESTE:
+  {
+    static uint32_t fsm_teste = fase1;
+    static uint32_t timer_duracaoPrint = 0;
+    static uint32_t timer_delayPosPrint = 0;
+    const uint16_t duracaoPrint = 1500;  // ms
+    const uint16_t delayPosPrint = 5000; // ms
+
+    if (fsm_teste == fase1)
+    {
+      digitalWrite(PIN_PRIN, LOW); // liga print
+      timer_duracaoPrint = millis();
+      fsm_teste = fase2;
+    }
+    else if (fsm_teste == fase2)
+    {
+      if (millis() - timer_duracaoPrint >= duracaoPrint)
+      {
+        digitalWrite(PIN_PRIN, HIGH); // desliga print
+        timer_delayPosPrint = millis();
+        fsm_teste = fase3;
+        Serial.println("printou");
+      }
+    }
+    else if(fsm_teste == fase3)
+    {
+      if(millis() - timer_delayPosPrint >= delayPosPrint)
+      {
+        fsm_teste = fase1;
+      }
+    }
     break;
   }
   }
