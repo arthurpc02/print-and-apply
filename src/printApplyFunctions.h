@@ -11,9 +11,9 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <Wire.h>
 #include <EEPROM.h>
 
+#include <esp32Industrial_v2.1.h>
 #include <SunnyAccelStepper.h>
 #include <definesPrintApply.h>
-#include <esp32Industrial_v2.1.h>
 #include <ihmSunnytecMaster.h>
 
 enum Estado
@@ -244,8 +244,6 @@ void updateOutput(uint8_t);
 void ligaOutput(uint8_t);
 void desligaOutput(uint8_t);
 void desligaTodosOutput();
-void enableOutput();
-void disableOutput();
 
 void ventiladorConfig();
 void ventiladorSetup(uint16_t, uint16_t, uint16_t);
@@ -415,14 +413,14 @@ int checkSensorProduto()
 
     if (flag_sp == 0)
     {
-        if (digitalRead(PIN_SENSOR_PRODUTO) == ACTIVE_HIGH)
+        if (digitalRead(PIN_SENSOR_PRODUTO) == HIGH)
         {
             flag_sp = 1;
         }
     }
     else if (flag_sp == 1)
     {
-        if (digitalRead(PIN_SENSOR_PRODUTO) == ACTIVE_LOW)
+        if (digitalRead(PIN_SENSOR_PRODUTO) == LOW)
         {
             flag_sp = 0;
             return 1;
@@ -433,7 +431,7 @@ int checkSensorProduto()
 
 int checkSensorHomeInit()
 {
-    if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_LOW)
+    if (digitalRead(PIN_SENSOR_HOME) == LOW)
     {
         return 1;
     }
@@ -447,14 +445,14 @@ int checkSensorHome()
 
     if (flag_sh == 0)
     {
-        if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_HIGH)
+        if (digitalRead(PIN_SENSOR_HOME) == HIGH)
         {
             flag_sh = 1;
         }
     }
     else if (flag_sh == 1)
     {
-        if (digitalRead(PIN_SENSOR_HOME) == ACTIVE_LOW)
+        if (digitalRead(PIN_SENSOR_HOME) == LOW)
         {
             flag_sh = 0;
             return 1;
@@ -465,7 +463,7 @@ int checkSensorHome()
 
 int checkSensorEspatulaInit()
 {
-    if (digitalRead(PIN_SENSOR_ESPATULA) == ACTIVE_LOW)
+    if (digitalRead(PIN_SENSOR_ESPATULA) == LOW)
     {
         return 1;
     }
@@ -479,14 +477,14 @@ int checkSensorEspatula()
 
     if (flag_se == 0)
     {
-        if (digitalRead(PIN_SENSOR_ESPATULA) == ACTIVE_LOW)
+        if (digitalRead(PIN_SENSOR_ESPATULA) == LOW)
         {
             flag_se = 1;
         }
     }
     else if (flag_se == 1)
     {
-        if (digitalRead(PIN_SENSOR_ESPATULA) == ACTIVE_HIGH)
+        if (digitalRead(PIN_SENSOR_ESPATULA) == HIGH)
         {
             flag_se = 0;
             return 1;
@@ -501,14 +499,14 @@ int checkSensorAplicacao()
 
     if (flag_sa == 0)
     {
-        if (digitalRead(PIN_SENSOR_APLICACAO) == ACTIVE_HIGH)
+        if (digitalRead(PIN_SENSOR_APLICACAO) == HIGH)
         {
             flag_sa = 1;
         }
     }
     else if (flag_sa == 1)
     {
-        if (digitalRead(PIN_SENSOR_APLICACAO) == ACTIVE_LOW)
+        if (digitalRead(PIN_SENSOR_APLICACAO) == LOW)
         {
             flag_sa = 0;
             return 1;
@@ -840,7 +838,7 @@ void t_emergencia(void *p)
 {
     while (1)
     {
-        flag_emergencia = digitalRead(PIN_EMERGENCIA);
+        flag_emergencia = digitalRead(PIN_EMERGENCIA); // to do:
         delay(100);
     }
 }
@@ -1066,7 +1064,7 @@ void desligaOutput(uint8_t posicaoDoBit)
 
 void desligaTodosOutput()
 {
-    updateOutput(bit(DO3) | bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | bit(RLO1) | bit(RLO2));
+    updateOutput(bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | bit(RLO1) | bit(RLO2));
     digitalWrite(PIN_DO1, HIGH);
     digitalWrite(PIN_DO2, HIGH);
     digitalWrite(PIN_HSDO1, LOW);
@@ -1075,17 +1073,7 @@ void desligaTodosOutput()
     digitalWrite(PIN_HSDO4, LOW);
 }
 
-// Enables 74hc595 chip (controls general outputs)
-void enableOutput()
-{
-    digitalWrite(PIN_OUTPUT_EN, LOW);
-}
 
-// Disables 74hc595 chip (controls general outputs)
-void disableOutput()
-{
-    digitalWrite(PIN_OUTPUT_EN, HIGH);
-}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -1184,7 +1172,6 @@ void pin_mode()
     // Outputs:
     pinMode(PIN_STATUS, OUTPUT);
 
-    pinMode(PIN_OUTPUT_EN, OUTPUT);
     pinMode(PIN_OUTPUT_DATA, OUTPUT);
     pinMode(PIN_IO_CLOCK, OUTPUT);
     pinMode(PIN_IO_LATCH, OUTPUT);
@@ -1208,7 +1195,6 @@ void pin_mode()
     pinMode(PIN_SENSOR_APLICACAO, INPUT);
     pinMode(PIN_SENSOR_ESPATULA, INPUT);
 
-    pinMode(PIN_EMERGENCIA, INPUT);
     //  Inputs:
 }
 // Functions:

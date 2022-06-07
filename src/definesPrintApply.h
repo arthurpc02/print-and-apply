@@ -6,7 +6,6 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #ifndef DEFINESPRINTAPPLY_H
 #define DEFINESPRINTAPPLY_H
 
-#include <esp32Industrial_v2.h>
 
 /////////////////////////////////////////////////
 // SOFTWARE DEFINES: ////////////////////////////
@@ -60,14 +59,24 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 /////////////////////////////////////////////////
 // HARDWARE DEFINES: ////////////////////////////
 // Sensores:
-#define PIN_SENSOR_PRODUTO PIN_HSDI1 // Sensor de Produto
+#define PIN_SENSOR_PRODUTO PIN_HSDI1 // Sensor de Produto ou sinal de START
 #define PIN_SENSOR_HOME PIN_HSDI2 // Sensor de Posição (HOME 1)
 #define PIN_SENSOR_APLICACAO PIN_HSDI3 // Sensor de Aplicação
 #define PIN_SENSOR_ESPATULA PIN_HSDI4 // Sensor de Espátula (HOME 2)
+
+#define PIN_EMERGENCIA DI5
+#define PIN_SENSOR_DE_PORTAS DI6
 // Sensores:
 
+// SATO / impressora:
+#define PIN_PREND PIN_HSDI4
+#define PIN_M_ERR DI1
+
+#define PIN_PRIN PIN_DO1
+#define PIN_PRIN2 PIN_DO2
+
 // Botões:
-#define BUTTON_START DI1
+#define BUTTON_START PIN_DI1 // to do:
 #define BUTTON_CIMA DI5
 #define BUTTON_BAIXO DI6
 #define BUTTON_ESQUERDA DI7
@@ -75,7 +84,7 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 // Botões:
 
 // Ventilador:
-#define PWM_VENTILADOR PIN_DO2
+#define PWM_VENTILADOR PIN_DO3
 #define FEEDBACK_VENTILADOR DI2
 #define VENTILADOR_CANAL CANAL_0
 // Ventilador:
@@ -91,7 +100,7 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 // Motor Espátula:
 
 // Habilita Motores:
-#define PIN_ENABLE_MOTORES DO3
+#define PIN_ENABLE_MOTORES DO4
 // Habilita Motores:
 
 #define DIRECAO_HORA 0
@@ -109,8 +118,9 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 // Status Intertravamento:
 
 // Sinalização:
-#define LED_STATUS DO5
+#define LED_STATUS RLO2
 // Sinalização:
-/////////////////////////////////////////////////
+
 // HARDWARE DEFINES: ////////////////////////////
+/////////////////////////////////////////////////
 #endif

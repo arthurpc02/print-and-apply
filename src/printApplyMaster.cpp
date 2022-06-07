@@ -17,7 +17,6 @@ void setup()
   // presetEEPROM();
 
   desligaTodosOutput();
-  enableOutput();
 
   createTasks();
 
