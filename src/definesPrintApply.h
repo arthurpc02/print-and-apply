@@ -92,10 +92,10 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 // Motores:
 // Motor Principal:
 #define PIN_PUL PIN_HSDO1
-#define PIN_DIR PIN_DO1
+#define PIN_DIR PIN_HSDO3
 // Motor Principal:
 // Motor Espátula:
-#define PIN_PUL_ESP PIN_SCL          
+#define PIN_PUL_ESP PIN_HSDO2          
 #define PIN_DIR_ESP PIN_SDA
 // Motor Espátula:
 

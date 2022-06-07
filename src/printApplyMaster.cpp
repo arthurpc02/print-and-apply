@@ -1,4 +1,4 @@
-/* Projeto Print Apply - Software desenvolvido para a 
+/* Projeto Print Apply - Software desenvolvido para a
 placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // Funções Print & Apply - v1.0
@@ -8,7 +8,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("Projeto Print & Apply - ESP_32 v_1.0");
+  Serial.println("Print & Apply ready");
 
   mtx_ios = xSemaphoreCreateMutex();
 
@@ -190,7 +190,6 @@ void loop()
 
     break;
   }
-
   case ATIVO:
   {
     static uint32_t timer_atrasoSensorProduto = 0;
@@ -680,7 +679,6 @@ void loop()
     // Condição para sair de ATIVO:
     break;
   }
-
   case ERRO:
   {
     piscaLedStatus();
