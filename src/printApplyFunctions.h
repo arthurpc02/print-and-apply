@@ -262,6 +262,8 @@ void t_debug(void *p);
 void pin_mode(); // to do: remover essa funcao e usar a pinInitialization da lib esp32_v2.1
 void ligaPrint();
 void desligaPrint();
+void ligaReprint();
+void desligaReprint();
 // Prototypes:
 
 //////////////////////////////////////////////////////////////////////
@@ -317,6 +319,16 @@ void ligaPrint()
 void desligaPrint()
 {
     digitalWrite(PIN_PRIN, HIGH);
+}
+
+void ligaReprint()
+{
+    digitalWrite(PIN_PRIN2, LOW);
+}
+
+void desligaReprint()
+{
+    digitalWrite(PIN_PRIN2, HIGH);
 }
 
 void imprimirZebra()
