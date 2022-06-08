@@ -768,7 +768,7 @@ void loop()
       {
         Serial.println("SP");
         xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); //createTaskPrint();
-        fsm_substate = fase2;
+        // fsm_substate = fase2;
       }
     }
     else if (fsm_substate == fase2)

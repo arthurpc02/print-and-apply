@@ -173,7 +173,7 @@ bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
 bool flag_intertravamentoIn = true;
 bool flag_emergencia = false;
-bool flag_debugEnabled = false;
+bool flag_debugEnabled = true;
 bool flag_restartDisplay = false;
 bool flag_continuo = false;
 bool flag_manutencao = false;
@@ -294,15 +294,50 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 void t_print(void *p)
 {
-    ligaPrint();
-    Serial.println("ligouprint");
-    while (digitalRead(PIN_PREND) == HIGH); // PREND type 4
-    Serial.println("prend HIGH");
-    while (digitalRead(PIN_PREND) == LOW); // PREND type 4
-    Serial.println("prend LOW");
-    desligaPrint();
-    Serial.println("fim do print");
-    vTaskDelete(NULL);
+    const uint16_t intervalo_task = 1; //ms
+
+    uint16_t fsm_print = fase1;
+    uint32_t timer_duracaoDaImpressao = 0;
+    const uint16_t timeout_duracaoDaImpressao = 3000;
+
+    while (1)
+    {
+        delay(intervalo_task);
+
+        if (fsm_print == fase1)
+        {
+            if (digitalRead(PIN_PREND) == HIGH)
+            {
+                Serial.println("prend HIGH");
+                ligaPrint();
+                Serial.println("ligouprint");
+                timer_duracaoDaImpressao = millis();
+                fsm_print = fase2;
+            }
+            else
+            {
+                // to do: envia evento erro.
+                Serial.println("erro print: impressão em andamento");
+                vTaskDelete(NULL);
+            }
+        }
+        else if (fsm_print == fase2)
+        {
+            if ((digitalRead(PIN_PREND) == LOW))
+            {
+                Serial.println("prend LOW");
+                desligaPrint();
+                // to do: evento: fim print cmd
+                // to do: flag_fimPrint = true;
+                vTaskDelete(NULL);
+            }
+            else if (millis() - timer_duracaoDaImpressao <= timeout_duracaoDaImpressao)
+            {
+                Serial.println("erro impressao: timeout duracao da impressao");
+                vTaskDelete(NULL);
+            }
+        }
+    }
 }
 
 void t_requestStatusImpressoraZebra(void *p)
@@ -1195,14 +1230,15 @@ void t_debug(void *p)
 {
     while (1)
     {
-        Serial.print("SP: ");
+        Serial.print("on: "); Serial.print(millis() / 1000);
+        Serial.print("  SP: ");
         Serial.println(digitalRead(PIN_SENSOR_PRODUTO));
         Serial.print("SH: ");
         Serial.println(digitalRead(PIN_SENSOR_HOME));
         Serial.print("SA: ");
         Serial.println(digitalRead(PIN_SENSOR_APLICACAO));
-        Serial.print("SE: ");
-        Serial.println(digitalRead(PIN_SENSOR_ESPATULA));
+        Serial.print("PREND: ");
+        Serial.println(digitalRead(PIN_PREND));
 
         delay(2000);
     }
