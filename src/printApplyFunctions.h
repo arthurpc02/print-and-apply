@@ -25,10 +25,10 @@ enum Estado
     ESTADO_TESTE,
     // Sub-estados:
     EMERGENCIA_TOP,
-    MANUTENCAO,
-    REFERENCIANDO_INIT,
+    MANUTENCAO_OLD,
+    REFERENCIANDO_INIT_OLD,
     REFERENCIANDO_CICLO_OLD,
-    PRONTO,
+    PRONTO_OLD,
     CICLO_OLD,
 };
 
@@ -599,7 +599,7 @@ void t_ihm(void *p)
 
     while (1)
     {
-        if (fsm.estado == PARADA_EMERGENCIA || fsm.sub_estado == PRONTO)
+        if (fsm.estado == PARADA_EMERGENCIA || fsm.sub_estado == PRONTO_OLD)
         {
             xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             if (checkBotaoCima())
@@ -951,7 +951,7 @@ void t_manutencao(void *p)
             {
                 if (millis() - timer_manutencao >= tempoParaAtivarMenuManutencao)
                 {
-                    fsm.sub_estado = MANUTENCAO;
+                    fsm.sub_estado = MANUTENCAO_OLD;
                     fsm_emergencia = fase1;
                 }
             }

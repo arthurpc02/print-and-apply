@@ -137,7 +137,7 @@ void loop()
       }
     }
 
-    if (fsm.sub_estado == MANUTENCAO)
+    if (fsm.sub_estado == MANUTENCAO_OLD)
     {
       if (fsm_manutencao == fase1)
       {
@@ -167,7 +167,7 @@ void loop()
         fsm_erro_intertravamento = fase10;
       }
 
-      if (fsm.sub_estado == MANUTENCAO)
+      if (fsm.sub_estado == MANUTENCAO_OLD)
       {
         bloqueiaMenusDeManutencao();
         fsm.sub_estado = EMERGENCIA_TOP;
@@ -179,7 +179,7 @@ void loop()
         flag_manutencao = false;
 
         fsm.estado = ATIVO;
-        fsm.sub_estado = REFERENCIANDO_INIT;
+        fsm.sub_estado = REFERENCIANDO_INIT_OLD;
 
         fsm_emergencia = fase1;
         fsm_manutencao = fase1;
@@ -215,7 +215,7 @@ void loop()
       fsm_erro_aplicacao = fase10;
     }
 
-    if (fsm.sub_estado == REFERENCIANDO_INIT)
+    if (fsm.sub_estado == REFERENCIANDO_INIT_OLD)
     {
       if (fsm_referenciando_init == fase1)
       {
@@ -338,7 +338,7 @@ void loop()
 
       else if (fsm_referenciando_init == fase3)
       {
-        fsm.sub_estado = PRONTO;
+        fsm.sub_estado = PRONTO_OLD;
         fsm_pronto_init = fase1;
         fsm_pronto_ciclo = fase4;
         fsm_referenciando_init = fase4;
@@ -469,7 +469,7 @@ void loop()
         {
           if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
           {
-            fsm.sub_estado = PRONTO;
+            fsm.sub_estado = PRONTO_OLD;
             fsm_pronto_ciclo = fase1;
             fsm_pronto_init = fase8;
             fsm_referenciando_ciclo = fase1;
@@ -481,7 +481,7 @@ void loop()
       }
     }
 
-    if (fsm.sub_estado == PRONTO)
+    if (fsm.sub_estado == PRONTO_OLD)
     {
       if (fsm_pronto_init == fase1)
       {
@@ -693,7 +693,7 @@ void loop()
     else if (fsm_erro_aplicacao == fase2)
     {
       fsm.estado = ATIVO;
-      fsm.sub_estado = REFERENCIANDO_INIT;
+      fsm.sub_estado = REFERENCIANDO_INIT_OLD;
       fsm_referenciando_init = fase1;
       fsm_erro_aplicacao = fase4;
       flag_continuo = true;
@@ -711,7 +711,7 @@ void loop()
       if (flag_statusImpressora == false)
       {
         fsm.estado = ATIVO;
-        fsm.sub_estado = REFERENCIANDO_INIT;
+        fsm.sub_estado = REFERENCIANDO_INIT_OLD;
         fsm_referenciando_init = fase1;
         fsm_erro_impressora = fase4;
       }
@@ -738,7 +738,7 @@ void loop()
       if (flag_intertravamentoIn == false)
       {
         fsm.estado = ATIVO;
-        fsm.sub_estado = REFERENCIANDO_INIT;
+        fsm.sub_estado = REFERENCIANDO_INIT_OLD;
         fsm_referenciando_init = fase1;
         fsm_erro_intertravamento = fase4;
       }
