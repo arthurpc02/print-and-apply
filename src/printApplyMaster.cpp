@@ -345,7 +345,7 @@ void loop()
       }
     }
 
-    if (fsm.sub_estado == REFERENCIANDO_CICLO)
+    if (fsm.sub_estado == REFERENCIANDO_CICLO_OLD)
     {
       if (fsm_referenciando_ciclo == fase1)
       {
@@ -425,7 +425,7 @@ void loop()
         ventiladorWrite(VENTILADOR_CANAL, 100);
 
         fsm_referenciando_ciclo_espatula = fase8;
-        Serial.println("REFERENCIANDO CICLO -- Fase MISTA...");
+        Serial.println("REFERENCIANDO CICLO_OLD -- Fase MISTA...");
       }
 
       else if (fsm_referenciando_ciclo_espatula == fase8)
@@ -475,7 +475,7 @@ void loop()
             fsm_referenciando_ciclo = fase1;
             fsm_referenciando_ciclo_espatula = fase12;
             fsm_referenciando_ciclo_motor = fase7;
-            Serial.println("REFERENCIANDO CICLO Motor -- Fim de referencia ciclo...");
+            Serial.println("REFERENCIANDO CICLO_OLD Motor -- Fim de referencia ciclo...");
           }
         }
       }
@@ -553,7 +553,7 @@ void loop()
         if (checkSensorProduto())
         {
           ihm.showStatus2msg(F("--------CICLO-------"));
-          fsm.sub_estado = CICLO;
+          fsm.sub_estado = CICLO_OLD;
           fsm_ciclo = fase1;
           fsm_pronto_init = fase8;
         }
@@ -577,14 +577,14 @@ void loop()
         if (checkSensorProduto())
         {
           ihm.showStatus2msg(F("--------CICLO-------"));
-          fsm.sub_estado = CICLO;
+          fsm.sub_estado = CICLO_OLD;
           fsm_ciclo = fase1;
           fsm_pronto_ciclo = fase4;
         }
       }
     }
 
-    if (fsm.sub_estado == CICLO)
+    if (fsm.sub_estado == CICLO_OLD)
     {
       if (fsm_ciclo == fase1)
       {
@@ -663,7 +663,7 @@ void loop()
       {
         if (millis() - timer_finalizarAplicacao >= tempoFinalizarAplicacao)
         {
-          fsm.sub_estado = REFERENCIANDO_CICLO;
+          fsm.sub_estado = REFERENCIANDO_CICLO_OLD;
           fsm_referenciando_ciclo = fase1;
           fsm_ciclo = fase9;
         }

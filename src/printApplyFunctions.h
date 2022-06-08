@@ -27,9 +27,9 @@ enum Estado
     EMERGENCIA_TOP,
     MANUTENCAO,
     REFERENCIANDO_INIT,
-    REFERENCIANDO_CICLO,
+    REFERENCIANDO_CICLO_OLD,
     PRONTO,
-    CICLO
+    CICLO_OLD,
 };
 
 typedef struct
