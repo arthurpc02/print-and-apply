@@ -18,13 +18,13 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 enum Estado
 {
-    // Estados:
-    PARADA_EMERGENCIA,
-    ATIVO,
-    ERRO,
     ESTADO_TESTE,
-    // Sub-estados:
-    EMERGENCIA_TOP,
+//Estados:
+    PARADA_EMERGENCIA_OLD,
+    ATIVO_OLD,
+    ERRO_OLD,
+//Sub-estados:
+    EMERGENCIA_TOP_OLD,
     MANUTENCAO_OLD,
     REFERENCIANDO_INIT_OLD,
     REFERENCIANDO_CICLO_OLD,
@@ -35,7 +35,7 @@ enum Estado
 typedef struct
 {
     Estado estado = ESTADO_TESTE;
-    Estado sub_estado = EMERGENCIA_TOP;
+    Estado sub_estado = EMERGENCIA_TOP_OLD;
 } Fsm;
 Fsm fsm;
 
@@ -599,7 +599,7 @@ void t_ihm(void *p)
 
     while (1)
     {
-        if (fsm.estado == PARADA_EMERGENCIA || fsm.sub_estado == PRONTO_OLD)
+        if (fsm.estado == PARADA_EMERGENCIA_OLD || fsm.sub_estado == PRONTO_OLD)
         {
             xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             if (checkBotaoCima())

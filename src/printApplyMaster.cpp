@@ -36,7 +36,7 @@ void loop()
 
   switch (fsm.estado)
   {
-  case PARADA_EMERGENCIA:
+  case PARADA_EMERGENCIA_OLD:
   {
     static uint32_t timer_requestStatusImpressora = 0;
 
@@ -46,7 +46,7 @@ void loop()
       timer_requestStatusImpressora = millis();
     }
 
-    if (fsm.sub_estado == EMERGENCIA_TOP)
+    if (fsm.sub_estado == EMERGENCIA_TOP_OLD)
     {
       if (fsm_emergencia == fase1)
       {
@@ -153,7 +153,7 @@ void loop()
     {
       if (flag_intertravamentoIn)
       {
-        fsm.estado = ERRO;
+        fsm.estado = ERRO_OLD;
         fsm_erro_intertravamento = fase1;
         fsm_erro_aplicacao = fase10;
         fsm_erro_impressora = fase10;
@@ -161,7 +161,7 @@ void loop()
 
       if (flag_statusImpressora)
       {
-        fsm.estado = ERRO;
+        fsm.estado = ERRO_OLD;
         fsm_erro_impressora = fase1;
         fsm_erro_aplicacao = fase10;
         fsm_erro_intertravamento = fase10;
@@ -170,7 +170,7 @@ void loop()
       if (fsm.sub_estado == MANUTENCAO_OLD)
       {
         bloqueiaMenusDeManutencao();
-        fsm.sub_estado = EMERGENCIA_TOP;
+        fsm.sub_estado = EMERGENCIA_TOP_OLD;
         flag_manutencao = false;
       }
       else
@@ -178,7 +178,7 @@ void loop()
         flag_continuo = false;
         flag_manutencao = false;
 
-        fsm.estado = ATIVO;
+        fsm.estado = ATIVO_OLD;
         fsm.sub_estado = REFERENCIANDO_INIT_OLD;
 
         fsm_emergencia = fase1;
@@ -190,7 +190,7 @@ void loop()
 
     break;
   }
-  case ATIVO:
+  case ATIVO_OLD:
   {
     static uint32_t timer_atrasoSensorProduto = 0;
     static uint32_t timer_etiqueta = 0;
@@ -201,7 +201,7 @@ void loop()
 
     if (flag_intertravamentoIn)
     {
-      fsm.estado = ERRO;
+      fsm.estado = ERRO_OLD;
       fsm_erro_intertravamento = fase1;
       fsm_erro_aplicacao = fase10;
       fsm_erro_impressora = fase10;
@@ -209,7 +209,7 @@ void loop()
 
     if (flag_statusImpressora)
     {
-      fsm.estado = ERRO;
+      fsm.estado = ERRO_OLD;
       fsm_erro_impressora = fase1;
       fsm_erro_intertravamento = fase10;
       fsm_erro_aplicacao = fase10;
@@ -612,7 +612,7 @@ void loop()
         }
         else if (motor.distanceToGo() == 0)
         {
-          fsm.estado = ERRO;
+          fsm.estado = ERRO_OLD;
           fsm_erro_aplicacao = fase1;
           fsm_erro_intertravamento = fase10;
           fsm_erro_impressora = fase10;
@@ -639,7 +639,7 @@ void loop()
         }
         else if (motor.distanceToGo() == 0)
         {
-          fsm.estado = ERRO;
+          fsm.estado = ERRO_OLD;
           fsm_erro_aplicacao = fase1;
           fsm_erro_intertravamento = fase10;
           fsm_erro_impressora = fase10;
@@ -670,16 +670,16 @@ void loop()
       }
     }
 
-    // Condição para sair de ATIVO:
+    // Condição para sair de ATIVO_OLD:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA;
-      fsm.sub_estado = EMERGENCIA_TOP;
+      fsm.estado = PARADA_EMERGENCIA_OLD;
+      fsm.sub_estado = EMERGENCIA_TOP_OLD;
     }
-    // Condição para sair de ATIVO:
+    // Condição para sair de ATIVO_OLD:
     break;
   }
-  case ERRO:
+  case ERRO_OLD:
   {
     piscaLedStatus();
 
@@ -692,7 +692,7 @@ void loop()
     }
     else if (fsm_erro_aplicacao == fase2)
     {
-      fsm.estado = ATIVO;
+      fsm.estado = ATIVO_OLD;
       fsm.sub_estado = REFERENCIANDO_INIT_OLD;
       fsm_referenciando_init = fase1;
       fsm_erro_aplicacao = fase4;
@@ -710,7 +710,7 @@ void loop()
     {
       if (flag_statusImpressora == false)
       {
-        fsm.estado = ATIVO;
+        fsm.estado = ATIVO_OLD;
         fsm.sub_estado = REFERENCIANDO_INIT_OLD;
         fsm_referenciando_init = fase1;
         fsm_erro_impressora = fase4;
@@ -737,20 +737,20 @@ void loop()
     {
       if (flag_intertravamentoIn == false)
       {
-        fsm.estado = ATIVO;
+        fsm.estado = ATIVO_OLD;
         fsm.sub_estado = REFERENCIANDO_INIT_OLD;
         fsm_referenciando_init = fase1;
         fsm_erro_intertravamento = fase4;
       }
     }
 
-    // Condição para sair do ERRO:
+    // Condição para sair do ERRO_OLD:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA;
-      fsm.sub_estado = EMERGENCIA_TOP;
+      fsm.estado = PARADA_EMERGENCIA_OLD;
+      fsm.sub_estado = EMERGENCIA_TOP_OLD;
     }
-    // Condição para sair do ERRO:
+    // Condição para sair do ERRO_OLD:
     break;
   }
   case ESTADO_TESTE:
