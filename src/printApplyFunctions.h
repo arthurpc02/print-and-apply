@@ -1,4 +1,4 @@
-/* Projeto Print Apply - Software desenvolvido para a 
+/* Projeto Print Apply - Software desenvolvido para a
 placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // Biblioteca Print Apply - v1.0
@@ -260,7 +260,8 @@ void t_blink(void *p);
 void t_debug(void *p);
 
 void pin_mode(); // to do: remover essa funcao e usar a pinInitialization da lib esp32_v2.1
-
+void ligaPrint();
+void desligaPrint();
 // Prototypes:
 
 //////////////////////////////////////////////////////////////////////
@@ -306,6 +307,16 @@ void t_receiveStatusImpressoraZebra(void *p)
         }
         delay(1000);
     }
+}
+
+void ligaPrint()
+{
+    digitalWrite(PIN_PRIN, LOW);
+}
+
+void desligaPrint()
+{
+    digitalWrite(PIN_PRIN, HIGH);
 }
 
 void imprimirZebra()
@@ -1074,8 +1085,6 @@ void desligaTodosOutput()
     digitalWrite(PIN_HSDO3, LOW);
     digitalWrite(PIN_HSDO4, LOW);
 }
-
-
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
