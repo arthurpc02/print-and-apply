@@ -20,11 +20,11 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 enum Estado
 {
     ESTADO_TESTE,
-//Estados:
+    // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
     ERRO_OLD,
-//Sub-estados:
+    // Sub-estados:
     EMERGENCIA_TOP_OLD,
     MANUTENCAO_OLD,
     REFERENCIANDO_INIT_OLD,
@@ -39,6 +39,7 @@ typedef struct
     Estado sub_estado = EMERGENCIA_TOP_OLD;
 } Fsm;
 Fsm fsm;
+uint16_t fsm_substate = fase1;
 
 SemaphoreHandle_t mtx_ios;
 SemaphoreHandle_t mutex_rs485;
@@ -263,10 +264,13 @@ void t_blink(void *p);
 void t_debug(void *p);
 
 void pin_mode(); // to do: remover essa funcao e usar a pinInitialization da lib esp32_v2.1
+
 void ligaPrint();
 void desligaPrint();
 void ligaReprint();
 void desligaReprint();
+
+void t_print(void *);
 // Prototypes:
 
 //////////////////////////////////////////////////////////////////////
@@ -288,6 +292,19 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+void t_print(void *p)
+{
+    ligaPrint();
+    Serial.println("ligouprint");
+    while (digitalRead(PIN_PREND) == HIGH); // PREND type 4
+    Serial.println("prend HIGH");
+    while (digitalRead(PIN_PREND) == LOW); // PREND type 4
+    Serial.println("prend LOW");
+    desligaPrint();
+    Serial.println("fim do print");
+    vTaskDelete(NULL);
+}
+
 void t_requestStatusImpressoraZebra(void *p)
 {
     xSemaphoreTake(mutex_rs485, portMAX_DELAY);

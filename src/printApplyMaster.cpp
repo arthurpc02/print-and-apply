@@ -756,24 +756,27 @@ void loop()
   }
   case ESTADO_TESTE:
   {
-    static uint32_t fsm_teste = fase1;
+    static uint32_t fsm_substate = fase1;
     static uint32_t timer_duracaoPrint = 0;
     static uint32_t timer_delayPosPrint = 0;
     const uint16_t duracaoPrint = 1500;  // ms
     const uint16_t delayPosPrint = 5000; // ms
 
-    if (fsm_teste == fase1)
+    if (fsm_substate == fase1)
     {
       if(sensorDeProdutoOuStart.checkPulse())
       {
-        Serial.println("pulse");
+        Serial.println("SP");
+        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); //createTaskPrint();
+        fsm_substate = fase2;
       }
     }
-    else if (fsm_teste == fase2)
+    else if (fsm_substate == fase2)
     {
+  
       
     }
-    else if(fsm_teste == fase3)
+    else if(fsm_substate == fase3)
     {
       
       
