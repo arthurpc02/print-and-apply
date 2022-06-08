@@ -294,11 +294,11 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 void t_print(void *p)
 {
-    const uint16_t intervalo_task = 1; //ms
+    const uint16_t intervalo_task = 1; // ms
 
     uint16_t fsm_print = fase1;
     uint32_t timer_duracaoDaImpressao = 0;
-    const uint16_t timeout_duracaoDaImpressao = 3000;
+    const uint16_t timeout_duracaoDaImpressao = 2500;
 
     while (1)
     {
@@ -306,7 +306,7 @@ void t_print(void *p)
 
         if (fsm_print == fase1)
         {
-            if (digitalRead(PIN_PREND) == HIGH)
+            if (digitalRead(PIN_PREND) == LOW)
             {
                 Serial.println("prend HIGH");
                 ligaPrint();
@@ -323,6 +323,18 @@ void t_print(void *p)
         }
         else if (fsm_print == fase2)
         {
+            if ((digitalRead(PIN_PREND) == HIGH))
+            {
+                fsm_print = fase3;
+            }
+            else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
+            {
+                Serial.println("erro impressao: impressao nao comecou");
+                vTaskDelete(NULL);
+            }
+        }
+        else if (fsm_print == fase3)
+        {
             if ((digitalRead(PIN_PREND) == LOW))
             {
                 Serial.println("prend LOW");
@@ -331,7 +343,7 @@ void t_print(void *p)
                 // to do: flag_fimPrint = true;
                 vTaskDelete(NULL);
             }
-            else if (millis() - timer_duracaoDaImpressao <= timeout_duracaoDaImpressao)
+            else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
                 Serial.println("erro impressao: timeout duracao da impressao");
                 vTaskDelete(NULL);
@@ -339,6 +351,7 @@ void t_print(void *p)
         }
     }
 }
+
 
 void t_requestStatusImpressoraZebra(void *p)
 {
@@ -1230,7 +1243,8 @@ void t_debug(void *p)
 {
     while (1)
     {
-        Serial.print("on: "); Serial.print(millis() / 1000);
+        Serial.print("on: ");
+        Serial.print(millis() / 1000);
         Serial.print("  SP: ");
         Serial.println(digitalRead(PIN_SENSOR_PRODUTO));
         Serial.print("SH: ");
