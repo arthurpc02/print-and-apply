@@ -11,6 +11,7 @@ void setup()
   Serial.println("Print & Apply setup");
 
   mtx_ios = xSemaphoreCreateMutex();
+  eventQueue = xQueueCreate(3, sizeof(Evento));
 
   EEPROM.begin(EEPROM_SIZE);
   // restoreBackupParameters();
@@ -32,6 +33,8 @@ void loop()
 {
   motor.run();
   motor_espatula.run();
+
+  Evento evento = recebeEventos();
 
   // Ciclo:
 
@@ -757,29 +760,30 @@ void loop()
   case ESTADO_TESTE:
   {
     static uint32_t fsm_substate = fase1;
-    static uint32_t timer_duracaoPrint = 0;
-    static uint32_t timer_delayPosPrint = 0;
-    const uint16_t duracaoPrint = 1500;  // ms
-    const uint16_t delayPosPrint = 5000; // ms
 
     if (fsm_substate == fase1)
     {
-      if(sensorDeProdutoOuStart.checkPulse())
+      if (sensorDeProdutoOuStart.checkPulse())
       {
         Serial.println("SP");
-        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); //createTaskPrint();
-        // fsm_substate = fase2;
+        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
+        fsm_substate = fase2;
       }
     }
     else if (fsm_substate == fase2)
     {
-  
-      
+      if (evento == EVT_FIM_DA_IMPRESSAO)
+      {
+        fsm_substate = fase1;
+      }
+      else if (evento == EVT_FALHA)
+      {
+        Serial.println("erro impressao");
+        fsm_substate = fase1;
+      }
     }
-    else if(fsm_substate == fase3)
+    else if (fsm_substate == fase3)
     {
-      
-      
     }
     break;
   }

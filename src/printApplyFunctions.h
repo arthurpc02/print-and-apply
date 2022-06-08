@@ -33,6 +33,19 @@ enum Estado
     CICLO_OLD,
 };
 
+enum Evento
+{
+  EVT_NENHUM,
+  EVT_FALHA,
+  EVT_SEM_FALHAS,
+  EVT_PARADA_EMERGENCIA,
+  EVT_TESTE,
+  EVT_PLAY_PAUSE,
+  EVT_START,
+  EVT_HOLD_PLAY_PAUSE,
+  EVT_FIM_DA_IMPRESSAO,
+};
+
 typedef struct
 {
     Estado estado = ESTADO_TESTE;
@@ -43,6 +56,7 @@ uint16_t fsm_substate = fase1;
 
 SemaphoreHandle_t mtx_ios;
 SemaphoreHandle_t mutex_rs485;
+QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
 
 AccelStepper motor(AccelStepper::DRIVER, PIN_PUL, PIN_DIR);
 AccelStepper motor_espatula(AccelStepper::DRIVER, PIN_PUL_ESP, PIN_DIR_ESP);
@@ -270,6 +284,9 @@ void desligaPrint();
 void ligaReprint();
 void desligaReprint();
 
+void enviaEvento(Evento event);
+Evento recebeEventos();
+
 void t_print(void *);
 // Prototypes:
 
@@ -316,7 +333,7 @@ void t_print(void *p)
             }
             else
             {
-                // to do: envia evento erro.
+                enviaEvento(EVT_FALHA);
                 Serial.println("erro print: impressão em andamento");
                 vTaskDelete(NULL);
             }
@@ -329,6 +346,7 @@ void t_print(void *p)
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
+                enviaEvento(EVT_FALHA);
                 Serial.println("erro impressao: impressao nao comecou");
                 vTaskDelete(NULL);
             }
@@ -341,10 +359,12 @@ void t_print(void *p)
                 desligaPrint();
                 // to do: evento: fim print cmd
                 // to do: flag_fimPrint = true;
+                enviaEvento(EVT_FIM_DA_IMPRESSAO);
                 vTaskDelete(NULL);
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
+                enviaEvento(EVT_FALHA);
                 Serial.println("erro impressao: timeout duracao da impressao");
                 vTaskDelete(NULL);
             }
@@ -352,6 +372,23 @@ void t_print(void *p)
     }
 }
 
+// chame essa função para tirar eventos da fila de eventos
+Evento recebeEventos()
+{
+  Evento receivedEvent = EVT_NENHUM;
+  xQueueReceive(eventQueue, &receivedEvent, 0);
+  return receivedEvent;
+}
+
+void enviaEvento(Evento event)
+{
+  if (xQueueSend(eventQueue, (void *)&event, 10 / portTICK_PERIOD_MS) == pdFALSE)
+  {
+    Serial.print("erro enviaEvento: ");
+    Serial.println(event);
+  }
+  // Serial.print("enviou evento: "); Serial.println(event);
+}
 
 void t_requestStatusImpressoraZebra(void *p)
 {
@@ -1246,14 +1283,15 @@ void t_debug(void *p)
         Serial.print("on: ");
         Serial.print(millis() / 1000);
         Serial.print("  SP: ");
-        Serial.println(digitalRead(PIN_SENSOR_PRODUTO));
-        Serial.print("SH: ");
-        Serial.println(digitalRead(PIN_SENSOR_HOME));
-        Serial.print("SA: ");
-        Serial.println(digitalRead(PIN_SENSOR_APLICACAO));
-        Serial.print("PREND: ");
-        Serial.println(digitalRead(PIN_PREND));
+        Serial.print(digitalRead(PIN_SENSOR_PRODUTO));
+        Serial.print(" SH: ");
+        Serial.print(digitalRead(PIN_SENSOR_HOME));
+        Serial.print(" SA: ");
+        Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
+        Serial.print(" PREND: ");
+        Serial.print(digitalRead(PIN_PREND));
 
+        Serial.println();
         delay(2000);
     }
 }
