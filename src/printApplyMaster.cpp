@@ -763,7 +763,7 @@ void loop()
 
     if (fsm_teste == fase1)
     {
-      digitalWrite(PIN_PRIN, LOW); // liga print
+      digitalWrite(PIN_PRIN, LOW); // to do: ligaPrint()
       timer_duracaoPrint = millis();
       fsm_teste = fase2;
     }
@@ -771,7 +771,7 @@ void loop()
     {
       if (millis() - timer_duracaoPrint >= duracaoPrint)
       {
-        digitalWrite(PIN_PRIN, HIGH); // desliga print
+        digitalWrite(PIN_PRIN, HIGH); // to do: desligaPrint()
         timer_delayPosPrint = millis();
         fsm_teste = fase3;
         Serial.println("printou");

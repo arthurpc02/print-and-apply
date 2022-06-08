@@ -259,7 +259,8 @@ void t_blink(void *p);
 
 void t_debug(void *p);
 
-void pin_mode();
+void pin_mode(); // to do: remover essa funcao e usar a pinInitialization da lib esp32_v2.1
+
 // Prototypes:
 
 //////////////////////////////////////////////////////////////////////
