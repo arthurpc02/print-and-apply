@@ -15,7 +15,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <SunnyAccelStepper.h>
 #include <definesPrintApply.h>
 #include <ihmSunnytecMaster.h>
-#include <checkSensorPulse.h>>
+#include <checkSensorPulse.h>
 
 enum Estado
 {
@@ -49,6 +49,8 @@ AccelStepper motor_espatula(AccelStepper::DRIVER, PIN_PUL_ESP, PIN_DIR_ESP);
 ihmSunnytecMaster ihm;
 
 TaskHandle_t h_eeprom;
+
+checkSensorPulse sensorDeProdutoOuStart = checkSensorPulse(PIN_SENSOR_PRODUTO, 1);
 
 extern HardwareSerial rs485;
 

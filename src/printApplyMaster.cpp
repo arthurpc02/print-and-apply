@@ -17,6 +17,7 @@ void setup()
   // presetEEPROM();
 
   desligaTodosOutput();
+  sensorDeProdutoOuStart.setup();
 
   createTasks();
 
@@ -763,26 +764,19 @@ void loop()
 
     if (fsm_teste == fase1)
     {
-      ligaPrint();
-      timer_duracaoPrint = millis();
-      fsm_teste = fase2;
+      if(sensorDeProdutoOuStart.checkPulse())
+      {
+        Serial.println("pulse");
+      }
     }
     else if (fsm_teste == fase2)
     {
-      if (millis() - timer_duracaoPrint >= duracaoPrint)
-      {
-        desligaPrint();
-        timer_delayPosPrint = millis();
-        fsm_teste = fase3;
-        Serial.println("printou");
-      }
+      
     }
     else if(fsm_teste == fase3)
     {
-      if(millis() - timer_delayPosPrint >= delayPosPrint)
-      {
-        fsm_teste = fase1;
-      }
+      
+      
     }
     break;
   }
