@@ -15,6 +15,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <SunnyAccelStepper.h>
 #include <definesPrintApply.h>
 #include <ihmSunnytecMaster.h>
+#include <checkSensorPulse.h>>
 
 enum Estado
 {
