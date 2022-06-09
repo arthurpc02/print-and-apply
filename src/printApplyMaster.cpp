@@ -79,25 +79,27 @@ void loop()
   }
   case ESTADO_TESTE_DE_IMPRESSAO:
   {
-    static uint32_t fsm_substate = fase1;
-
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
-      break; // to do: testar colocar esse break dentro da função changeFsmState
+      break;
     }
 
     if (fsm_substate == fase1)
     {
-      // Serial.println("ESTADO TESTE DE IMPRESSAO");
+      Serial.println("ESTADO TESTE DE IMPRESSAO");
+      fsm_substate = fase2;
+    }
+    else if (fsm_substate == fase2)
+    {
       if (sensorDeProdutoOuStart.checkPulse())
       {
         Serial.println("SP");
         xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
-        fsm_substate = fase2;
+        fsm_substate = fase3;
       }
     }
-    else if (fsm_substate == fase2)
+    else if (fsm_substate == fase3)
     {
       if (evento == EVT_FIM_DA_IMPRESSAO)
       {
@@ -113,7 +115,6 @@ void loop()
   }
   case ESTADO_STOP:
   {
-
   }
   }
 

@@ -328,7 +328,7 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 void t_ihm(void *p)
 {
-    ihm.configDefaultMsg(" PRINT & APPLY");
+    ihm.configDefaultMsg("   PRINT & APPLY");
     ihm.configDefaultMsg2((String)contadorAbsoluto);
     xSemaphoreTake(mutex_rs485, portMAX_DELAY);
     ihm.setup();
