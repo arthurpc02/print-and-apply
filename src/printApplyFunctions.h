@@ -14,7 +14,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <esp32Industrial_v2.1.h>
 #include <SunnyAccelStepper.h>
 #include <definesPrintApply.h>
-#include <ihmSunnytecMaster.h>
+#include <ihmSunnytecMaster_v2.0.h>
 #include <checkSensorPulse.h>
 #include <extendedIOs.h>
 
@@ -35,20 +35,20 @@ enum Estado
     REFERENCIANDO_CICLO_OLD,
     PRONTO_OLD,
     CICLO_OLD,
-}fsm;
+} fsm;
 uint16_t fsm_substate = fase1;
 
 enum Evento
 {
-  EVT_NENHUM,
-  EVT_FALHA,
-  EVT_SEM_FALHAS,
-  EVT_PARADA_EMERGENCIA,
-  EVT_TESTE,
-  EVT_PLAY_PAUSE,
-  EVT_START,
-  EVT_HOLD_PLAY_PAUSE,
-  EVT_FIM_DA_IMPRESSAO,
+    EVT_NENHUM,
+    EVT_FALHA,
+    EVT_SEM_FALHAS,
+    EVT_PARADA_EMERGENCIA,
+    EVT_TESTE,
+    EVT_PLAY_PAUSE,
+    EVT_START,
+    EVT_HOLD_PLAY_PAUSE,
+    EVT_FIM_DA_IMPRESSAO,
 };
 
 typedef struct
@@ -60,15 +60,15 @@ Fsm fsm_old;
 
 SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
-QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
+QueueHandle_t eventQueue; // os eventos são armazenados em uma fila
 
 AccelStepper braco(AccelStepper::DRIVER, PIN_PUL_BRACO, PIN_DIR_BRACO);
 AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBOBINADOR); // na verdade o DIR do rebobinador não está conecta. Então defini um pino que não está sendo utilizado.
 
-
 TaskHandle_t h_eeprom;
+TaskHandle_t h_botoesIhm;
 
-ihmSunnytecMaster ihm;
+ihmSunnytecMaster ihm{protocoloIhm{PIN_RS485_RX, PIN_RS485_TX, PIN_RS485_EN}};
 extendedIOs extIOs = extendedIOs(PIN_IO_CLOCK, PIN_IO_LATCH, PIN_INPUT_DATA, PIN_OUTPUT_DATA);
 checkSensorPulse sensorDeProdutoOuStart = checkSensorPulse(PIN_SENSOR_PRODUTO, 1);
 
@@ -80,6 +80,8 @@ extern HardwareSerial rs485;
 uint8_t output_state = 0; // estado das saídas de uso geral. Usado na função updateIOs().
 uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função updateIOs().
 // IO's:
+
+uint16_t quantidadeDeMenusDeManutencao = 1;
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -97,7 +99,7 @@ int32_t posicaoBracoAplicacao = 250;
 
 int32_t tempoFinalizarAplicacao = 250;
 
-int32_t contadorCiclo = 0;
+int32_t contadorDeCiclos = 0;
 
 int32_t rampa = 10;
 int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
@@ -196,18 +198,19 @@ bool flag_debugEnabled = true;
 bool flag_restartDisplay = false;
 bool flag_continuo = false;
 bool flag_manutencao = false;
+bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
 // Flag's:
 // Parâmetros:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-// Criando menu:
+// Criando menus:
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
 Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 50u, 3000u, &produto);
 Menu menu_velocidadeLinearmmps = Menu("Velocidade Braco", PARAMETRO, &velocidadeLinearmmps, "mm/s", 10u, 10u, 550u, &produto);
 
-Menu menu_contador = Menu("Contador", READONLY, &contadorCiclo);
+Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
@@ -216,7 +219,9 @@ Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, 
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
 Menu menu_statusIntertravamentoIn = Menu("Intertravamento In", PARAMETRO_STRING, "     ON ou OFF      ");
-// Criando menu:
+
+Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
+// Criando menus:
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -242,7 +247,7 @@ int checkSensorAplicacao();
 
 int checkBotaoStart();
 
-void t_ihm(void *p);
+void t_ihm_old(void *p);
 bool checkBotaoCima();
 bool checkBotaoBaixo();
 bool checkBotaoEsquerda();
@@ -274,37 +279,44 @@ void ventiladorSetup(uint16_t, uint16_t, uint16_t);
 void ventiladorAttachPin(uint16_t, uint16_t);
 void ventiladorWrite(uint16_t, uint16_t);
 
-void incrementaContador();
-
 void piscaLedStatus();
-
-void t_blink(void *p);
-
-void t_debug(void *p);
-
 
 void ligaPrint();
 void desligaPrint();
 void ligaReprint();
 void desligaReprint();
 
+void t_blink(void *p);
+void t_debug(void *p);
+void t_print(void *);
+
+void t_ihm(void *);
+void t_botoesIhm(void *);
+void liberaMenusDaIhm();
+void liberaMenusDeManutencao();
+void voltaParaPrimeiroMenu();
+void incrementaContadores();
+void habilitaConfiguracaoPelaIhm();
+void desabilitaConfiguracaoPelaIhm();
+
 void enviaEvento(Evento event);
 Evento recebeEventos();
 void changeFsmState(Estado estado);
 
-void t_print(void *);
 // Prototypes:
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 void createTasks()
 {
-    // xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_ihm_old, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     // xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_3, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_botoesIhm, "botoesIhm task", 4096, NULL, PRIORITY_3, &h_botoesIhm, CORE_0);
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
@@ -314,6 +326,185 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+void t_ihm(void *p)
+{
+    ihm.configDefaultMsg(" PRINT & APPLY");
+    ihm.configDefaultMsg2((String)contadorAbsoluto);
+    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
+    ihm.setup();
+    ihm.desligaLEDvermelho();
+    ihm.desligaLEDverde();
+    xSemaphoreGive(mutex_rs485);
+
+    delay(3000);
+
+    liberaMenusDaIhm();
+    ihm.goToMenu(&menu_contadorDeCiclos);
+
+    while (1)
+    {
+        xSemaphoreTake(mutex_rs485, portMAX_DELAY);
+        ihm.checkAndUpdateScreen();
+        xSemaphoreGive(mutex_rs485);
+        delay(100);
+    }
+}
+
+void t_botoesIhm(void *p)
+{
+    delay(4000); // aguarda o objeto ihm ser inicializado
+
+    while (1)
+    {
+        delay(100);
+
+        uint16_t bt = 0;
+
+        xSemaphoreTake(mutex_rs485, portMAX_DELAY);
+        bt = ihm.requestButtons();
+        xSemaphoreGive(mutex_rs485);
+
+        if (bt == TIMEOUT)
+        {
+            Serial.println("timeout ihm");
+        }
+        else if (bt == BOTAO_NENHUM)
+        {
+            // Serial.print("NENHUM...");
+        }
+        else if (bt == BOTAO_PLAY_PAUSE)
+        {
+            enviaEvento(EVT_PLAY_PAUSE);
+            Serial.println("PLAY/PAUSE");
+        }
+        else if (bt == BOTAO_HOLD_PLAY_PAUSE)
+        {
+            enviaEvento(EVT_HOLD_PLAY_PAUSE);
+            Serial.println("HOLD PLAY PAUSE");
+        }
+        else if (flag_habilitaConfiguracaoPelaIhm) // só checa os botoes direcionais se a configuracao estiver liberada.
+        {
+            if (bt == BOTAO_CIMA)
+            {
+                Serial.println("CIMA");
+
+                ihm.incrementaParametroAtual();
+
+                Menu *checkMenu = ihm.getMenu();
+                if (checkMenu == &menu_contadorDeCiclos)
+                {
+                    contadorDeCiclos = 0;
+                }
+            }
+            else if (bt == BOTAO_ESQUERDA)
+            {
+                Serial.println("ESQUERDA");
+                ihm.goToPreviousMenu();
+            }
+            else if (bt == BOTAO_BAIXO)
+            {
+                Serial.println("BAIXO");
+
+                ihm.decrementaParametroAtual();
+
+                Menu *checkMenu = ihm.getMenu();
+                if (checkMenu == &menu_contadorDeCiclos)
+                {
+                    contadorDeCiclos = 0;
+                }
+            }
+            else if (bt == BOTAO_DIREITA)
+            {
+                Serial.println("DIREITA");
+                ihm.goToNextMenu();
+            }
+            else if (bt == BOTAO_HOLD_CIMA)
+            {
+                Serial.println("HOLD CIMA");
+            }
+            else if (bt == BOTAO_HOLD_ESQUERDA)
+            {
+                Serial.println("HOLD ESQUERDA");
+            }
+            else if (bt == BOTAO_HOLD_DIREITA)
+            {
+                Serial.println("HOLD DIREITA");
+            }
+            else if (bt == BOTAO_HOLD_BAIXO)
+            {
+                Serial.println("HOLD BAIXO");
+            }
+            else if (bt == BOTAO_HOLD_DIREITA_ESQUERDA)
+            {
+                Serial.println("HOLD DIREITA E ESQUERDA");
+
+                if (flag_manutencao == false)
+                {
+                    liberaMenusDeManutencao();
+                    // ihm.goToMenu(&menu_contadorAbsoluto);
+                    ihm.showStatus2msg("MANUTENCAO LIBERADA");
+                }
+            }
+        }
+        else
+        {
+            Serial.print("desabilitado ou erro> bt=");
+            Serial.println(bt);
+        }
+    }
+}
+
+void liberaMenusDaIhm()
+{
+    ihm.addMenuToIndex(&menu_contadorDeCiclos);
+    ihm.addMenuToIndex(&menu_produto);
+}
+
+void liberaMenusDeManutencao()
+{
+    quantidadeDeMenusDeManutencao = 6;
+
+    ihm.addMenuToIndex(&menu_posicaoBracoInicial);
+    ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
+    ihm.addMenuToIndex(&menu_espacamentoProdutomm);
+    ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
+    ihm.addMenuToIndex(&menu_rampa);
+    ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
+
+    flag_manutencao = true;
+}
+
+void bloqueiaMenusDeManutencao()
+{
+    for (int i = 0; i < quantidadeDeMenusDeManutencao; i++)
+    {
+        ihm.removeMenuFromIndex();
+    }
+    flag_manutencao = false;
+}
+
+void voltaParaPrimeiroMenu()
+{
+    ihm.goToMenu(&menu_contadorDeCiclos);
+}
+
+void habilitaConfiguracaoPelaIhm()
+{
+    flag_habilitaConfiguracaoPelaIhm = true;
+}
+
+void desabilitaConfiguracaoPelaIhm()
+{
+    flag_habilitaConfiguracaoPelaIhm = false;
+}
+
+void incrementaContadores()
+{
+    contadorDeCiclos++;
+    contadorAbsoluto++;
+    //   salvaContadorNaEEPROM();
+}
+
 void t_print(void *p)
 {
     const uint16_t intervalo_task = 1; // ms
@@ -377,26 +568,27 @@ void t_print(void *p)
 // chame essa função para tirar eventos da fila de eventos
 Evento recebeEventos()
 {
-  Evento receivedEvent = EVT_NENHUM;
-  xQueueReceive(eventQueue, &receivedEvent, 0);
-  return receivedEvent;
+    Evento receivedEvent = EVT_NENHUM;
+    xQueueReceive(eventQueue, &receivedEvent, 0);
+    return receivedEvent;
 }
 
 void changeFsmState(Estado estado)
 {
     fsm = estado;
-    Serial.print("current state: ");Serial.println(estado);
+    Serial.print("current state: ");
+    Serial.println(estado);
     fsm_substate = fase1;
 }
 
 void enviaEvento(Evento event)
 {
-  if (xQueueSend(eventQueue, (void *)&event, 10 / portTICK_PERIOD_MS) == pdFALSE)
-  {
-    Serial.print("erro enviaEvento: ");
-    Serial.println(event);
-  }
-  // Serial.print("enviou evento: "); Serial.println(event);
+    if (xQueueSend(eventQueue, (void *)&event, 10 / portTICK_PERIOD_MS) == pdFALSE)
+    {
+        Serial.print("erro enviaEvento: ");
+        Serial.println(event);
+    }
+    // Serial.print("enviou evento: "); Serial.println(event);
 }
 
 void t_requestStatusImpressoraZebra(void *p)
@@ -452,7 +644,7 @@ void imprimirZebra()
 
 void playZebra()
 {
-    ihm.playRS485();
+    // ihm.playRS485();
 }
 
 void trataDadosImpressora(String mensagemImpressora)
@@ -683,7 +875,7 @@ int checkBotaoStart()
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Checa se os botoes foram pressionados e já atualiza o display
-void t_ihm(void *p)
+void t_ihm_old(void *p)
 {
     mutex_rs485 = xSemaphoreCreateMutex();
 
@@ -707,9 +899,9 @@ void t_ihm(void *p)
     ihm.addMenuToIndex(&menu_atrasoImpressaoEtiqueta);
     ihm.addMenuToIndex(&menu_velocidadeLinearmmps);
 
-    ihm.addMenuToIndex(&menu_contador);
+    ihm.addMenuToIndex(&menu_contadorDeCiclos);
 
-    ihm.focus(&menu_produto); // Direciona a ihm para iniciar nesse menu
+    // ihm.focus(&menu_produto); // Direciona a ihm para iniciar nesse menu
 
     while (1)
     {
@@ -773,12 +965,12 @@ void t_ihm(void *p)
         if (flag_restartDisplay)
         {
             Wire.flush();
-            ihm.displayFull();
+            // ihm.displayFull();
 
             flag_restartDisplay = false;
         }
 
-        ihm.task();
+        // ihm.task();
 
         delay(25);
     }
@@ -1088,26 +1280,6 @@ void t_manutencao(void *p)
     }
 }
 
-void liberaMenusDeManutencao()
-{
-    ihm.addMenuToIndex(&menu_posicaoBracoInicial);
-    ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
-    ihm.addMenuToIndex(&menu_espacamentoProdutomm);
-    ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
-    ihm.addMenuToIndex(&menu_rampa);
-    ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
-}
-
-void bloqueiaMenusDeManutencao()
-{
-    ihm.removeMenuFromIndex();
-    ihm.removeMenuFromIndex();
-    ihm.removeMenuFromIndex();
-    ihm.removeMenuFromIndex();
-    ihm.removeMenuFromIndex();
-    ihm.removeMenuFromIndex();
-}
-
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Thread que controla as entradas e saídas gerais
@@ -1248,16 +1420,6 @@ void ventiladorWrite(uint16_t canal, uint16_t intensidade)
     uint16_t dutyCicle = map(intensidade, 0, 100, 0, 255);
 
     ledcWrite(canal, dutyCicle);
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-void incrementaContador()
-{
-    contadorCiclo++;
-    contadorAbsoluto++;
-    if ((contadorAbsoluto % quantidadeParaBackups) == 0)
-        vTaskResume(h_eeprom);
 }
 
 //////////////////////////////////////////////////////////////////////

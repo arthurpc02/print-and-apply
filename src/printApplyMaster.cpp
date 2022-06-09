@@ -11,6 +11,7 @@ void setup()
   Serial.println("Print & Apply setup");
 
   mutex_ios = xSemaphoreCreateMutex();
+  mutex_rs485 = xSemaphoreCreateMutex();
   eventQueue = xQueueCreate(3, sizeof(Evento));
 
   EEPROM.begin(EEPROM_SIZE);
@@ -88,7 +89,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      Serial.println("ESTADO TESTE DE IMPRESSAO");
+      // Serial.println("ESTADO TESTE DE IMPRESSAO");
       if (sensorDeProdutoOuStart.checkPulse())
       {
         Serial.println("SP");
@@ -112,7 +113,7 @@ void loop()
   }
   case ESTADO_STOP:
   {
-    
+
   }
   }
 
@@ -147,7 +148,7 @@ void loop()
       {
         setBits(PIN_INTERTRAVAMENTO_OUT);
         setBits(LED_STATUS);
-        ihm.focus(&menu_produto);
+        voltaParaPrimeiroMenu();
         ihm.showStatus2msg(F("-----EMERGENCIA-----"));
         vTaskResume(h_eeprom);
         fsm_emergencia = fase3;
@@ -308,7 +309,7 @@ void loop()
         motorSetup();
         motorEnable();
 
-        ihm.focus(&menu_contador);
+        voltaParaPrimeiroMenu();
         ihm.showStatus2msg(F("-REFERENCIANDO INIT-"));
 
         fsm_referenciando_init = fase2;
@@ -573,7 +574,7 @@ void loop()
       {
         resetBits(LED_STATUS);
         vTaskResume(h_eeprom);
-        ihm.focus(&menu_contador);
+        voltaParaPrimeiroMenu();
         ihm.showStatus2msg(F("APERTE O BOTAO START"));
         fsm_pronto_init = fase2;
       }
@@ -654,7 +655,7 @@ void loop()
       else if (fsm_pronto_ciclo == fase2)
       {
         ihm.showStatus2msg(F("AGUARDANDO PRODUTO.."));
-        ihm.focus(&menu_contador);
+        voltaParaPrimeiroMenu();
         fsm_pronto_ciclo = fase3;
       }
       else if (fsm_pronto_ciclo == fase3)
@@ -741,7 +742,7 @@ void loop()
       }
       else if (fsm_ciclo == fase7)
       {
-        incrementaContador();
+        incrementaContadores();
         fsm_ciclo = fase8;
         timer_finalizarAplicacao = millis();
       }
