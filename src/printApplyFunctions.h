@@ -234,8 +234,8 @@ void imprimirZebra();
 void trataDadosImpressora(String);
 
 void motorSetup();
-void motorEnable();
-void motorDisable();
+void habilitaMotores();
+void desabilitaMotores();
 void motorRun();
 
 int checkSensorProduto();
@@ -696,14 +696,14 @@ void motorSetup()
     velocidadeCiclommps = velocidadeReferencia;
 }
 
-void motorEnable()
+void habilitaMotores()
 {
-    setBits(PIN_ENABLE_MOTORES);
+    extIOs.desligaOutput(PIN_ENABLE_MOTORES);
 }
 
-void motorDisable()
+void desabilitaMotores()
 {
-    resetBits(PIN_ENABLE_MOTORES);
+    extIOs.ligaOutput(PIN_ENABLE_MOTORES);
 }
 
 void motorRun()

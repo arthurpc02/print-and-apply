@@ -49,6 +49,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      desabilitaMotores();
       // vTaskResume(h_eeprom);
       ihm.showStatus2msg("BOTAO EMERGENCIA");
       delay(1);
@@ -72,9 +73,28 @@ void loop()
       {
         // ihm.desligaLEDvermelho();
         // falhas.clearAllFaults();
-        changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+        // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+        changeFsmState(ESTADO_STOP);
       }
     }
+    break;
+  }
+  case ESTADO_STOP:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if(fsm_substate == fase1)
+    {
+      if(evento == EVT_HOLD_PLAY_PAUSE)
+      {
+        habilitaMotores();
+      }
+    }
+
     break;
   }
   case ESTADO_TESTE_DE_IMPRESSAO:
@@ -113,9 +133,6 @@ void loop()
     }
     break;
   }
-  case ESTADO_STOP:
-  {
-  }
   }
 
   switch (fsm_old.estado)
@@ -141,7 +158,7 @@ void loop()
         braco.stop();
         rebobinador.stop();
         motorSetup();
-        motorEnable();
+        habilitaMotores();
         ventiladorWrite(VENTILADOR_CANAL, 0);
         fsm_emergencia = fase2;
       }
@@ -217,7 +234,7 @@ void loop()
       {
         if (braco.distanceToGo() == 0)
         {
-          motorDisable();
+          desabilitaMotores();
           fsm_emergencia = fase10;
           flag_manutencao = true;
           fsm_manutencao = fase1;
@@ -308,7 +325,7 @@ void loop()
       if (fsm_referenciando_init == fase1)
       {
         motorSetup();
-        motorEnable();
+        habilitaMotores();
 
         voltaParaPrimeiroMenu();
         ihm.showStatus2msg(F("-REFERENCIANDO INIT-"));
@@ -809,7 +826,7 @@ void loop()
     {
       braco.stop();
       rebobinador.stop();
-      motorDisable();
+      desabilitaMotores();
       ventiladorWrite(VENTILADOR_CANAL, 0);
       fsm_erro_intertravamento = fase2;
     }
