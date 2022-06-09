@@ -164,6 +164,10 @@ int16_t tempoLedStatus = 500;
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
+const uint32_t braco_ppv = 3200; // pulsos
+
+const uint32_t rebobinador_ppv = 3200; // pulsos
+
 // Processo:
 // Fases da fsm:
 uint16_t fsm_emergencia = fase1;
@@ -685,13 +689,21 @@ void motorSetup()
     int32_t velocidadeLinearPulsosBracoInit = round(velocidadeReferencia * resolucao);
     int32_t aceleracaoLinearPulsosBracoInit = round(((velocidadeLinearPulsosBracoInit * velocidadeLinearPulsosBracoInit) / (2 * pulsosRampa)));
 
-    braco.setMaxSpeed(velocidadeLinearPulsosBracoInit); // escolhe velocidade em que o motor vai trabalhar
-    braco.setAcceleration(aceleracaoLinearPulsosBracoInit);
-    braco.setPinsInverted(DIRECAO_HORA); // muda direção do motor
+    // braco.setMaxSpeed(velocidadeLinearPulsosBracoInit); // escolhe velocidade em que o motor vai trabalhar
+    // braco.setAcceleration(aceleracaoLinearPulsosBracoInit);
+    // braco.setPinsInverted(DIRECAO_HORA); // muda direção do motor
 
-    rebobinador.setMaxSpeed(velocidadeReferenciaEspatula);
-    rebobinador.setAcceleration(aceleracaoReferenciaEspatula);
-    rebobinador.setPinsInverted(DIRECAO_ANTIHORA);
+    // rebobinador.setMaxSpeed(velocidadeReferenciaEspatula);
+    // rebobinador.setAcceleration(aceleracaoReferenciaEspatula);
+    // rebobinador.setPinsInverted(DIRECAO_ANTIHORA);
+
+    braco.setMaxSpeed(400);
+    braco.setAcceleration(500);
+    braco.setPinsInverted();
+
+    rebobinador.setMaxSpeed(3 * rebobinador_ppv);
+    rebobinador.setAcceleration(8000);
+    rebobinador.setPinsInverted();
 
     velocidadeCiclommps = velocidadeReferencia;
 }

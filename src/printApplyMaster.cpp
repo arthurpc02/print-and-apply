@@ -92,7 +92,14 @@ void loop()
       if(evento == EVT_HOLD_PLAY_PAUSE)
       {
         habilitaMotores();
+        delay(50);
+        rebobinador.move(rebobinador_ppv * 1.5);
+        // fsm_substate = fase2;
       }
+    }
+    else if(fsm_substate == fase2)
+    {
+      
     }
 
     break;
