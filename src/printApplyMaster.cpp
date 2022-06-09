@@ -10,7 +10,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Print & Apply setup");
 
-  mtx_ios = xSemaphoreCreateMutex();
+  mutex_ios = xSemaphoreCreateMutex();
   eventQueue = xQueueCreate(3, sizeof(Evento));
 
   EEPROM.begin(EEPROM_SIZE);
@@ -19,6 +19,7 @@ void setup()
 
   desligaTodosOutput();
   sensorDeProdutoOuStart.setup();
+  extIOs.init();
 
   createTasks();
 
@@ -43,6 +44,12 @@ void loop()
   case ESTADO_TESTE_DE_IMPRESSAO:
   {
     static uint32_t fsm_substate = fase1;
+
+    if(evento == EVT_PARADA_EMERGENCIA)
+    {
+      Serial.println("parada de emergencia");
+      break; // to do: testar colocar esse break dentro da função changeFsmState
+    }
 
     if (fsm_substate == fase1)
     {

@@ -4,3 +4,6 @@
 [submodule "lib/checkSensorPulse"]
 	path = lib/checkSensorPulse
 	url = git@github.com:Atsunnytec/checkSensorPulse.git
+[submodule "lib/extendedIOs"]
+	path = lib/extendedIOs
+	url = git@github.com:Atsunnytec/extendedIOs.git

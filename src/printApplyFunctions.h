@@ -16,6 +16,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <definesPrintApply.h>
 #include <ihmSunnytecMaster.h>
 #include <checkSensorPulse.h>
+#include <extendedIOs.h>
 
 enum Estado
 {
@@ -57,17 +58,18 @@ typedef struct
 } Fsm;
 Fsm fsm_old;
 
-SemaphoreHandle_t mtx_ios;
+SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
 QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
 
 AccelStepper motor(AccelStepper::DRIVER, PIN_PUL, PIN_DIR);
 AccelStepper motor_espatula(AccelStepper::DRIVER, PIN_PUL_ESP, PIN_DIR_ESP);
 
-ihmSunnytecMaster ihm;
 
 TaskHandle_t h_eeprom;
 
+ihmSunnytecMaster ihm;
+extendedIOs extIOs = extendedIOs(PIN_IO_CLOCK, PIN_IO_LATCH, PIN_INPUT_DATA, PIN_OUTPUT_DATA);
 checkSensorPulse sensorDeProdutoOuStart = checkSensorPulse(PIN_SENSOR_PRODUTO, 1);
 
 extern HardwareSerial rs485;
@@ -300,11 +302,11 @@ void createTasks()
 {
     // xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     // xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
 
     if (flag_debugEnabled)
@@ -329,9 +331,7 @@ void t_print(void *p)
         {
             if (digitalRead(PIN_PREND) == LOW)
             {
-                Serial.println("prend HIGH");
                 ligaPrint();
-                Serial.println("ligouprint");
                 timer_duracaoDaImpressao = millis();
                 fsm_print = fase2;
             }
@@ -359,7 +359,6 @@ void t_print(void *p)
         {
             if ((digitalRead(PIN_PREND) == LOW))
             {
-                Serial.println("prend LOW");
                 desligaPrint();
                 // to do: evento: fim print cmd
                 // to do: flag_fimPrint = true;
@@ -976,10 +975,20 @@ void presetEEPROM()
 //////////////////////////////////////////////////////////////////////
 void t_emergencia(void *p)
 {
+    unsigned int interval = 200;
+
     while (1)
     {
-        flag_emergencia = digitalRead(PIN_EMERGENCIA); // to do:
-        delay(100);
+        delay(interval);
+
+        xSemaphoreTake(mutex_ios, portMAX_DELAY);
+        extIOs.updateInputState();
+        xSemaphoreGive(mutex_ios);
+        if (extIOs.checkInputState(PIN_EMERGENCIA) == LOW)
+        {
+            enviaEvento(EVT_PARADA_EMERGENCIA);
+            //   Serial.println("envia evt: emg");
+        }
     }
 }
 
@@ -1106,7 +1115,7 @@ void t_io(void *p)
 {
     while (1)
     {
-        if (xSemaphoreTake(mtx_ios, pdMS_TO_TICKS(5))) // mutex output_state
+        if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(5))) // mutex output_state
         {
             digitalWrite(PIN_IO_LATCH, LOW);
             delayMicroseconds(50);
@@ -1123,7 +1132,7 @@ void t_io(void *p)
             }
             input_state = ~input_buffer;
             digitalWrite(PIN_IO_LATCH, LOW);
-            xSemaphoreGive(mtx_ios); // mutex output_state
+            xSemaphoreGive(mutex_ios); // mutex output_state
         }
         delay(3);
     }
@@ -1131,11 +1140,11 @@ void t_io(void *p)
 
 void resetBits(uint8_t posicaoDoBit)
 {
-    if (xSemaphoreTake(mtx_ios, pdMS_TO_TICKS(1))) // mutex output_state
+    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // mutex output_state
     {
         output_state &= ~bit(posicaoDoBit);
         updateOutput(output_state);
-        xSemaphoreGive(mtx_ios); // mutex output_state
+        xSemaphoreGive(mutex_ios); // mutex output_state
     }
     else
     {
@@ -1145,11 +1154,11 @@ void resetBits(uint8_t posicaoDoBit)
 
 void setBits(uint8_t posicaoDoBit)
 {
-    if (xSemaphoreTake(mtx_ios, pdMS_TO_TICKS(1))) // mutex output_state
+    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // mutex output_state
     {
         output_state |= bit(posicaoDoBit);
         updateOutput(output_state);
-        xSemaphoreGive(mtx_ios); // mutex output_state
+        xSemaphoreGive(mutex_ios); // mutex output_state
     }
     else
     {
@@ -1176,11 +1185,11 @@ void updateOutput(uint8_t outputByte)
 
 void ligaOutput(uint8_t posicaoDoBit)
 {
-    if (xSemaphoreTake(mtx_ios, pdMS_TO_TICKS(1))) // Mutex output_state
+    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // Mutex output_state
     {
         output_state &= ~bit(posicaoDoBit);
         updateOutput(output_state);
-        xSemaphoreGive(mtx_ios); // Mutex output_state
+        xSemaphoreGive(mutex_ios); // Mutex output_state
     }
     else
     {
@@ -1190,11 +1199,11 @@ void ligaOutput(uint8_t posicaoDoBit)
 
 void desligaOutput(uint8_t posicaoDoBit)
 {
-    if (xSemaphoreTake(mtx_ios, pdMS_TO_TICKS(1))) // Mutex output_state
+    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // Mutex output_state
     {
         output_state |= bit(posicaoDoBit);
         updateOutput(output_state);
-        xSemaphoreGive(mtx_ios); // Mutex output_state
+        xSemaphoreGive(mutex_ios); // Mutex output_state
     }
     else
     {
