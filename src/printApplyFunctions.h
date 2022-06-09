@@ -33,6 +33,9 @@ enum Estado
     CICLO_OLD,
 };
 
+
+uint16_t fsm_substate = fase1;
+
 enum Evento
 {
   EVT_NENHUM,
@@ -51,8 +54,7 @@ typedef struct
     Estado estado = ESTADO_TESTE;
     Estado sub_estado = EMERGENCIA_TOP_OLD;
 } Fsm;
-Fsm fsm;
-uint16_t fsm_substate = fase1;
+Fsm fsm_old;
 
 SemaphoreHandle_t mtx_ios;
 SemaphoreHandle_t mutex_rs485;
@@ -286,6 +288,7 @@ void desligaReprint();
 
 void enviaEvento(Evento event);
 Evento recebeEventos();
+void changeFsmState(Estado estado);
 
 void t_print(void *);
 // Prototypes:
@@ -378,6 +381,12 @@ Evento recebeEventos()
   Evento receivedEvent = EVT_NENHUM;
   xQueueReceive(eventQueue, &receivedEvent, 0);
   return receivedEvent;
+}
+
+void changeFsmState(Estado estado)
+{
+    // fsm = estado;
+    fsm_substate = fase1;
 }
 
 void enviaEvento(Evento event)
@@ -704,7 +713,7 @@ void t_ihm(void *p)
 
     while (1)
     {
-        if (fsm.estado == PARADA_EMERGENCIA_OLD || fsm.sub_estado == PRONTO_OLD)
+        if (fsm_old.estado == PARADA_EMERGENCIA_OLD || fsm_old.sub_estado == PRONTO_OLD)
         {
             xSemaphoreTake(mutex_rs485, portMAX_DELAY);
             if (checkBotaoCima())
@@ -1056,7 +1065,7 @@ void t_manutencao(void *p)
             {
                 if (millis() - timer_manutencao >= tempoParaAtivarMenuManutencao)
                 {
-                    fsm.sub_estado = MANUTENCAO_OLD;
+                    fsm_old.sub_estado = MANUTENCAO_OLD;
                     fsm_emergencia = fase1;
                 }
             }

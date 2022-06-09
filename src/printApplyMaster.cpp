@@ -38,7 +38,7 @@ void loop()
 
   // Ciclo:
 
-  switch (fsm.estado)
+  switch (fsm_old.estado)
   {
   case PARADA_EMERGENCIA_OLD:
   {
@@ -50,7 +50,7 @@ void loop()
       timer_requestStatusImpressora = millis();
     }
 
-    if (fsm.sub_estado == EMERGENCIA_TOP_OLD)
+    if (fsm_old.sub_estado == EMERGENCIA_TOP_OLD)
     {
       if (fsm_emergencia == fase1)
       {
@@ -141,7 +141,7 @@ void loop()
       }
     }
 
-    if (fsm.sub_estado == MANUTENCAO_OLD)
+    if (fsm_old.sub_estado == MANUTENCAO_OLD)
     {
       if (fsm_manutencao == fase1)
       {
@@ -157,7 +157,7 @@ void loop()
     {
       if (flag_intertravamentoIn)
       {
-        fsm.estado = ERRO_OLD;
+        fsm_old.estado = ERRO_OLD;
         fsm_erro_intertravamento = fase1;
         fsm_erro_aplicacao = fase10;
         fsm_erro_impressora = fase10;
@@ -165,16 +165,16 @@ void loop()
 
       if (flag_statusImpressora)
       {
-        fsm.estado = ERRO_OLD;
+        fsm_old.estado = ERRO_OLD;
         fsm_erro_impressora = fase1;
         fsm_erro_aplicacao = fase10;
         fsm_erro_intertravamento = fase10;
       }
 
-      if (fsm.sub_estado == MANUTENCAO_OLD)
+      if (fsm_old.sub_estado == MANUTENCAO_OLD)
       {
         bloqueiaMenusDeManutencao();
-        fsm.sub_estado = EMERGENCIA_TOP_OLD;
+        fsm_old.sub_estado = EMERGENCIA_TOP_OLD;
         flag_manutencao = false;
       }
       else
@@ -182,8 +182,8 @@ void loop()
         flag_continuo = false;
         flag_manutencao = false;
 
-        fsm.estado = ATIVO_OLD;
-        fsm.sub_estado = REFERENCIANDO_INIT_OLD;
+        fsm_old.estado = ATIVO_OLD;
+        fsm_old.sub_estado = REFERENCIANDO_INIT_OLD;
 
         fsm_emergencia = fase1;
         fsm_manutencao = fase1;
@@ -205,7 +205,7 @@ void loop()
 
     if (flag_intertravamentoIn)
     {
-      fsm.estado = ERRO_OLD;
+      fsm_old.estado = ERRO_OLD;
       fsm_erro_intertravamento = fase1;
       fsm_erro_aplicacao = fase10;
       fsm_erro_impressora = fase10;
@@ -213,13 +213,13 @@ void loop()
 
     if (flag_statusImpressora)
     {
-      fsm.estado = ERRO_OLD;
+      fsm_old.estado = ERRO_OLD;
       fsm_erro_impressora = fase1;
       fsm_erro_intertravamento = fase10;
       fsm_erro_aplicacao = fase10;
     }
 
-    if (fsm.sub_estado == REFERENCIANDO_INIT_OLD)
+    if (fsm_old.sub_estado == REFERENCIANDO_INIT_OLD)
     {
       if (fsm_referenciando_init == fase1)
       {
@@ -342,14 +342,14 @@ void loop()
 
       else if (fsm_referenciando_init == fase3)
       {
-        fsm.sub_estado = PRONTO_OLD;
+        fsm_old.sub_estado = PRONTO_OLD;
         fsm_pronto_init = fase1;
         fsm_pronto_ciclo = fase4;
         fsm_referenciando_init = fase4;
       }
     }
 
-    if (fsm.sub_estado == REFERENCIANDO_CICLO_OLD)
+    if (fsm_old.sub_estado == REFERENCIANDO_CICLO_OLD)
     {
       if (fsm_referenciando_ciclo == fase1)
       {
@@ -473,7 +473,7 @@ void loop()
         {
           if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
           {
-            fsm.sub_estado = PRONTO_OLD;
+            fsm_old.sub_estado = PRONTO_OLD;
             fsm_pronto_ciclo = fase1;
             fsm_pronto_init = fase8;
             fsm_referenciando_ciclo = fase1;
@@ -485,7 +485,7 @@ void loop()
       }
     }
 
-    if (fsm.sub_estado == PRONTO_OLD)
+    if (fsm_old.sub_estado == PRONTO_OLD)
     {
       if (fsm_pronto_init == fase1)
       {
@@ -557,7 +557,7 @@ void loop()
         if (checkSensorProduto())
         {
           ihm.showStatus2msg(F("--------CICLO-------"));
-          fsm.sub_estado = CICLO_OLD;
+          fsm_old.sub_estado = CICLO_OLD;
           fsm_ciclo = fase1;
           fsm_pronto_init = fase8;
         }
@@ -581,14 +581,14 @@ void loop()
         if (checkSensorProduto())
         {
           ihm.showStatus2msg(F("--------CICLO-------"));
-          fsm.sub_estado = CICLO_OLD;
+          fsm_old.sub_estado = CICLO_OLD;
           fsm_ciclo = fase1;
           fsm_pronto_ciclo = fase4;
         }
       }
     }
 
-    if (fsm.sub_estado == CICLO_OLD)
+    if (fsm_old.sub_estado == CICLO_OLD)
     {
       if (fsm_ciclo == fase1)
       {
@@ -616,7 +616,7 @@ void loop()
         }
         else if (motor.distanceToGo() == 0)
         {
-          fsm.estado = ERRO_OLD;
+          fsm_old.estado = ERRO_OLD;
           fsm_erro_aplicacao = fase1;
           fsm_erro_intertravamento = fase10;
           fsm_erro_impressora = fase10;
@@ -643,7 +643,7 @@ void loop()
         }
         else if (motor.distanceToGo() == 0)
         {
-          fsm.estado = ERRO_OLD;
+          fsm_old.estado = ERRO_OLD;
           fsm_erro_aplicacao = fase1;
           fsm_erro_intertravamento = fase10;
           fsm_erro_impressora = fase10;
@@ -667,7 +667,7 @@ void loop()
       {
         if (millis() - timer_finalizarAplicacao >= tempoFinalizarAplicacao)
         {
-          fsm.sub_estado = REFERENCIANDO_CICLO_OLD;
+          fsm_old.sub_estado = REFERENCIANDO_CICLO_OLD;
           fsm_referenciando_ciclo = fase1;
           fsm_ciclo = fase9;
         }
@@ -677,8 +677,8 @@ void loop()
     // Condição para sair de ATIVO_OLD:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA_OLD;
-      fsm.sub_estado = EMERGENCIA_TOP_OLD;
+      fsm_old.estado = PARADA_EMERGENCIA_OLD;
+      fsm_old.sub_estado = EMERGENCIA_TOP_OLD;
     }
     // Condição para sair de ATIVO_OLD:
     break;
@@ -696,8 +696,8 @@ void loop()
     }
     else if (fsm_erro_aplicacao == fase2)
     {
-      fsm.estado = ATIVO_OLD;
-      fsm.sub_estado = REFERENCIANDO_INIT_OLD;
+      fsm_old.estado = ATIVO_OLD;
+      fsm_old.sub_estado = REFERENCIANDO_INIT_OLD;
       fsm_referenciando_init = fase1;
       fsm_erro_aplicacao = fase4;
       flag_continuo = true;
@@ -714,8 +714,8 @@ void loop()
     {
       if (flag_statusImpressora == false)
       {
-        fsm.estado = ATIVO_OLD;
-        fsm.sub_estado = REFERENCIANDO_INIT_OLD;
+        fsm_old.estado = ATIVO_OLD;
+        fsm_old.sub_estado = REFERENCIANDO_INIT_OLD;
         fsm_referenciando_init = fase1;
         fsm_erro_impressora = fase4;
       }
@@ -741,8 +741,8 @@ void loop()
     {
       if (flag_intertravamentoIn == false)
       {
-        fsm.estado = ATIVO_OLD;
-        fsm.sub_estado = REFERENCIANDO_INIT_OLD;
+        fsm_old.estado = ATIVO_OLD;
+        fsm_old.sub_estado = REFERENCIANDO_INIT_OLD;
         fsm_referenciando_init = fase1;
         fsm_erro_intertravamento = fase4;
       }
@@ -751,8 +751,8 @@ void loop()
     // Condição para sair do ERRO_OLD:
     if (flag_emergencia == true)
     {
-      fsm.estado = PARADA_EMERGENCIA_OLD;
-      fsm.sub_estado = EMERGENCIA_TOP_OLD;
+      fsm_old.estado = PARADA_EMERGENCIA_OLD;
+      fsm_old.sub_estado = EMERGENCIA_TOP_OLD;
     }
     // Condição para sair do ERRO_OLD:
     break;
