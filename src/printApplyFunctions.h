@@ -19,7 +19,8 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 enum Estado
 {
-    ESTADO_TESTE,
+    ESTADO_TESTE_DE_IMPRESSAO,
+    ESTADO_DESATIVADO,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -31,10 +32,10 @@ enum Estado
     REFERENCIANDO_CICLO_OLD,
     PRONTO_OLD,
     CICLO_OLD,
-};
-
-
+}fsm;
 uint16_t fsm_substate = fase1;
+
+
 
 enum Evento
 {
@@ -51,7 +52,7 @@ enum Evento
 
 typedef struct
 {
-    Estado estado = ESTADO_TESTE;
+    Estado estado = ESTADO_DESATIVADO;
     Estado sub_estado = EMERGENCIA_TOP_OLD;
 } Fsm;
 Fsm fsm_old;

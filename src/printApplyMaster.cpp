@@ -38,8 +38,43 @@ void loop()
 
   // Ciclo:
 
+  switch (fsm)
+  {
+  case ESTADO_TESTE_DE_IMPRESSAO:
+  {
+    static uint32_t fsm_substate = fase1;
+
+    if (fsm_substate == fase1)
+    {
+      if (sensorDeProdutoOuStart.checkPulse())
+      {
+        Serial.println("SP");
+        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
+        fsm_substate = fase2;
+      }
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (evento == EVT_FIM_DA_IMPRESSAO)
+      {
+        fsm_substate = fase1;
+      }
+      else if (evento == EVT_FALHA)
+      {
+        Serial.println("erro impressao");
+        fsm_substate = fase1;
+      }
+    }
+    break;
+  }
+  }
+
   switch (fsm_old.estado)
   {
+  case ESTADO_DESATIVADO:
+  {
+    break;
+  }
   case PARADA_EMERGENCIA_OLD:
   {
     static uint32_t timer_requestStatusImpressora = 0;
@@ -757,7 +792,7 @@ void loop()
     // Condição para sair do ERRO_OLD:
     break;
   }
-  case ESTADO_TESTE:
+  case ESTADO_TESTE_DE_IMPRESSAO:
   {
     static uint32_t fsm_substate = fase1;
 
