@@ -62,8 +62,8 @@ SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
 QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
 
-AccelStepper motor(AccelStepper::DRIVER, PIN_PUL, PIN_DIR);
-AccelStepper motor_espatula(AccelStepper::DRIVER, PIN_PUL_ESP, PIN_DIR_ESP);
+AccelStepper braco(AccelStepper::DRIVER, PIN_PUL_BRACO, PIN_DIR_BRACO);
+AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBOBINADOR); // na verdade o DIR do rebobinador não está conecta. Então defini um pino que não está sendo utilizado.
 
 
 TaskHandle_t h_eeprom;
@@ -493,13 +493,13 @@ void motorSetup()
     int32_t velocidadeLinearPulsosBracoInit = round(velocidadeReferencia * resolucao);
     int32_t aceleracaoLinearPulsosBracoInit = round(((velocidadeLinearPulsosBracoInit * velocidadeLinearPulsosBracoInit) / (2 * pulsosRampa)));
 
-    motor.setMaxSpeed(velocidadeLinearPulsosBracoInit); // escolhe velocidade em que o motor vai trabalhar
-    motor.setAcceleration(aceleracaoLinearPulsosBracoInit);
-    motor.setPinsInverted(DIRECAO_HORA); // muda direção do motor
+    braco.setMaxSpeed(velocidadeLinearPulsosBracoInit); // escolhe velocidade em que o motor vai trabalhar
+    braco.setAcceleration(aceleracaoLinearPulsosBracoInit);
+    braco.setPinsInverted(DIRECAO_HORA); // muda direção do motor
 
-    motor_espatula.setMaxSpeed(velocidadeReferenciaEspatula);
-    motor_espatula.setAcceleration(aceleracaoReferenciaEspatula);
-    motor_espatula.setPinsInverted(DIRECAO_ANTIHORA);
+    rebobinador.setMaxSpeed(velocidadeReferenciaEspatula);
+    rebobinador.setAcceleration(aceleracaoReferenciaEspatula);
+    rebobinador.setPinsInverted(DIRECAO_ANTIHORA);
 
     velocidadeCiclommps = velocidadeReferencia;
 }
@@ -523,14 +523,14 @@ void motorRun()
     {
         pulsosRampa = resolucao * rampa;
 
-        motor_espatula.setMaxSpeed(velocidadeEspatula);
-        motor_espatula.setAcceleration(aceleracaoEspatula);
+        rebobinador.setMaxSpeed(velocidadeEspatula);
+        rebobinador.setAcceleration(aceleracaoEspatula);
 
         velocidadeLinearPulsos = round(velocidadeLinearmmps * resolucao);
         aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
 
-        motor.setMaxSpeed(velocidadeLinearPulsos);
-        motor.setAcceleration(aceleracaoLinearPulsos);
+        braco.setMaxSpeed(velocidadeLinearPulsos);
+        braco.setAcceleration(aceleracaoLinearPulsos);
         velocidadeCiclommps = velocidadeLinearmmps;
 
         Serial.print("Velocidade Braco: ");
@@ -1330,8 +1330,8 @@ void pin_mode()
     pinMode(PWM_VENTILADOR, OUTPUT);
 
     pinMode(PIN_PUL, OUTPUT);
-    pinMode(PIN_PUL_ESP, OUTPUT);
-    pinMode(PIN_DIR_ESP, OUTPUT);
+    pinMode(PIN_PUL_REBOBINADOR, OUTPUT);
+    pinMode(PIN_DIR_REBOBINADOR, OUTPUT);
     pinMode(PIN_HSDO4, OUTPUT);
 
     pinMode(PIN_RS485_EN, OUTPUT);

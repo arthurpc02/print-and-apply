@@ -32,8 +32,8 @@ void setup()
 
 void loop()
 {
-  motor.run();
-  motor_espatula.run();
+  braco.run();
+  rebobinador.run();
 
   Evento evento = recebeEventos();
 
@@ -96,8 +96,8 @@ void loop()
     {
       if (fsm_emergencia == fase1)
       {
-        motor.stop();
-        motor_espatula.stop();
+        braco.stop();
+        rebobinador.stop();
         motorSetup();
         motorEnable();
         ventiladorWrite(VENTILADOR_CANAL, 0);
@@ -116,7 +116,7 @@ void loop()
       {
         if (checkSensorEspatulaInit())
         {
-          motor_espatula.move(-pulsosEspatulaRecuoInit);
+          rebobinador.move(-pulsosEspatulaRecuoInit);
           fsm_emergencia = fase4;
         }
         else
@@ -128,7 +128,7 @@ void loop()
       {
         if (checkSensorEspatula())
         {
-          motor_espatula.stop();
+          rebobinador.stop();
           fsm_emergencia = fase5;
         }
       }
@@ -137,12 +137,12 @@ void loop()
         if (checkSensorHomeInit())
         {
           pulsosBracoEmergencia = posicaoBracoEmergencia * resolucao;
-          motor.moveTo(-pulsosBracoEmergencia);
+          braco.moveTo(-pulsosBracoEmergencia);
           fsm_emergencia = fase8;
         }
         else
         {
-          motor.move(pulsosBracoMaximo);
+          braco.move(pulsosBracoMaximo);
           fsm_emergencia = fase6;
         }
       }
@@ -150,30 +150,30 @@ void loop()
       {
         if (checkSensorHome())
         {
-          posicaoBracoSensor = motor.currentPosition();
-          motor.stop();
+          posicaoBracoSensor = braco.currentPosition();
+          braco.stop();
           fsm_emergencia = fase7;
         }
       }
       else if (fsm_emergencia == fase7)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
-          posicaoBracoReferencia = motor.currentPosition();
+          posicaoBracoReferencia = braco.currentPosition();
           posicaoBracoCorrecao = posicaoBracoReferencia - posicaoBracoSensor;
-          motor.setCurrentPosition(posicaoBracoCorrecao);
+          braco.setCurrentPosition(posicaoBracoCorrecao);
           fsm_emergencia = fase8;
         }
       }
       else if (fsm_emergencia == fase8)
       {
         pulsosBracoEmergencia = posicaoBracoEmergencia * resolucao;
-        motor.moveTo(-pulsosBracoEmergencia);
+        braco.moveTo(-pulsosBracoEmergencia);
         fsm_emergencia = fase9;
       }
       else if (fsm_emergencia == fase9)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
           motorDisable();
           fsm_emergencia = fase10;
@@ -289,20 +289,20 @@ void loop()
       {
         if (checkSensorHomeInit())
         {
-          motor.move(-pulsosBracoForaSensor);
+          braco.move(-pulsosBracoForaSensor);
           fsm_referenciando_init_motor = fase4;
         }
         else
         {
-          motor.move(pulsosBracoMaximo);
+          braco.move(pulsosBracoMaximo);
           fsm_referenciando_init_motor = fase5;
         }
       }
       else if (fsm_referenciando_init_motor == fase4)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
-          motor.move(pulsosBracoMaximo);
+          braco.move(pulsosBracoMaximo);
           fsm_referenciando_init_motor = fase5;
         }
       }
@@ -310,18 +310,18 @@ void loop()
       {
         if (checkSensorHome())
         {
-          posicaoBracoSensor = motor.currentPosition();
-          motor.stop();
+          posicaoBracoSensor = braco.currentPosition();
+          braco.stop();
           fsm_referenciando_init_motor = fase6;
         }
       }
       else if (fsm_referenciando_init_motor == fase6)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
-          posicaoBracoReferencia = motor.currentPosition();
+          posicaoBracoReferencia = braco.currentPosition();
           posicaoBracoCorrecao = posicaoBracoReferencia - posicaoBracoSensor;
-          motor.setCurrentPosition(posicaoBracoCorrecao);
+          braco.setCurrentPosition(posicaoBracoCorrecao);
           fsm_referenciando_init_motor = fase7;
         }
       }
@@ -330,20 +330,20 @@ void loop()
       {
         if (checkSensorEspatulaInit())
         {
-          motor_espatula.move(-pulsosEspatulaRecuoInit);
+          rebobinador.move(-pulsosEspatulaRecuoInit);
           fsm_referenciando_init_espatula = fase4;
         }
         else
         {
-          motor_espatula.move(pulsosEspatulaAvancoInit);
+          rebobinador.move(pulsosEspatulaAvancoInit);
           fsm_referenciando_init_espatula = fase3;
         }
       }
       else if (fsm_referenciando_init_espatula == fase3)
       {
-        if (motor_espatula.distanceToGo() == 0)
+        if (rebobinador.distanceToGo() == 0)
         {
-          motor_espatula.move(-pulsosEspatulaRecuoInit);
+          rebobinador.move(-pulsosEspatulaRecuoInit);
           fsm_referenciando_init_espatula = fase4;
         }
       }
@@ -351,18 +351,18 @@ void loop()
       {
         if (checkSensorEspatula())
         {
-          posicaoEspatulaSensor = motor_espatula.currentPosition();
-          motor_espatula.stop();
+          posicaoEspatulaSensor = rebobinador.currentPosition();
+          rebobinador.stop();
           fsm_referenciando_init_espatula = fase5;
         }
       }
       else if (fsm_referenciando_init_espatula == fase5)
       {
-        if (motor_espatula.distanceToGo() == 0)
+        if (rebobinador.distanceToGo() == 0)
         {
-          posicaoEspatulaReferencia = motor_espatula.currentPosition();
+          posicaoEspatulaReferencia = rebobinador.currentPosition();
           posicaoEspatulaCorrecao = posicaoEspatulaReferencia - posicaoEspatulaSensor;
-          motor_espatula.setCurrentPosition(posicaoEspatulaCorrecao);
+          rebobinador.setCurrentPosition(posicaoEspatulaCorrecao);
           fsm_referenciando_init_espatula = fase6;
         }
       }
@@ -370,8 +370,8 @@ void loop()
       else if (fsm_referenciando_init_espatula == fase6 && fsm_referenciando_init_motor == fase7)
       {
         pulsosBracoInicial = posicaoBracoInicial * resolucao;
-        motor.moveTo(-pulsosBracoInicial);
-        motor_espatula.moveTo(pulsosEspatulaAvanco);
+        braco.moveTo(-pulsosBracoInicial);
+        rebobinador.moveTo(pulsosEspatulaAvanco);
 
         ventiladorWrite(VENTILADOR_CANAL, 100);
 
@@ -406,12 +406,12 @@ void loop()
       if (fsm_referenciando_ciclo_motor == fase2)
       {
         pulsosBracoInicial = posicaoBracoInicial * resolucao;
-        motor.moveTo(-pulsosBracoInicial);
+        braco.moveTo(-pulsosBracoInicial);
         fsm_referenciando_ciclo_motor = fase3;
       }
       else if (fsm_referenciando_ciclo_motor == fase3)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
           fsm_referenciando_ciclo_motor = fase4;
         }
@@ -428,20 +428,20 @@ void loop()
       {
         if (checkSensorEspatulaInit())
         {
-          motor_espatula.move(-pulsosEspatulaRecuoInit);
+          rebobinador.move(-pulsosEspatulaRecuoInit);
           fsm_referenciando_ciclo_espatula = fase5;
         }
         else
         {
-          motor_espatula.move(pulsosEspatulaAvancoInit);
+          rebobinador.move(pulsosEspatulaAvancoInit);
           fsm_referenciando_ciclo_espatula = fase4;
         }
       }
       else if (fsm_referenciando_ciclo_espatula == fase4)
       {
-        if (motor_espatula.distanceToGo() == 0)
+        if (rebobinador.distanceToGo() == 0)
         {
-          motor_espatula.move(-pulsosEspatulaRecuoInit);
+          rebobinador.move(-pulsosEspatulaRecuoInit);
           fsm_referenciando_ciclo_espatula = fase5;
         }
       }
@@ -449,25 +449,25 @@ void loop()
       {
         if (checkSensorEspatula())
         {
-          posicaoEspatulaSensor = motor_espatula.currentPosition();
-          motor_espatula.stop();
+          posicaoEspatulaSensor = rebobinador.currentPosition();
+          rebobinador.stop();
           fsm_referenciando_ciclo_espatula = fase6;
         }
       }
       else if (fsm_referenciando_ciclo_espatula == fase6)
       {
-        if (motor_espatula.distanceToGo() == 0)
+        if (rebobinador.distanceToGo() == 0)
         {
-          posicaoEspatulaReferencia = motor_espatula.currentPosition();
+          posicaoEspatulaReferencia = rebobinador.currentPosition();
           posicaoEspatulaCorrecao = posicaoEspatulaReferencia - posicaoEspatulaSensor;
-          motor_espatula.setCurrentPosition(posicaoEspatulaCorrecao);
+          rebobinador.setCurrentPosition(posicaoEspatulaCorrecao);
           fsm_referenciando_ciclo_espatula = fase7;
         }
       }
 
       else if (fsm_referenciando_ciclo_espatula == fase7 && fsm_referenciando_ciclo_motor == fase4)
       {
-        motor_espatula.moveTo(pulsosEspatulaAvanco);
+        rebobinador.moveTo(pulsosEspatulaAvanco);
         ventiladorWrite(VENTILADOR_CANAL, 100);
 
         fsm_referenciando_ciclo_espatula = fase8;
@@ -476,7 +476,7 @@ void loop()
 
       else if (fsm_referenciando_ciclo_espatula == fase8)
       {
-        if (motor_espatula.distanceToGo() == 0)
+        if (rebobinador.distanceToGo() == 0)
         {
           imprimirZebra();
           timer_etiqueta = millis();
@@ -487,7 +487,7 @@ void loop()
       {
         if (millis() - timer_etiqueta >= atrasoImpressaoEtiqueta)
         {
-          motor_espatula.moveTo(-pulsosEspatulaRecuo);
+          rebobinador.moveTo(-pulsosEspatulaRecuo);
           fsm_referenciando_ciclo_espatula = fase10;
         }
       }
@@ -495,8 +495,8 @@ void loop()
       {
         if (checkSensorEspatula())
         {
-          posicaoEspatulaSensor = motor_espatula.currentPosition();
-          motor_espatula.stop();
+          posicaoEspatulaSensor = rebobinador.currentPosition();
+          rebobinador.stop();
           fsm_referenciando_ciclo_espatula = fase11;
           fsm_referenciando_ciclo_motor = fase5;
         }
@@ -505,7 +505,7 @@ void loop()
       else if (fsm_referenciando_ciclo_motor == fase5)
       {
         pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
-        motor.moveTo(-pulsosBracoAplicacao);
+        braco.moveTo(-pulsosBracoAplicacao);
         fsm_referenciando_ciclo_motor = fase6;
       }
 
@@ -513,7 +513,7 @@ void loop()
       {
         if (fsm_referenciando_ciclo_espatula == fase11 && fsm_referenciando_ciclo_motor == fase6)
         {
-          if (motor.distanceToGo() == 0 && motor_espatula.distanceToGo() == 0)
+          if (braco.distanceToGo() == 0 && rebobinador.distanceToGo() == 0)
           {
             fsm_old.sub_estado = PRONTO_OLD;
             fsm_pronto_ciclo = fase1;
@@ -541,7 +541,7 @@ void loop()
       {
         if (checkBotaoStart()) // Inicia o ciclo com o botão START acionado e entra em modo contínuo
         {
-          if (motor_espatula.distanceToGo() == 0)
+          if (rebobinador.distanceToGo() == 0)
           {
             ihm.showStatus2msg(F("APROXIMANDO BRACO..."));
             // imprimirZebra();
@@ -551,7 +551,7 @@ void loop()
         }
         else if (flag_continuo)
         {
-          if (motor_espatula.distanceToGo() == 0)
+          if (rebobinador.distanceToGo() == 0)
           {
             ihm.showStatus2msg(F("APROXIMANDO BRACO..."));
             ventiladorWrite(VENTILADOR_CANAL, 100);
@@ -565,7 +565,7 @@ void loop()
       {
         if (millis() - timer_etiqueta >= atrasoImpressaoEtiqueta)
         {
-          motor_espatula.moveTo(-pulsosEspatulaRecuo);
+          rebobinador.moveTo(-pulsosEspatulaRecuo);
           fsm_pronto_init = fase4;
         }
       }
@@ -573,21 +573,21 @@ void loop()
       {
         if (checkSensorEspatula())
         {
-          posicaoEspatulaSensor = motor_espatula.currentPosition();
-          motor_espatula.stop();
+          posicaoEspatulaSensor = rebobinador.currentPosition();
+          rebobinador.stop();
           fsm_pronto_init = fase5;
         }
       }
       else if (fsm_pronto_init == fase5)
       {
         pulsosBracoAplicacao = posicaoBracoAplicacao * resolucao;
-        motor.moveTo(-pulsosBracoAplicacao);
+        braco.moveTo(-pulsosBracoAplicacao);
 
         fsm_pronto_init = fase6;
       }
       else if (fsm_pronto_init == fase6)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
           ihm.showStatus2msg(F("AGUARDANDO PRODUTO.."));
           fsm_pronto_init = fase7;
@@ -644,7 +644,7 @@ void loop()
         if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
         {
           pulsosBracoProduto = posicaoBracoProduto * resolucao;
-          motor.moveTo(-pulsosBracoProduto);
+          braco.moveTo(-pulsosBracoProduto);
           fsm_ciclo = fase3;
         }
       }
@@ -652,11 +652,11 @@ void loop()
       {
         if (checkSensorAplicacao())
         {
-          posicaoBracoDeteccaoProduto = motor.currentPosition();
+          posicaoBracoDeteccaoProduto = braco.currentPosition();
           pulsosBracoEspacamento = espacamentoProdutomm * resolucao;
           fsm_ciclo = fase4;
         }
-        else if (motor.distanceToGo() == 0)
+        else if (braco.distanceToGo() == 0)
         {
           fsm_old.estado = ERRO_OLD;
           fsm_erro_aplicacao = fase1;
@@ -678,12 +678,12 @@ void loop()
       }
       else if (fsm_ciclo == fase5)
       {
-        if (motor.currentPosition() == (posicaoBracoDeteccaoProduto - (pulsosBracoEspacamento - pulsosRampa)))
+        if (braco.currentPosition() == (posicaoBracoDeteccaoProduto - (pulsosBracoEspacamento - pulsosRampa)))
         {
-          motor.stop();
+          braco.stop();
           fsm_ciclo = fase6;
         }
-        else if (motor.distanceToGo() == 0)
+        else if (braco.distanceToGo() == 0)
         {
           fsm_old.estado = ERRO_OLD;
           fsm_erro_aplicacao = fase1;
@@ -693,7 +693,7 @@ void loop()
       }
       else if (fsm_ciclo == fase6)
       {
-        if (motor.distanceToGo() == 0)
+        if (braco.distanceToGo() == 0)
         {
           // ventiladorWrite(VENTILADOR_CANAL, 25);
           fsm_ciclo = fase7;
@@ -765,8 +765,8 @@ void loop()
 
     if (fsm_erro_intertravamento == fase1)
     {
-      motor.stop();
-      motor_espatula.stop();
+      braco.stop();
+      rebobinador.stop();
       motorDisable();
       ventiladorWrite(VENTILADOR_CANAL, 0);
       fsm_erro_intertravamento = fase2;

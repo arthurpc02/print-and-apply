@@ -91,12 +91,12 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 
 // Motores:
 // Motor Principal:
-#define PIN_PUL PIN_HSDO1
-#define PIN_DIR PIN_HSDO3
+#define PIN_PUL_BRACO PIN_HSDO1
+#define PIN_DIR_BRACO PIN_HSDO3
 // Motor Principal:
 // Motor Espátula:
-#define PIN_PUL_ESP PIN_HSDO2          
-#define PIN_DIR_ESP PIN_SDA
+#define PIN_PUL_REBOBINADOR PIN_HSDO2          
+#define PIN_DIR_REBOBINADOR PIN_SDA
 // Motor Espátula:
 
 // Habilita Motores:
