@@ -872,7 +872,7 @@ void loop()
       if (sensorDeProdutoOuStart.checkPulse())
       {
         Serial.println("SP");
-        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
+        xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
         fsm_substate = fase2;
       }
     }

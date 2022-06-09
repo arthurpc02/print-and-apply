@@ -293,7 +293,7 @@ void desligaReprint();
 
 void t_blink(void *p);
 void t_debug(void *p);
-void t_print(void *);
+void t_printEtiqueta(void *);
 
 void t_ihm(void *);
 void t_botoesIhm(void *);
@@ -512,10 +512,10 @@ void incrementaContadores()
 
 void imprimeEtiqueta()
 {
-    xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
-void t_print(void *p)
+void t_printEtiqueta(void *p)
 {
     const uint16_t intervalo_task = 1; // ms
 
@@ -527,19 +527,13 @@ void t_print(void *p)
     {
         delay(intervalo_task);
 
-
         if (fsm_print == fase1)
-        {
-            desligaPrint(); // garante que o print está desligado no começo da task.
-            fsm_print = fase2;
-        }
-        else if (fsm_print == fase2)
         {
             if (digitalRead(PIN_PREND) == LOW)
             {
                 ligaPrint();
                 timer_duracaoDaImpressao = millis();
-                fsm_print = fase3;
+                fsm_print = fase2;
             }
             else
             {
@@ -549,11 +543,11 @@ void t_print(void *p)
                 vTaskDelete(NULL);
             }
         }
-        else if (fsm_print == fase3)
+        else if (fsm_print == fase2)
         {
             if ((digitalRead(PIN_PREND) == HIGH))
             {
-                fsm_print = fase4;
+                fsm_print = fase3;
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
@@ -563,13 +557,11 @@ void t_print(void *p)
                 vTaskDelete(NULL);
             }
         }
-        else if (fsm_print == fase4)
+        else if (fsm_print == fase3)
         {
             if ((digitalRead(PIN_PREND) == LOW))
             {
                 desligaPrint();
-                // to do: evento: fim print cmd
-                // to do: flag_fimPrint = true;
                 enviaEvento(EVT_FIM_DA_IMPRESSAO);
                 vTaskDelete(NULL);
             }
