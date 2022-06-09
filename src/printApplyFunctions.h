@@ -22,6 +22,7 @@ enum Estado
 {
     ESTADO_TESTE_DE_IMPRESSAO,
     ESTADO_DESATIVADO,
+    ESTADO_EMERGENCIA,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -282,7 +283,6 @@ void t_blink(void *p);
 
 void t_debug(void *p);
 
-void pin_mode(); // to do: remover essa funcao e usar a pinInitialization da lib esp32_v2.1
 
 void ligaPrint();
 void desligaPrint();
@@ -385,7 +385,8 @@ Evento recebeEventos()
 
 void changeFsmState(Estado estado)
 {
-    // fsm = estado;
+    fsm = estado;
+    Serial.print("current state: ");Serial.println(estado);
     fsm_substate = fase1;
 }
 
@@ -1317,36 +1318,6 @@ void t_debug(void *p)
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-void pin_mode()
-{
-    // Outputs:
-    pinMode(PIN_STATUS, OUTPUT);
-
-    pinMode(PIN_OUTPUT_DATA, OUTPUT);
-    pinMode(PIN_IO_CLOCK, OUTPUT);
-    pinMode(PIN_IO_LATCH, OUTPUT);
-
-    pinMode(PIN_DIR, OUTPUT);
-    pinMode(PWM_VENTILADOR, OUTPUT);
-
-    pinMode(PIN_PUL, OUTPUT);
-    pinMode(PIN_PUL_REBOBINADOR, OUTPUT);
-    pinMode(PIN_DIR_REBOBINADOR, OUTPUT);
-    pinMode(PIN_HSDO4, OUTPUT);
-
-    pinMode(PIN_RS485_EN, OUTPUT);
-    // Outputs:
-
-    //  Inputs:
-    pinMode(PIN_INPUT_DATA, INPUT);
-
-    pinMode(PIN_SENSOR_PRODUTO, INPUT);
-    pinMode(PIN_SENSOR_HOME, INPUT);
-    pinMode(PIN_SENSOR_APLICACAO, INPUT);
-    pinMode(PIN_SENSOR_ESPATULA, INPUT);
-
-    //  Inputs:
-}
 // Functions:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////

@@ -45,14 +45,15 @@ void loop()
   {
     static uint32_t fsm_substate = fase1;
 
-    if(evento == EVT_PARADA_EMERGENCIA)
+    if (evento == EVT_PARADA_EMERGENCIA)
     {
-      Serial.println("parada de emergencia");
+      changeFsmState(ESTADO_EMERGENCIA);
       break; // to do: testar colocar esse break dentro da função changeFsmState
     }
 
     if (fsm_substate == fase1)
     {
+      Serial.println("ESTADO TESTE DE IMPRESSAO");
       if (sensorDeProdutoOuStart.checkPulse())
       {
         Serial.println("SP");
@@ -70,6 +71,41 @@ void loop()
       {
         Serial.println("erro impressao");
         fsm_substate = fase1;
+      }
+    }
+    break;
+  }
+  case ESTADO_EMERGENCIA:
+  {
+    static uint32_t timer_emergencia = 0;
+    const uint32_t timeout_emergencia = 250;
+
+    if (fsm_substate == fase1)
+    {
+      // vTaskResume(h_eeprom);
+      ihm.showStatus2msg("BOTAO EMERGENCIA");
+      delay(1);
+      // ihm.ligaLEDvermelho();
+      delay(1);
+      // ihm.desligaLEDverde();
+      Serial.println("ESTADO EMERGENCIA");
+      // habilitaConfiguracaoPelaIhm();
+      timer_emergencia = millis();
+      // encoder.clearCount();
+      // flag_referenciou = false;
+      fsm_substate = fase2;
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (evento == EVT_PARADA_EMERGENCIA)
+      {
+        timer_emergencia = millis();
+      }
+      else if (millis() - timer_emergencia > timeout_emergencia)
+      {
+        // ihm.desligaLEDvermelho();
+        // falhas.clearAllFaults();
+        changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
       }
     }
     break;
