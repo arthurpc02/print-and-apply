@@ -20,9 +20,10 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 enum Estado
 {
+    ESTADO_EMERGENCIA,
+    ESTADO_STOP,
     ESTADO_TESTE_DE_IMPRESSAO,
     ESTADO_DESATIVADO,
-    ESTADO_EMERGENCIA,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -36,8 +37,6 @@ enum Estado
     CICLO_OLD,
 }fsm;
 uint16_t fsm_substate = fase1;
-
-
 
 enum Evento
 {

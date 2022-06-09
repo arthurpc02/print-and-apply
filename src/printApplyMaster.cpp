@@ -41,40 +41,6 @@ void loop()
 
   switch (fsm)
   {
-  case ESTADO_TESTE_DE_IMPRESSAO:
-  {
-    static uint32_t fsm_substate = fase1;
-
-    if (evento == EVT_PARADA_EMERGENCIA)
-    {
-      changeFsmState(ESTADO_EMERGENCIA);
-      break; // to do: testar colocar esse break dentro da função changeFsmState
-    }
-
-    if (fsm_substate == fase1)
-    {
-      Serial.println("ESTADO TESTE DE IMPRESSAO");
-      if (sensorDeProdutoOuStart.checkPulse())
-      {
-        Serial.println("SP");
-        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
-        fsm_substate = fase2;
-      }
-    }
-    else if (fsm_substate == fase2)
-    {
-      if (evento == EVT_FIM_DA_IMPRESSAO)
-      {
-        fsm_substate = fase1;
-      }
-      else if (evento == EVT_FALHA)
-      {
-        Serial.println("erro impressao");
-        fsm_substate = fase1;
-      }
-    }
-    break;
-  }
   case ESTADO_EMERGENCIA:
   {
     static uint32_t timer_emergencia = 0;
@@ -109,6 +75,44 @@ void loop()
       }
     }
     break;
+  }
+  case ESTADO_TESTE_DE_IMPRESSAO:
+  {
+    static uint32_t fsm_substate = fase1;
+
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break; // to do: testar colocar esse break dentro da função changeFsmState
+    }
+
+    if (fsm_substate == fase1)
+    {
+      Serial.println("ESTADO TESTE DE IMPRESSAO");
+      if (sensorDeProdutoOuStart.checkPulse())
+      {
+        Serial.println("SP");
+        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
+        fsm_substate = fase2;
+      }
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (evento == EVT_FIM_DA_IMPRESSAO)
+      {
+        fsm_substate = fase1;
+      }
+      else if (evento == EVT_FALHA)
+      {
+        Serial.println("erro impressao");
+        fsm_substate = fase1;
+      }
+    }
+    break;
+  }
+  case ESTADO_STOP:
+  {
+    
   }
   }
 

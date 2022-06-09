@@ -7,3 +7,6 @@
 [submodule "lib/extendedIOs"]
 	path = lib/extendedIOs
 	url = git@github.com:Atsunnytec/extendedIOs.git
+[submodule "lib/ihmSunnytecMaster_v2.0"]
+	path = lib/ihmSunnytecMaster_v2.0
+	url = git@github.com:Atsunnytec/ihmSunnytecMaster_v2.0.git
