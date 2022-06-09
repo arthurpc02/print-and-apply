@@ -285,6 +285,7 @@ void ventiladorWrite(uint16_t, uint16_t);
 
 void piscaLedStatus();
 
+void imprimeEtiqueta();
 void ligaPrint();
 void desligaPrint();
 void ligaReprint();
@@ -509,6 +510,11 @@ void incrementaContadores()
     //   salvaContadorNaEEPROM();
 }
 
+void imprimeEtiqueta()
+{
+    xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+}
+
 void t_print(void *p)
 {
     const uint16_t intervalo_task = 1; // ms
@@ -521,35 +527,43 @@ void t_print(void *p)
     {
         delay(intervalo_task);
 
+
         if (fsm_print == fase1)
+        {
+            desligaPrint(); // garante que o print está desligado no começo da task.
+            fsm_print = fase2;
+        }
+        else if (fsm_print == fase2)
         {
             if (digitalRead(PIN_PREND) == LOW)
             {
                 ligaPrint();
                 timer_duracaoDaImpressao = millis();
-                fsm_print = fase2;
+                fsm_print = fase3;
             }
             else
             {
                 enviaEvento(EVT_FALHA);
+                desligaPrint();
                 Serial.println("erro print: impressão em andamento");
                 vTaskDelete(NULL);
             }
         }
-        else if (fsm_print == fase2)
+        else if (fsm_print == fase3)
         {
             if ((digitalRead(PIN_PREND) == HIGH))
             {
-                fsm_print = fase3;
+                fsm_print = fase4;
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
                 enviaEvento(EVT_FALHA);
+                desligaPrint();
                 Serial.println("erro impressao: impressao nao comecou");
                 vTaskDelete(NULL);
             }
         }
-        else if (fsm_print == fase3)
+        else if (fsm_print == fase4)
         {
             if ((digitalRead(PIN_PREND) == LOW))
             {
@@ -562,6 +576,7 @@ void t_print(void *p)
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
                 enviaEvento(EVT_FALHA);
+                desligaPrint();
                 Serial.println("erro impressao: timeout duracao da impressao");
                 vTaskDelete(NULL);
             }
@@ -702,7 +717,7 @@ void motorSetup()
     braco.setPinsInverted();
 
     rebobinador.setMaxSpeed(3 * rebobinador_ppv);
-    rebobinador.setAcceleration(8000);
+    rebobinador.setAcceleration(12000);
     rebobinador.setPinsInverted();
 
     velocidadeCiclommps = velocidadeReferencia;
@@ -1400,6 +1415,7 @@ void desligaTodosOutput()
     updateOutput(bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | bit(RLO1) | bit(RLO2));
     digitalWrite(PIN_DO1, HIGH);
     digitalWrite(PIN_DO2, HIGH);
+    digitalWrite(PIN_DO3, HIGH);
     digitalWrite(PIN_HSDO1, LOW);
     digitalWrite(PIN_HSDO2, LOW);
     digitalWrite(PIN_HSDO3, LOW);

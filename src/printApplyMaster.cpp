@@ -87,21 +87,19 @@ void loop()
       break;
     }
 
-    if(fsm_substate == fase1)
+    if (fsm_substate == fase1)
     {
-      if(evento == EVT_HOLD_PLAY_PAUSE)
+      Serial.println("ESTADO STOP");
+      fsm_substate = fase2;
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         habilitaMotores();
-        delay(50);
-        rebobinador.move(rebobinador_ppv * 1.5);
-        // fsm_substate = fase2;
+        changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
       }
     }
-    else if(fsm_substate == fase2)
-    {
-      
-    }
-
     break;
   }
   case ESTADO_TESTE_DE_IMPRESSAO:
@@ -119,11 +117,11 @@ void loop()
     }
     else if (fsm_substate == fase2)
     {
-      if (sensorDeProdutoOuStart.checkPulse())
+      if (evento == EVT_HOLD_PLAY_PAUSE)
       {
-        Serial.println("SP");
-        xTaskCreatePinnedToCore(t_print, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0); // createTaskPrint();
-        fsm_substate = fase3;
+        rebobinador.move(rebobinador_ppv * 1.5);
+        imprimeEtiqueta();
+        fsm_substate = fase2;
       }
     }
     else if (fsm_substate == fase3)
