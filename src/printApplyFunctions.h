@@ -26,6 +26,7 @@ enum Estado
     ESTADO_TESTE_DO_BRACO,
     ESTADO_DESATIVADO,
     ESTADO_REFERENCIANDO,
+    ESTADO_CICLO,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -195,7 +196,8 @@ uint16_t fsm_erro_intertravamento = fase1;
 // Fases da fsm:
 // Processo:
 
-// Flag's:
+// Flags:
+bool flag_referenciou = false;
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
 bool flag_intertravamentoIn = true;
@@ -205,7 +207,7 @@ bool flag_restartDisplay = false;
 bool flag_continuo = false;
 bool flag_manutencao = false;
 bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
-// Flag's:
+// Flags:
 // Parâmetros:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -713,13 +715,13 @@ void motorSetup()
     // rebobinador.setAcceleration(aceleracaoReferenciaEspatula);
     // rebobinador.setPinsInverted(DIRECAO_ANTIHORA);
 
-    braco.setMaxSpeed(400);
-    braco.setAcceleration(500);
+    braco.setMaxSpeed(1000);
+    braco.setAcceleration(5000);
     braco.setPinsInverted();
 
     rebobinador.setMaxSpeed(3 * rebobinador_ppv);
     rebobinador.setAcceleration(12000);
-    rebobinador.setPinsInverted();
+    // rebobinador nao tem pino de controle de direcao
 
     velocidadeCiclommps = velocidadeReferencia;
 }

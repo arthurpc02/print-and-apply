@@ -53,14 +53,14 @@ void loop()
       // vTaskResume(h_eeprom);
       ihm.showStatus2msg("BOTAO EMERGENCIA");
       delay(1);
-      // ihm.ligaLEDvermelho();
+      ihm.ligaLEDvermelho();
       delay(1);
-      // ihm.desligaLEDverde();
+      ihm.desligaLEDverde();
       Serial.println("ESTADO EMERGENCIA");
       // habilitaConfiguracaoPelaIhm();
       timer_emergencia = millis();
       // encoder.clearCount();
-      // flag_referenciou = false;
+      flag_referenciou = false;
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -97,8 +97,16 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         habilitaMotores();
-        // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
-        changeFsmState(ESTADO_TESTE_DO_BRACO);
+        if (flag_referenciou == false)
+        {
+          changeFsmState(ESTADO_REFERENCIANDO);
+        }
+        else
+        {
+          // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+          // changeFsmState(ESTADO_TESTE_DO_BRACO);
+          changeFsmState(ESTADO_CICLO);
+        }
       }
     }
     break;
@@ -106,37 +114,51 @@ void loop()
   case ESTADO_REFERENCIANDO:
   {
     // to do: quando inicia a máquina, tem que rebobinar.
+
+    int32_t posicaoZero = 0;
+
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
 
-    if(fsm_substate == fase1)
+    if (fsm_substate == fase1)
     {
-      if(emCimaDoSensorHome())
+      if (emCimaDoSensorHome())
       {
         braco.move(800);
       }
       fsm_substate = fase2;
     }
-    else if(fsm_substate == fase2)
+    else if (fsm_substate == fase2)
     {
-      if(braco.distanceToGo() == 0)
+      if (braco.distanceToGo() == 0)
       {
-          braco.move(-3000);
-          fsm_substate = fase3;
+        braco.move(-3000);
+        fsm_substate = fase3;
       }
     }
-    else if(fsm_substate == fase3)
+    else if (fsm_substate == fase3)
     {
-      if(emCimaDoSensorHome())
+      if (emCimaDoSensorHome())
       {
+        posicaoZero = braco.currentPosition();
+        braco.stop();
         fsm_substate = fase4;
       }
-      else if(braco.distanceToGo() == 0)
+      else if (braco.distanceToGo() == 0)
       {
         Serial.println("erro referenciacao: fim da area util.");
+      }
+    }
+    else if (fsm_substate == fase4)
+    {
+      if (braco.distanceToGo() == 0)
+      {
+        braco.setCurrentPosition(posicaoZero - braco.currentPosition());
+        flag_referenciou = true;
+        changeFsmState(ESTADO_STOP);
       }
     }
     break;
@@ -149,9 +171,9 @@ void loop()
       break;
     }
 
-    if(fsm_substate == fase1)
+    if (fsm_substate == fase1)
     {
-      if(evento == EVT_HOLD_PLAY_PAUSE)
+      if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         braco.move(1000);
       }
