@@ -23,7 +23,9 @@ enum Estado
     ESTADO_EMERGENCIA,
     ESTADO_STOP,
     ESTADO_TESTE_DE_IMPRESSAO,
+    ESTADO_TESTE_DO_BRACO,
     ESTADO_DESATIVADO,
+    ESTADO_REFERENCIANDO,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -290,6 +292,8 @@ void ligaPrint();
 void desligaPrint();
 void ligaReprint();
 void desligaReprint();
+
+bool emCimaDoSensorHome();
 
 void t_blink(void *p);
 void t_debug(void *p);
@@ -646,6 +650,11 @@ void ligaReprint()
 void desligaReprint()
 {
     digitalWrite(PIN_PRIN2, HIGH);
+}
+
+bool emCimaDoSensorHome()
+{
+    return !digitalRead(PIN_SENSOR_HOME);
 }
 
 void imprimirZebra()

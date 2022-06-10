@@ -97,9 +97,66 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         habilitaMotores();
-        changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+        // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+        changeFsmState(ESTADO_TESTE_DO_BRACO);
       }
     }
+    break;
+  }
+  case ESTADO_REFERENCIANDO:
+  {
+    // to do: quando inicia a máquina, tem que rebobinar.
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if(fsm_substate == fase1)
+    {
+      if(emCimaDoSensorHome())
+      {
+        braco.move(800);
+      }
+      fsm_substate = fase2;
+    }
+    else if(fsm_substate == fase2)
+    {
+      if(braco.distanceToGo() == 0)
+      {
+          braco.move(-3000);
+          fsm_substate = fase3;
+      }
+    }
+    else if(fsm_substate == fase3)
+    {
+      if(emCimaDoSensorHome())
+      {
+        fsm_substate = fase4;
+      }
+      else if(braco.distanceToGo() == 0)
+      {
+        Serial.println("erro referenciacao: fim da area util.");
+      }
+    }
+    break;
+  }
+  case ESTADO_TESTE_DO_BRACO:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if(fsm_substate == fase1)
+    {
+      if(evento == EVT_HOLD_PLAY_PAUSE)
+      {
+        braco.move(1000);
+      }
+    }
+
     break;
   }
   case ESTADO_TESTE_DE_IMPRESSAO:
