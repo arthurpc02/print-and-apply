@@ -89,6 +89,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      ihm.showStatus2msg("EM PAUSA");
       Serial.println("ESTADO STOP");
       fsm_substate = fase2;
     }
@@ -107,6 +108,48 @@ void loop()
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           changeFsmState(ESTADO_CICLO);
         }
+      }
+    }
+    break;
+  }
+  case ESTADO_CICLO:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if(fsm_substate == fase1) // to do: posicionamento dentro ou fora do ciclo?
+    {
+      if(braco.distanceToGo() == 0)
+      {
+        braco.moveTo(posicaoDePegarEtiqueta);
+        fsm_substate = fase2;
+      }
+    }
+    else if(fsm_substate == fase2)
+    {
+      if(braco.distanceToGo() == 0)
+      {
+        fsm_substate = fase3;
+      }
+    }
+    else if(fsm_substate == fase3)
+    {
+      if(sensorDeProdutoOuStart.checkPulse())
+      {
+        ligaVentilador();
+        imprimeEtiqueta();
+        fsm_substate = fase4;
+      }
+    }
+    else if(fsm_substate == fase4)
+    {
+      if(evento == EVT_FIM_DA_IMPRESSAO)
+      {
+        braco.moveTo(posicaoDeAguardarProduto);
+        fsm_substate == fase5;
       }
     }
     break;
