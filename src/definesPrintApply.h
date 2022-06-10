@@ -84,7 +84,7 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 // Botões:
 
 // Ventilador:
-#define PWM_VENTILADOR PIN_DO3
+#define PIN_VENTILADOR PIN_DO3
 #define FEEDBACK_VENTILADOR DI2
 #define VENTILADOR_CANAL CANAL_0
 // Ventilador:

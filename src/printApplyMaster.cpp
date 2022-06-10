@@ -25,7 +25,7 @@ void setup()
   createTasks();
 
   pinInitialization();
-  ventiladorConfig();
+  // ventiladorConfig();
   motorSetup();
 
   Serial.println("End Setup. Print & Apply Linear.");
@@ -37,8 +37,6 @@ void loop()
   rebobinador.run();
 
   Evento evento = recebeEventos();
-
-  // Ciclo:
 
   switch (fsm)
   {
@@ -106,7 +104,8 @@ void loop()
         {
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
-          changeFsmState(ESTADO_CICLO);
+          changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
+          // changeFsmState(ESTADO_CICLO);
         }
       }
     }
@@ -120,36 +119,36 @@ void loop()
       break;
     }
 
-    if(fsm_substate == fase1) // to do: posicionamento dentro ou fora do ciclo?
+    if (fsm_substate == fase1) // to do: posicionamento fora do ciclo
     {
-      if(braco.distanceToGo() == 0)
+      if (braco.distanceToGo() == 0)
       {
         braco.moveTo(posicaoDePegarEtiqueta);
         fsm_substate = fase2;
       }
     }
-    else if(fsm_substate == fase2)
+    else if (fsm_substate == fase2)
     {
-      if(braco.distanceToGo() == 0)
+      if (braco.distanceToGo() == 0)
       {
         fsm_substate = fase3;
       }
     }
-    else if(fsm_substate == fase3)
+    else if (fsm_substate == fase3)
     {
-      if(sensorDeProdutoOuStart.checkPulse())
+      if (sensorDeProdutoOuStart.checkPulse())
       {
         ligaVentilador();
         imprimeEtiqueta();
         fsm_substate = fase4;
       }
     }
-    else if(fsm_substate == fase4)
+    else if (fsm_substate == fase4)
     {
-      if(evento == EVT_FIM_DA_IMPRESSAO)
+      if (evento == EVT_FIM_DA_IMPRESSAO)
       {
         braco.moveTo(posicaoDeAguardarProduto);
-        fsm_substate == fase5;
+        fsm_substate = fase5;
       }
     }
     break;
@@ -199,8 +198,10 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        Serial.print("currt pos: ");Serial.println(braco.currentPosition());
-        Serial.print(" p0: ");Serial.println(posicaoZero);
+        Serial.print("currt pos: ");
+        Serial.println(braco.currentPosition());
+        Serial.print(" p0: ");
+        Serial.println(posicaoZero);
         braco.setCurrentPosition(posicaoZero - braco.currentPosition());
         flag_referenciou = true;
         changeFsmState(ESTADO_STOP);
@@ -257,6 +258,32 @@ void loop()
       else if (evento == EVT_FALHA)
       {
         Serial.println("erro impressao");
+        fsm_substate = fase1;
+      }
+    }
+    break;
+  }
+  case ESTADO_TESTE_DO_VENTILADOR:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if (fsm_substate == fase1)
+    {
+      if (evento == EVT_HOLD_PLAY_PAUSE)
+      {
+        ligaVentilador();
+        fsm_substate = fase2;
+      }
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (evento == EVT_HOLD_PLAY_PAUSE)
+      {
+        desligaVentilador();
         fsm_substate = fase1;
       }
     }

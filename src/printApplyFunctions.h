@@ -24,6 +24,7 @@ enum Estado
     ESTADO_STOP,
     ESTADO_TESTE_DE_IMPRESSAO,
     ESTADO_TESTE_DO_BRACO,
+    ESTADO_TESTE_DO_VENTILADOR,
     ESTADO_DESATIVADO,
     ESTADO_REFERENCIANDO,
     ESTADO_CICLO,
@@ -169,7 +170,7 @@ int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 int32_t posicaoDePegarEtiqueta = 2000; // pulsos
 int32_t posicaoDeAguardarProduto = 4000;
-const uint32_t braco_ppv = 3200; // pulsos
+const uint32_t braco_ppv = 3200;       // pulsos
 const uint32_t rebobinador_ppv = 3200; // pulsos
 
 // Processo:
@@ -1141,16 +1142,16 @@ void t_eeprom(void *p)
     {
         EEPROM.put(EPR_produto, produto);
 
-        EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial); // posicao em que o braco pega a etiqueta
-        EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao); // posicao em que o braco aguarda o sensor de produto
-        EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm); // distancia do produto ao sensor de aplicacao
+        EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);          // posicao em que o braco pega a etiqueta
+        EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);      // posicao em que o braco aguarda o sensor de produto
+        EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);       // distancia do produto ao sensor de aplicacao
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao); // atraso para colar a etiqueta no produto
         EEPROM.put(EPR_rampa, rampa);
         EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
 
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto); // atraso ate o produto estar posicionado na frente do braco
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);         // atraso ate o produto estar posicionado na frente do braco
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta); // tempo que demora para a etiqueta ser impressa
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeLinearmmps, velocidadeLinearmmps); // velocidade do braço
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeLinearmmps, velocidadeLinearmmps);       // velocidade do braço
 
         if ((contadorAbsoluto % quantidadeParaBackups) == 0)
             EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
@@ -1429,7 +1430,7 @@ void desligaTodosOutput()
     updateOutput(bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | bit(RLO1) | bit(RLO2));
     digitalWrite(PIN_DO1, HIGH);
     digitalWrite(PIN_DO2, HIGH);
-    digitalWrite(PIN_DO3, HIGH);
+    desligaVentilador();
     digitalWrite(PIN_HSDO1, LOW);
     digitalWrite(PIN_HSDO2, LOW);
     digitalWrite(PIN_HSDO3, LOW);
@@ -1444,7 +1445,7 @@ void ventiladorConfig()
     const uint16_t resolucao = 8;
 
     ventiladorSetup(VENTILADOR_CANAL, frequencia, resolucao);
-    ventiladorAttachPin(PWM_VENTILADOR, VENTILADOR_CANAL);
+    ventiladorAttachPin(PIN_VENTILADOR, VENTILADOR_CANAL);
 }
 
 void ventiladorSetup(uint16_t canal, uint16_t freq, uint16_t resolucao)
@@ -1466,12 +1467,12 @@ void ventiladorWrite(uint16_t canal, uint16_t intensidade)
 
 void ligaVentilador()
 {
-
+    digitalWrite(PIN_VENTILADOR, HIGH);
 }
 
 void desligaVentilador()
 {
-
+    digitalWrite(PIN_VENTILADOR, LOW);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1523,7 +1524,8 @@ void t_debug(void *p)
         Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
         Serial.print(" PREND: ");
         Serial.print(digitalRead(PIN_PREND));
-        Serial.print(" braco_pos: "); Serial.print(braco.currentPosition());
+        Serial.print(" braco_pos: ");
+        Serial.print(braco.currentPosition());
 
         Serial.println();
         delay(2000);
