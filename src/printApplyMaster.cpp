@@ -96,7 +96,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
-        habilitaMotores();
+        habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)
         {
           changeFsmState(ESTADO_REFERENCIANDO);
@@ -115,7 +115,7 @@ void loop()
   {
     // to do: quando inicia a máquina, tem que rebobinar.
 
-    int32_t posicaoZero = 0;
+    static int32_t posicaoZero = 0;
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -135,7 +135,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        braco.move(-3000);
+        braco.move(-12000);
         fsm_substate = fase3;
       }
     }
@@ -156,6 +156,8 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
+        Serial.print("currt pos: ");Serial.println(braco.currentPosition());
+        Serial.print(" p0: ");Serial.println(posicaoZero);
         braco.setCurrentPosition(posicaoZero - braco.currentPosition());
         flag_referenciou = true;
         changeFsmState(ESTADO_STOP);
@@ -242,7 +244,7 @@ void loop()
         braco.stop();
         rebobinador.stop();
         motorSetup();
-        habilitaMotores();
+        habilitaMotoresEAguardaEstabilizar();
         ventiladorWrite(VENTILADOR_CANAL, 0);
         fsm_emergencia = fase2;
       }
@@ -409,7 +411,7 @@ void loop()
       if (fsm_referenciando_init == fase1)
       {
         motorSetup();
-        habilitaMotores();
+        habilitaMotoresEAguardaEstabilizar();
 
         voltaParaPrimeiroMenu();
         ihm.showStatus2msg(F("-REFERENCIANDO INIT-"));

@@ -242,8 +242,9 @@ void imprimirZebra();
 void trataDadosImpressora(String);
 
 void motorSetup();
-void habilitaMotores();
+void habilitaMotoresEAguardaEstabilizar();
 void desabilitaMotores();
+void habilitaMotores();
 void motorRun();
 
 int checkSensorProduto();
@@ -724,6 +725,12 @@ void motorSetup()
     // rebobinador nao tem pino de controle de direcao
 
     velocidadeCiclommps = velocidadeReferencia;
+}
+
+void habilitaMotoresEAguardaEstabilizar()
+{
+    habilitaMotores();
+    delay(100);
 }
 
 void habilitaMotores()
@@ -1502,6 +1509,7 @@ void t_debug(void *p)
         Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
         Serial.print(" PREND: ");
         Serial.print(digitalRead(PIN_PREND));
+        Serial.print(" braco_pos: "); Serial.print(braco.currentPosition());
 
         Serial.println();
         delay(2000);
