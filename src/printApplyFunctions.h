@@ -544,6 +544,7 @@ void t_printEtiqueta(void *p)
             if (digitalRead(PIN_PREND) == LOW)
             {
                 ligaPrint();
+                rebobinador.move(50000);
                 timer_duracaoDaImpressao = millis();
                 fsm_print = fase2;
             }
@@ -575,6 +576,8 @@ void t_printEtiqueta(void *p)
             {
                 desligaPrint();
                 enviaEvento(EVT_FIM_DA_IMPRESSAO);
+                delay(300);
+                rebobinador.stop();
                 vTaskDelete(NULL);
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)

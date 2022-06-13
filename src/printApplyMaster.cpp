@@ -102,10 +102,11 @@ void loop()
         }
         else
         {
-          // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+          changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
-          changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
+          // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
           // changeFsmState(ESTADO_CICLO);
+          // to do: estado posiciona
         }
       }
     }
@@ -139,11 +140,19 @@ void loop()
       if (sensorDeProdutoOuStart.checkPulse())
       {
         ligaVentilador();
-        imprimeEtiqueta();
+        imprimeEtiqueta(); // to do: imprime a etiqueta antes de receber pulso SP.
         fsm_substate = fase4;
       }
     }
     else if (fsm_substate == fase4)
+    {
+      if (evento == EVT_FIM_DA_IMPRESSAO)
+      {
+        braco.moveTo(posicaoDeAguardarProduto);
+        fsm_substate = fase5;
+      }
+    }
+    else if (fsm_substate == fase5)
     {
       if (evento == EVT_FIM_DA_IMPRESSAO)
       {
@@ -244,7 +253,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
-        rebobinador.move(rebobinador_ppv * 1.5);
+        // rebobinador.move(rebobinador_ppv * 1.5);
         imprimeEtiqueta();
         fsm_substate = fase2;
       }
