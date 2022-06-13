@@ -28,6 +28,7 @@ enum Estado
     ESTADO_DESATIVADO,
     ESTADO_REFERENCIANDO,
     ESTADO_CICLO,
+    ESTADO_POSICIONANDO,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -52,7 +53,7 @@ enum Evento
     EVT_PLAY_PAUSE,
     EVT_START,
     EVT_HOLD_PLAY_PAUSE,
-    EVT_FIM_DA_IMPRESSAO,
+    EVT_IMPRESSAO_CONCLUIDA,
 };
 
 typedef struct
@@ -168,7 +169,7 @@ int16_t tempoLedStatus = 500;
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
-int32_t posicaoDePegarEtiqueta = 2000; // pulsos
+int32_t posicaoDePegarEtiqueta = 850; // pulsos
 int32_t posicaoDeAguardarProduto = 4000;
 const uint32_t braco_ppv = 3200;       // pulsos
 const uint32_t rebobinador_ppv = 3200; // pulsos
@@ -283,7 +284,7 @@ void setBits(uint8_t);
 void updateOutput(uint8_t);
 void ligaOutput(uint8_t);
 void desligaOutput(uint8_t);
-void desligaTodosOutput();
+void desligaTodosOutputs();
 
 void ventiladorConfig();
 void ventiladorSetup(uint16_t, uint16_t, uint16_t);
@@ -305,6 +306,7 @@ bool emCimaDoSensorHome();
 void t_blink(void *p);
 void t_debug(void *p);
 void t_printEtiqueta(void *);
+void t_simulaPrintEtiqueta(void *);
 
 void t_ihm(void *);
 void t_botoesIhm(void *);
@@ -523,12 +525,20 @@ void incrementaContadores()
 
 void imprimeEtiqueta()
 {
-    xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_simulaPrintEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    // xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+}
+
+// simula a impressão de uma etiqueta, para fins de testes do software.
+void t_simulaPrintEtiqueta(void *p)
+{
+    delay(1600);
+    enviaEvento(EVT_IMPRESSAO_CONCLUIDA);
+    vTaskDelete(NULL);
 }
 
 void t_printEtiqueta(void *p)
 {
-    // to do: liga o motor do rebobinador aqui nessa task, e desliga assim que o print terminar.
     const uint16_t intervalo_task = 1; // ms
 
     uint16_t fsm_print = fase1;
@@ -552,7 +562,7 @@ void t_printEtiqueta(void *p)
             {
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
-                Serial.println("erro print: impressão em andamento");
+                Serial.println("erro print: impressora desligada ou impressão em andamento");
                 vTaskDelete(NULL);
             }
         }
@@ -575,7 +585,7 @@ void t_printEtiqueta(void *p)
             if ((digitalRead(PIN_PREND) == LOW))
             {
                 desligaPrint();
-                enviaEvento(EVT_FIM_DA_IMPRESSAO);
+                enviaEvento(EVT_IMPRESSAO_CONCLUIDA);
                 delay(300);
                 rebobinador.stop();
                 vTaskDelete(NULL);
@@ -1428,7 +1438,7 @@ void desligaOutput(uint8_t posicaoDoBit)
     }
 }
 
-void desligaTodosOutput()
+void desligaTodosOutputs()
 {
     updateOutput(bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | bit(RLO1) | bit(RLO2));
     digitalWrite(PIN_DO1, HIGH);

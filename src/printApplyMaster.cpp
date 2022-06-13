@@ -18,7 +18,7 @@ void setup()
   // restoreBackupParameters();
   // presetEEPROM();
 
-  desligaTodosOutput();
+  desligaTodosOutputs();
   sensorDeProdutoOuStart.setup();
   extIOs.init();
 
@@ -48,6 +48,7 @@ void loop()
     if (fsm_substate == fase1)
     {
       desabilitaMotores();
+      desligaTodosOutputs();
       // vTaskResume(h_eeprom);
       ihm.showStatus2msg("BOTAO EMERGENCIA");
       delay(1);
@@ -89,6 +90,7 @@ void loop()
     {
       ihm.showStatus2msg("EM PAUSA");
       Serial.println("ESTADO STOP");
+      desligaTodosOutputs();
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -102,12 +104,61 @@ void loop()
         }
         else
         {
-          changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+          changeFsmState(ESTADO_POSICIONANDO);
+          // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
           // changeFsmState(ESTADO_CICLO);
           // to do: estado posiciona
         }
+      }
+    }
+    break;
+  }
+  case ESTADO_POSICIONANDO:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if (fsm_substate == fase1)
+    {
+      if (braco.distanceToGo() == 0)
+      {
+        braco.moveTo(posicaoDePegarEtiqueta);
+        ligaVentilador();
+        fsm_substate = fase2;
+      }
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (braco.distanceToGo() == 0)
+      {
+        imprimeEtiqueta();
+        fsm_substate = fase3;
+      }
+    }
+    else if (fsm_substate == fase3)
+    {
+      if (evento == EVT_IMPRESSAO_CONCLUIDA)
+      {
+        braco.moveTo(posicaoDeAguardarProduto);
+        fsm_substate = fase4;
+      }
+      else if (evento == EVT_FALHA)
+      {
+        // to do: vai para o estado falha
+        ihm.showStatus2msg("FALHA IMPRESSORA");
+        changeFsmState(ESTADO_STOP);
+      }
+    }
+    else if (fsm_substate == fase4)
+    {
+      if (braco.distanceToGo() == 0)
+      {
+        changeFsmState(ESTADO_CICLO);
       }
     }
     break;
@@ -120,45 +171,25 @@ void loop()
       break;
     }
 
-    if (fsm_substate == fase1) // to do: posicionamento fora do ciclo
+    if (fsm_substate == fase1)
     {
-      if (braco.distanceToGo() == 0)
-      {
-        braco.moveTo(posicaoDePegarEtiqueta);
-        fsm_substate = fase2;
-      }
+      ihm.showStatus2msg("AGUARDANDO PRODUTO");
     }
     else if (fsm_substate == fase2)
     {
-      if (braco.distanceToGo() == 0)
-      {
-        fsm_substate = fase3;
-      }
+      
     }
     else if (fsm_substate == fase3)
     {
-      if (sensorDeProdutoOuStart.checkPulse())
-      {
-        ligaVentilador();
-        imprimeEtiqueta(); // to do: imprime a etiqueta antes de receber pulso SP.
-        fsm_substate = fase4;
-      }
+      
     }
     else if (fsm_substate == fase4)
     {
-      if (evento == EVT_FIM_DA_IMPRESSAO)
-      {
-        braco.moveTo(posicaoDeAguardarProduto);
-        fsm_substate = fase5;
-      }
+      
     }
     else if (fsm_substate == fase5)
     {
-      if (evento == EVT_FIM_DA_IMPRESSAO)
-      {
-        braco.moveTo(posicaoDeAguardarProduto);
-        fsm_substate = fase5;
-      }
+      
     }
     break;
   }
@@ -260,7 +291,7 @@ void loop()
     }
     else if (fsm_substate == fase3)
     {
-      if (evento == EVT_FIM_DA_IMPRESSAO)
+      if (evento == EVT_IMPRESSAO_CONCLUIDA)
       {
         fsm_substate = fase1;
       }
@@ -1038,7 +1069,7 @@ void loop()
     }
     else if (fsm_substate == fase2)
     {
-      if (evento == EVT_FIM_DA_IMPRESSAO)
+      if (evento == EVT_IMPRESSAO_CONCLUIDA)
       {
         fsm_substate = fase1;
       }
