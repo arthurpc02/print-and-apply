@@ -140,9 +140,10 @@ void loop()
     }
     break;
   }
-  // to do: posicao de descanso para quando a máquina for pausada ou desligada.
   case ESTADO_POSICIONANDO:
   {
+    static bool flag_pause = false;
+
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
@@ -150,7 +151,7 @@ void loop()
     }
     else if (evento == EVT_PLAY_PAUSE)
     {
-      changeFsmState(ESTADO_STOP);
+      flag_pause = true;
       break;
     }
 
@@ -175,8 +176,15 @@ void loop()
     {
       if (evento == EVT_IMPRESSAO_CONCLUIDA)
       {
-        braco_moveTo(posicaoDeAguardarProduto_dcmm);
-        fsm_substate = fase4;
+        if (flag_pause)
+        {
+          changeFsmState(ESTADO_STOP);
+        }
+        else
+        {
+          braco_moveTo(posicaoDeAguardarProduto_dcmm);
+          fsm_substate = fase4;
+        }
       }
       else if (evento == EVT_FALHA)
       {
