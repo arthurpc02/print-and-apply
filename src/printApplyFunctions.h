@@ -334,7 +334,7 @@ float dcmm_to_steps(int32_t _dcmm);
 int32_t steps_to_dcmm(float _steps);
 void braco_moveTo(int32_t _dcmm);
 void braco_move(int32_t _dcmm);
-void bracoSetup(int32_t, int32_t);
+void braco_setup(int32_t, int32_t);
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS);
 void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm);
 
@@ -574,7 +574,7 @@ void braco_move(int32_t _dcmm)
     braco.move(dcmm_to_steps(_dcmm));
 }
 
-void bracoSetup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
+void braco_setup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
 {
     calculaVelocidadeEmSteps(_velocidade_dcmmPorS);
     calculaRampaEmSteps(_velocidade_dcmmPorS, _rampa_dcmm);

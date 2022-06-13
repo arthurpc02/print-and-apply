@@ -27,7 +27,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   motorSetup();
-  bracoSetup(velocidadeDoBraco_dcmm, rampa_dcmm);
+  braco_setup(velocidadeDoBraco_dcmm, rampa_dcmm);
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
@@ -120,7 +120,7 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         // vTaskSuspend(h_eeprom); // to do:
-        bracoSetup(velocidadeDoBraco_dcmm, rampa_dcmm);
+        braco_setup(velocidadeDoBraco_dcmm, rampa_dcmm);
         habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)
         {
@@ -134,7 +134,6 @@ void loop()
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
           // changeFsmState(ESTADO_APLICACAO);
-          // to do: estado posiciona
         }
       }
     }
