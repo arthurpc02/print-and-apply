@@ -97,6 +97,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
+        // vTaskSuspend(h_eeprom); // to do:
         habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)
         {
@@ -165,31 +166,63 @@ void loop()
   }
   case ESTADO_CICLO:
   {
+    static uint32_t timer_atrasoSensorProduto = 0;
+
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    // to do: se receber evt_stop tem que parar também.
 
     if (fsm_substate == fase1)
     {
       ihm.showStatus2msg("AGUARDANDO PRODUTO");
+      fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
     {
-      
+      if (sensorDeProdutoOuStart.checkPulse())
+      {
+        timer_atrasoSensorProduto = millis();
+        fsm_substate = fase3;
+      }
     }
     else if (fsm_substate == fase3)
     {
-      
+      if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
+      {
+        braco.moveTo(posicaoLimite);
+        fsm_substate = fase4;
+      }
     }
     else if (fsm_substate == fase4)
     {
-      
+      if (sensorDeAplicacaoDetectouProduto())
+      {
+        if (distanciaProduto_p < rampa)
+        {
+          braco.stop();
+        }
+        else
+        {
+          braco.move(distanciaProduto_p);
+        }
+        fsm_substate = fase5;
+      }
+      else if (braco.distanceToGo() == 0)
+      {
+        changeFsmState(ESTADO_FALHA); // to do:
+        Serial.println("erro de aplicação");
+      }
     }
     else if (fsm_substate == fase5)
     {
-      
+      if (braco.distanceToGo() == 0)
+      {
+        desligaVentilador();
+        Serial.println("end");
+      }
     }
     break;
   }
@@ -908,7 +941,7 @@ void loop()
         if (checkSensorAplicacao())
         {
           posicaoBracoDeteccaoProduto = braco.currentPosition();
-          pulsosBracoEspacamento = espacamentoProdutomm * resolucao;
+          pulsosBracoEspacamento = distanciaProduto_p * resolucao;
           fsm_ciclo = fase4;
         }
         else if (braco.distanceToGo() == 0)

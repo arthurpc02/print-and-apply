@@ -29,6 +29,7 @@ enum Estado
     ESTADO_REFERENCIANDO,
     ESTADO_CICLO,
     ESTADO_POSICIONANDO,
+    ESTADO_FALHA,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -94,10 +95,10 @@ uint16_t quantidadeDeMenusDeManutencao = 1;
 // Menu:
 int32_t produto = 1;
 
-int32_t atrasoSensorProduto = 100;
+int32_t atrasoSensorProduto = 1000; // ms
 int32_t atrasoImpressaoEtiqueta = 1000;
 int32_t velocidadeLinearmmps = 150;
-int32_t espacamentoProdutomm = 20;
+int32_t distanciaProduto_p = 1000; // pulsos
 
 int32_t posicaoBracoInicial = 10;
 int32_t posicaoBracoAplicacao = 250;
@@ -171,6 +172,7 @@ int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 int32_t posicaoDePegarEtiqueta = 850; // pulsos
 int32_t posicaoDeAguardarProduto = 4000;
+int32_t posicaoLimite = 7000;
 const uint32_t braco_ppv = 3200;       // pulsos
 const uint32_t rebobinador_ppv = 3200; // pulsos
 
@@ -225,7 +227,7 @@ Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
-Menu menu_espacamentoProdutomm = Menu("Espacamento Produto", PARAMETRO_MANU, &espacamentoProdutomm, "mm", 1u, 20u, 200u);
+Menu menu_distanciaProduto_p = Menu("Espacamento Produto", PARAMETRO_MANU, &distanciaProduto_p, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 
 Menu menu_rampa = Menu("Rampa", PARAMETRO_MANU, &rampa, "mm", 1u, 1u, 200u);
@@ -302,6 +304,7 @@ void ligaReprint();
 void desligaReprint();
 
 bool emCimaDoSensorHome();
+bool sensorDeAplicacaoDetectouProduto();
 
 void t_blink(void *p);
 void t_debug(void *p);
@@ -484,7 +487,7 @@ void liberaMenusDeManutencao()
 
     ihm.addMenuToIndex(&menu_posicaoBracoInicial);
     ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
-    ihm.addMenuToIndex(&menu_espacamentoProdutomm);
+    ihm.addMenuToIndex(&menu_distanciaProduto_p);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa);
     ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
@@ -671,6 +674,11 @@ void ligaReprint()
 void desligaReprint()
 {
     digitalWrite(PIN_PRIN2, HIGH);
+}
+
+bool sensorDeAplicacaoDetectouProduto()
+{
+    return !digitalRead(PIN_SENSOR_APLICACAO);
 }
 
 bool emCimaDoSensorHome()
@@ -1157,7 +1165,7 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);          // posicao em que o braco pega a etiqueta
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);      // posicao em que o braco aguarda o sensor de produto
-        EEPROM.put(EPR_espacamentoProdutomm, espacamentoProdutomm);       // distancia do produto ao sensor de aplicacao
+        EEPROM.put(EPR_distanciaProduto_p, distanciaProduto_p);       // distancia do produto ao sensor de aplicacao
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao); // atraso para colar a etiqueta no produto
         EEPROM.put(EPR_rampa, rampa);
         EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
@@ -1187,7 +1195,7 @@ void restoreBackupParameters()
 
     EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-    EEPROM.get(EPR_espacamentoProdutomm, espacamentoProdutomm);
+    EEPROM.get(EPR_distanciaProduto_p, distanciaProduto_p);
     EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
     EEPROM.get(EPR_rampa, rampa);
     EEPROM.get(EPR_statusIntertravamentoIn, statusIntertravamentoIn);

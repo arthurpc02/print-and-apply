@@ -21,7 +21,7 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 
 #define EPR_pulsosBracoInicial 4
 #define EPR_pulsosBracoAplicacao 8
-#define EPR_espacamentoProdutomm 12
+#define EPR_distanciaProduto_p 12
 
 #define EPR_tempoFinalizarAplicacao 16
 
