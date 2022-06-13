@@ -97,8 +97,7 @@ int32_t produto = 1;
 
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t atrasoImpressaoEtiqueta = 1000;
-int32_t velocidadeDoBraco_dcmm = 647;
-int32_t distanciaProduto_dcmm = 750; // pulsos
+
 
 int32_t posicaoBracoInicial = 10;
 int32_t posicaoBracoAplicacao = 250;
@@ -107,7 +106,7 @@ int32_t tempoFinalizarAplicacao = 250;
 
 int32_t contadorDeCiclos = 0;
 
-int32_t rampa_dcmm = 100;
+
 int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
 // Menu:
 
@@ -171,11 +170,16 @@ int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 // new:
+
 int32_t posicaoDePegarEtiqueta_dcmm = 330;
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t posicaoLimite_dcmm = 3200;
 int32_t posicaoDeRepouso_dcmm = 1250;
+int32_t distanciaProduto_dcmm = 750; // pulsos
 
+int32_t rampa_dcmm = 100;
+int32_t velocidadeDeTrabalho_dcmms = 647;
+int32_t velocidadeDeReferenciacao_dcmms = 1000;
 const float resolucao = 2.629;        // steps/dcmm
 const uint32_t braco_ppv = 3200;       // pulsos
 const uint32_t rebobinador_ppv = 3200; // pulsos
@@ -227,7 +231,7 @@ Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)
 
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
 Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 50u, 3000u, &produto);
-Menu menu_velocidadeDoBraco_dcmm = Menu("Velocidade Braco", PARAMETRO, &velocidadeDoBraco_dcmm, "mm/s", 10u, 10u, 550u, &produto);
+Menu menu_velocidadeDeTrabalho_dcmms = Menu("Velocidade Braco", PARAMETRO, &velocidadeDeTrabalho_dcmms, "mm/s", 10u, 10u, 550u, &produto);
 
 Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 
@@ -845,19 +849,19 @@ void motorRun()
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
 
-    if (velocidadeCiclommps != velocidadeDoBraco_dcmm)
+    if (velocidadeCiclommps != velocidadeDeTrabalho_dcmms)
     {
         pulsosRampa = resolucao * rampa_dcmm;
 
         rebobinador.setMaxSpeed(velocidadeEspatula);
         rebobinador.setAcceleration(aceleracaoEspatula);
 
-        velocidadeLinearPulsos = round(velocidadeDoBraco_dcmm * resolucao);
+        velocidadeLinearPulsos = round(velocidadeDeTrabalho_dcmms * resolucao);
         aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
 
         braco.setMaxSpeed(velocidadeLinearPulsos);
         braco.setAcceleration(aceleracaoLinearPulsos);
-        velocidadeCiclommps = velocidadeDoBraco_dcmm;
+        velocidadeCiclommps = velocidadeDeTrabalho_dcmms;
 
         Serial.print("Velocidade Braco: ");
         Serial.println(velocidadeLinearPulsos);
@@ -1031,7 +1035,7 @@ void t_ihm_old(void *p)
 
     ihm.addMenuToIndex(&menu_atrasoSensorProduto);
     ihm.addMenuToIndex(&menu_atrasoImpressaoEtiqueta);
-    ihm.addMenuToIndex(&menu_velocidadeDoBraco_dcmm);
+    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmms);
 
     ihm.addMenuToIndex(&menu_contadorDeCiclos);
 
@@ -1243,7 +1247,7 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);         // atraso ate o produto estar posicionado na frente do braco
         EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta); // tempo que demora para a etiqueta ser impressa
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeDoBraco_dcmm, velocidadeDoBraco_dcmm);       // velocidade do braço
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms);       // velocidade do braço
 
         if ((contadorAbsoluto % quantidadeParaBackups) == 0)
             EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
@@ -1281,7 +1285,7 @@ void loadProductFromEEPROM(uint16_t prod)
 {
     EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
     EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
-    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_velocidadeDoBraco_dcmm, velocidadeDoBraco_dcmm);
+    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms);
 }
 
 // use essa função para restar os valores de todos os produtos.
@@ -1293,7 +1297,7 @@ void presetEEPROM()
     {
         EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
         EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
-        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_velocidadeDoBraco_dcmm, velocidadeDoBraco_dcmm);
+        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms);
     }
 }
 

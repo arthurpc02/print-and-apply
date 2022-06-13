@@ -27,7 +27,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   motorSetup();
-  braco_setup(velocidadeDoBraco_dcmm, rampa_dcmm);
+  braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
@@ -120,10 +120,11 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         // vTaskSuspend(h_eeprom); // to do:
-        braco_setup(velocidadeDoBraco_dcmm, rampa_dcmm);
+        braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
         habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)
         {
+          braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
           changeFsmState(ESTADO_REFERENCIANDO);
         }
         else
@@ -158,6 +159,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
+        braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
         braco_moveTo(posicaoDePegarEtiqueta_dcmm);
         ligaVentilador();
         fsm_substate = fase2;
@@ -305,11 +307,13 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      braco_setup(velocidadeDeReferenciacao_dcmms, rampa_dcmm);
+      fsm_substate = fase2;
+
       if (emCimaDoSensorHome())
       {
         braco.move(800);
       }
-      fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
     {
