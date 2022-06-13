@@ -215,13 +215,13 @@ void loop()
       if (sensorDeAplicacaoDetectouProduto())
       {
         // to do: distanciaDoProduto em dcmm
-        if (distanciaProduto_p < rampa_dcmm)
+        if (distanciaProduto_dcmm < rampa_dcmm)
         {
           braco.stop();
         }
         else
         {
-          braco.move(distanciaProduto_p);
+          braco_move(distanciaProduto_dcmm);
         }
         fsm_substate = fase4;
       }
@@ -1021,7 +1021,7 @@ void loop()
         if (checkSensorAplicacao())
         {
           posicaoBracoDeteccaoProduto = braco.currentPosition();
-          pulsosBracoEspacamento = distanciaProduto_p * resolucao;
+          pulsosBracoEspacamento = distanciaProduto_dcmm * resolucao;
           fsm_ciclo = fase4;
         }
         else if (braco.distanceToGo() == 0)

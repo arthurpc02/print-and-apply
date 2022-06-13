@@ -98,7 +98,7 @@ int32_t produto = 1;
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t atrasoImpressaoEtiqueta = 1000;
 int32_t velocidadeDoBraco_dcmm = 647;
-int32_t distanciaProduto_p = 1000; // pulsos
+int32_t distanciaProduto_dcmm = 750; // pulsos
 
 int32_t posicaoBracoInicial = 10;
 int32_t posicaoBracoAplicacao = 250;
@@ -232,7 +232,7 @@ Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
-Menu menu_distanciaProduto_p = Menu("Espacamento Produto", PARAMETRO_MANU, &distanciaProduto_p, "mm", 1u, 20u, 200u);
+Menu menu_distanciaProduto_dcmm = Menu("Espacamento Produto", PARAMETRO_MANU, &distanciaProduto_dcmm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO_MANU, &rampa_dcmm, "mm", 1u, 1u, 200u);
@@ -498,7 +498,7 @@ void liberaMenusDeManutencao()
 
     ihm.addMenuToIndex(&menu_posicaoBracoInicial);
     ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
-    ihm.addMenuToIndex(&menu_distanciaProduto_p);
+    ihm.addMenuToIndex(&menu_distanciaProduto_dcmm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_rampa_dcmm);
     ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
@@ -1235,7 +1235,7 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);          // posicao em que o braco pega a etiqueta
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);      // posicao em que o braco aguarda o sensor de produto
-        EEPROM.put(EPR_distanciaProduto_p, distanciaProduto_p);           // distancia do produto ao sensor de aplicacao
+        EEPROM.put(EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);           // distancia do produto ao sensor de aplicacao
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao); // atraso para colar a etiqueta no produto
         EEPROM.put(EPR_rampa_dcmm, rampa_dcmm);
         EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
@@ -1265,7 +1265,7 @@ void restoreBackupParameters()
 
     EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
     EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-    EEPROM.get(EPR_distanciaProduto_p, distanciaProduto_p);
+    EEPROM.get(EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);
     EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
     EEPROM.get(EPR_rampa_dcmm, rampa_dcmm);
     EEPROM.get(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
