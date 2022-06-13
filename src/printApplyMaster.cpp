@@ -27,6 +27,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   motorSetup();
+  bracoSetup(647, 110);
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
@@ -100,6 +101,7 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         // vTaskSuspend(h_eeprom); // to do:
+        bracoSetup(647, 110);
         habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)
         {

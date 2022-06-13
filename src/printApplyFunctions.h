@@ -170,7 +170,7 @@ int16_t tempoLedStatus = 500;
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
-const float resolucao = 2.629; // steps/dcmm
+const float resolucao = 2.629;        // steps/dcmm
 int32_t posicaoDePegarEtiqueta = 323; // pulsos
 int32_t posicaoDeAguardarProduto = 1521;
 int32_t posicaoLimite = 2663;
@@ -334,6 +334,9 @@ float dcmm_to_steps(int32_t _dcmm);
 int32_t steps_to_dcmm(float _steps);
 void braco_moveTo(int32_t _dcmm);
 void braco_move(int32_t _dcmm);
+void bracoSetup(int32_t, int32_t);
+void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS);
+void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -540,10 +543,10 @@ float dcmm_to_steps(int32_t _dcmm)
     float steps = 0;
     steps = _dcmm * resolucao;
 
-    Serial.print(_dcmm);
-    Serial.print("dcmm = ");
-    Serial.print(steps);
-    Serial.println("p");
+    // Serial.print(_dcmm);
+    // Serial.print("dcmm = ");
+    // Serial.print(steps);
+    // Serial.println("p");
 
     return steps;
 }
@@ -553,10 +556,10 @@ int32_t steps_to_dcmm(float _steps)
     float dcmm = 0;
     dcmm = (float)_steps / resolucao;
 
-    Serial.print("  p:");
-    Serial.print(_steps);
-    Serial.print("  to dcmm:");
-    Serial.println(dcmm);
+    // Serial.print("  p:");
+    // Serial.print(_steps);
+    // Serial.print("  to dcmm:");
+    // Serial.println(dcmm);
 
     return round(dcmm);
 }
@@ -569,6 +572,29 @@ void braco_moveTo(int32_t _dcmm)
 void braco_move(int32_t _dcmm)
 {
     braco.move(dcmm_to_steps(_dcmm));
+}
+
+void bracoSetup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
+{
+    calculaVelocidadeEmSteps(_velocidade_dcmmPorS);
+    calculaRampaEmSteps(_velocidade_dcmmPorS, _rampa_dcmm);
+}
+
+void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS)
+{
+    int32_t velocidade_p = dcmm_to_steps(_velocidade_dcmmPorS);
+    braco.setMaxSpeed(velocidade_p);
+    // Serial.print("vel: ");
+    // Serial.print(velocidade_p);
+}
+
+void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
+{
+    int32_t aceleracao_dcmm = round((float)_velocidade_dcmmPorS * _velocidade_dcmmPorS / (2 * _rampa_dcmm));
+    int32_t aceleracao_p = dcmm_to_steps(aceleracao_dcmm);
+    braco.setAcceleration(aceleracao_p);
+    // Serial.print("  acel: ");
+    // Serial.println(aceleracao_p);
 }
 
 void imprimeEtiqueta()
@@ -1210,7 +1236,7 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);          // posicao em que o braco pega a etiqueta
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);      // posicao em que o braco aguarda o sensor de produto
-        EEPROM.put(EPR_distanciaProduto_p, distanciaProduto_p);       // distancia do produto ao sensor de aplicacao
+        EEPROM.put(EPR_distanciaProduto_p, distanciaProduto_p);           // distancia do produto ao sensor de aplicacao
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao); // atraso para colar a etiqueta no produto
         EEPROM.put(EPR_rampa, rampa);
         EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
