@@ -27,7 +27,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   motorSetup();
-  bracoSetup(647, 110);
+  bracoSetup(velocidadeDoBraco_dcmm, rampa_dcmm);
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
@@ -101,7 +101,7 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         // vTaskSuspend(h_eeprom); // to do:
-        bracoSetup(647, 110);
+        bracoSetup(velocidadeDoBraco_dcmm, rampa_dcmm);
         habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)
         {
@@ -139,7 +139,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        braco_moveTo(posicaoDePegarEtiqueta);
+        braco_moveTo(posicaoDePegarEtiqueta_dcmm);
         ligaVentilador();
         fsm_substate = fase2;
       }
@@ -156,7 +156,7 @@ void loop()
     {
       if (evento == EVT_IMPRESSAO_CONCLUIDA)
       {
-        braco_moveTo(posicaoDeAguardarProduto);
+        braco_moveTo(posicaoDeAguardarProduto_dcmm);
         fsm_substate = fase4;
       }
       else if (evento == EVT_FALHA)
@@ -206,7 +206,7 @@ void loop()
     {
       if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
       {
-        braco_moveTo(posicaoLimite);
+        braco_moveTo(posicaoLimite_dcmm);
         fsm_substate = fase3;
       }
     }
@@ -214,7 +214,8 @@ void loop()
     {
       if (sensorDeAplicacaoDetectouProduto())
       {
-        if (distanciaProduto_p < rampa)
+        // to do: distanciaDoProduto em dcmm
+        if (distanciaProduto_p < rampa_dcmm)
         {
           braco.stop();
         }
