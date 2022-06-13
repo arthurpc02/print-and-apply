@@ -22,14 +22,14 @@ enum Estado
 {
     ESTADO_EMERGENCIA,
     ESTADO_STOP,
-    ESTADO_TESTE_DE_IMPRESSAO,
-    ESTADO_TESTE_DO_BRACO,
-    ESTADO_TESTE_DO_VENTILADOR,
     ESTADO_DESATIVADO,
     ESTADO_REFERENCIANDO,
     ESTADO_APLICACAO,
     ESTADO_POSICIONANDO,
     ESTADO_FALHA,
+    ESTADO_TESTE_DE_IMPRESSAO,
+    ESTADO_TESTE_DO_BRACO,
+    ESTADO_TESTE_DO_VENTILADOR,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -171,9 +171,10 @@ int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 // new:
-int32_t posicaoDePegarEtiqueta_dcmm = 323; // dcmm
-int32_t posicaoDeAguardarProduto_dcmm = 1521;
-int32_t posicaoLimite_dcmm = 2663;
+int32_t posicaoDePegarEtiqueta_dcmm = 330;
+int32_t posicaoDeAguardarProduto_dcmm = 1800;
+int32_t posicaoLimite_dcmm = 3200;
+int32_t posicaoDeRepouso_dcmm = 1250;
 
 const float resolucao = 2.629;        // steps/dcmm
 const uint32_t braco_ppv = 3200;       // pulsos
