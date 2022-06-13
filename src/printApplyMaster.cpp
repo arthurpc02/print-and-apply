@@ -153,9 +153,9 @@ void loop()
       }
       else if (evento == EVT_FALHA)
       {
-        // to do: vai para o estado falha
-        ihm.showStatus2msg("FALHA IMPRESSORA");
-        changeFsmState(ESTADO_STOP);
+        Serial.println("falha impressora");
+        // to do: faultRegister
+        changeFsmState(ESTADO_FALHA);
       }
     }
     else if (fsm_substate == fase4)
@@ -345,6 +345,7 @@ void loop()
       }
       else if (evento == EVT_FALHA)
       {
+        changeFsmState(ESTADO_FALHA);
         Serial.println("erro impressao");
         fsm_substate = fase1;
       }
@@ -387,11 +388,18 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      flag_cicloEmAndamento = false;
+      flag_referenciou = false;
       ihm.showStatus2msg("FALHA");
+      desligaTodosOutputs();
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
     {
+      if(evento == EVT_HOLD_PLAY_PAUSE)
+      {
+        changeFsmState(ESTADO_STOP);
+      }
     }
     break;
   }
