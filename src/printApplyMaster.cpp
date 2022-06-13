@@ -199,6 +199,7 @@ void loop()
   {
     static uint32_t timer_atrasoSensorProduto = 0;
     static uint32_t timer_finalizaAplicacao = 0;
+    static bool flag_pause = false;
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -207,7 +208,7 @@ void loop()
     }
     else if (evento == EVT_PLAY_PAUSE)
     {
-      changeFsmState(ESTADO_STOP);
+      flag_pause = true;
       break;
     }
     // to do: se receber evt_stop tem que parar também.
@@ -218,6 +219,10 @@ void loop()
       {
         timer_atrasoSensorProduto = millis();
         fsm_substate = fase2;
+      }
+      else if (flag_pause)
+      {
+        changeFsmState(ESTADO_STOP);
       }
     }
     else if (fsm_substate == fase2)
@@ -232,7 +237,7 @@ void loop()
     {
       if (sensorDeAplicacaoDetectouProduto())
       {
-        // to do: distanciaDoProduto em dcmm
+        Serial.println("detectou produto");
         if (distanciaProduto_dcmm < rampa_dcmm)
         {
           braco.stop();
@@ -262,7 +267,14 @@ void loop()
     {
       if (millis() - timer_finalizaAplicacao > tempoFinalizarAplicacao)
       {
-        changeFsmState(ESTADO_REFERENCIANDO);
+        if (flag_pause)
+        {
+          changeFsmState(ESTADO_STOP);
+        }
+        else
+        {
+          changeFsmState(ESTADO_REFERENCIANDO);
+        }
       }
     }
     break;
