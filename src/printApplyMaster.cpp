@@ -137,7 +137,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        braco.moveTo(posicaoDePegarEtiqueta);
+        braco_moveTo(posicaoDePegarEtiqueta);
         ligaVentilador();
         fsm_substate = fase2;
       }
@@ -154,7 +154,7 @@ void loop()
     {
       if (evento == EVT_IMPRESSAO_CONCLUIDA)
       {
-        braco.moveTo(posicaoDeAguardarProduto);
+        braco_moveTo(posicaoDeAguardarProduto);
         fsm_substate = fase4;
       }
       else if (evento == EVT_FALHA)
@@ -204,7 +204,7 @@ void loop()
     {
       if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
       {
-        braco.moveTo(posicaoLimite);
+        braco_moveTo(posicaoLimite);
         fsm_substate = fase3;
       }
     }

@@ -151,7 +151,7 @@ const int32_t pi = 3.14159265358979;
 const int32_t raio = 20;
 const int32_t subdivisao = 50;
 const int32_t pulsosporVolta = 200;
-const int32_t resolucao = round((pulsosporVolta * subdivisao) / (2 * pi * raio));
+// const int32_t resolucao = round((pulsosporVolta * subdivisao) / (2 * pi * raio));
 
 int32_t velocidadeLinearPulsos = 0;
 int32_t velocidadeCiclommps = 0;
@@ -170,9 +170,13 @@ int16_t tempoLedStatus = 500;
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
-int32_t posicaoDePegarEtiqueta = 850; // pulsos
-int32_t posicaoDeAguardarProduto = 4000;
-int32_t posicaoLimite = 7000;
+const float resolucao = 2.629; // steps/dcmm
+int32_t posicaoDePegarEtiqueta = 323; // pulsos
+int32_t posicaoDeAguardarProduto = 1521;
+int32_t posicaoLimite = 2663;
+// int32_t posicaoDePegarEtiqueta = 850; // pulsos
+// int32_t posicaoDeAguardarProduto = 4000;
+// int32_t posicaoLimite = 7000;
 const uint32_t braco_ppv = 3200;       // pulsos
 const uint32_t rebobinador_ppv = 3200; // pulsos
 
@@ -326,7 +330,10 @@ void enviaEvento(Evento event);
 Evento recebeEventos();
 void changeFsmState(Estado estado);
 
-// Prototypes:
+float dcmm_to_steps(int32_t _dcmm);
+int32_t steps_to_dcmm(float _steps);
+void braco_moveTo(int32_t _dcmm);
+void braco_move(int32_t _dcmm);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -526,6 +533,42 @@ void incrementaContadores()
     contadorDeCiclos++;
     contadorAbsoluto++;
     //   salvaContadorNaEEPROM();
+}
+
+float dcmm_to_steps(int32_t _dcmm)
+{
+    float steps = 0;
+    steps = _dcmm * resolucao;
+
+    Serial.print(_dcmm);
+    Serial.print("dcmm = ");
+    Serial.print(steps);
+    Serial.println("p");
+
+    return steps;
+}
+
+int32_t steps_to_dcmm(float _steps)
+{
+    float dcmm = 0;
+    dcmm = (float)_steps / resolucao;
+
+    Serial.print("  p:");
+    Serial.print(_steps);
+    Serial.print("  to dcmm:");
+    Serial.println(dcmm);
+
+    return round(dcmm);
+}
+
+void braco_moveTo(int32_t _dcmm)
+{
+    braco.moveTo(dcmm_to_steps(_dcmm));
+}
+
+void braco_move(int32_t _dcmm)
+{
+    braco.move(dcmm_to_steps(_dcmm));
 }
 
 void imprimeEtiqueta()
