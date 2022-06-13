@@ -119,6 +119,7 @@ void loop()
     }
     break;
   }
+  // to do: posicao de descanso para quando a máquina for pausada ou desligada.
   case ESTADO_POSICIONANDO:
   {
     if (evento == EVT_PARADA_EMERGENCIA)
