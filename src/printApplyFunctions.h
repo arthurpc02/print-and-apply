@@ -27,7 +27,7 @@ enum Estado
     ESTADO_TESTE_DO_VENTILADOR,
     ESTADO_DESATIVADO,
     ESTADO_REFERENCIANDO,
-    ESTADO_CICLO,
+    ESTADO_APLICACAO,
     ESTADO_POSICIONANDO,
     ESTADO_FALHA,
     // Estados:
@@ -203,6 +203,8 @@ uint16_t fsm_erro_intertravamento = fase1;
 
 // Flags:
 bool flag_referenciou = false;
+bool flag_cicloEmAndamento = false;
+
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
 bool flag_intertravamentoIn = true;
@@ -742,7 +744,7 @@ void motorSetup()
     // rebobinador.setAcceleration(aceleracaoReferenciaEspatula);
     // rebobinador.setPinsInverted(DIRECAO_ANTIHORA);
 
-    braco.setMaxSpeed(1000);
+    braco.setMaxSpeed(1700);
     braco.setAcceleration(5000);
     braco.setPinsInverted();
 

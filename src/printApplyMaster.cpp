@@ -60,6 +60,7 @@ void loop()
       timer_emergencia = millis();
       // encoder.clearCount();
       flag_referenciou = false;
+      flag_cicloEmAndamento = false;
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -91,6 +92,7 @@ void loop()
       ihm.showStatus2msg("EM PAUSA");
       Serial.println("ESTADO STOP");
       desligaTodosOutputs();
+      flag_cicloEmAndamento = false;
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -105,11 +107,12 @@ void loop()
         }
         else
         {
+          flag_cicloEmAndamento = true;
           changeFsmState(ESTADO_POSICIONANDO);
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
-          // changeFsmState(ESTADO_CICLO);
+          // changeFsmState(ESTADO_APLICACAO);
           // to do: estado posiciona
         }
       }
@@ -159,14 +162,16 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        changeFsmState(ESTADO_CICLO);
+        changeFsmState(ESTADO_APLICACAO);
+        ihm.showStatus2msg("AGUARDANDO PRODUTO");
       }
     }
     break;
   }
-  case ESTADO_CICLO:
+  case ESTADO_APLICACAO:
   {
     static uint32_t timer_atrasoSensorProduto = 0;
+    static uint32_t timer_finalizaAplicacao = 0;
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -177,26 +182,21 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      ihm.showStatus2msg("AGUARDANDO PRODUTO");
-      fsm_substate = fase2;
-    }
-    else if (fsm_substate == fase2)
-    {
       if (sensorDeProdutoOuStart.checkPulse())
       {
         timer_atrasoSensorProduto = millis();
-        fsm_substate = fase3;
+        fsm_substate = fase2;
       }
     }
-    else if (fsm_substate == fase3)
+    else if (fsm_substate == fase2)
     {
       if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
       {
         braco.moveTo(posicaoLimite);
-        fsm_substate = fase4;
+        fsm_substate = fase3;
       }
     }
-    else if (fsm_substate == fase4)
+    else if (fsm_substate == fase3)
     {
       if (sensorDeAplicacaoDetectouProduto())
       {
@@ -208,7 +208,7 @@ void loop()
         {
           braco.move(distanciaProduto_p);
         }
-        fsm_substate = fase5;
+        fsm_substate = fase4;
       }
       else if (braco.distanceToGo() == 0)
       {
@@ -216,12 +216,20 @@ void loop()
         Serial.println("erro de aplicação");
       }
     }
-    else if (fsm_substate == fase5)
+    else if (fsm_substate == fase4)
     {
       if (braco.distanceToGo() == 0)
       {
+        timer_finalizaAplicacao = millis();
+        fsm_substate = fase5;
         desligaVentilador();
-        Serial.println("end");
+      }
+    }
+    else if (fsm_substate == fase5)
+    {
+      if (millis() - timer_finalizaAplicacao > tempoFinalizarAplicacao)
+      {
+        changeFsmState(ESTADO_REFERENCIANDO);
       }
     }
     break;
@@ -277,7 +285,14 @@ void loop()
         Serial.println(posicaoZero);
         braco.setCurrentPosition(posicaoZero - braco.currentPosition());
         flag_referenciou = true;
-        changeFsmState(ESTADO_STOP);
+        if (flag_cicloEmAndamento)
+        {
+          changeFsmState(ESTADO_POSICIONANDO);
+        }
+        else
+        {
+          changeFsmState(ESTADO_STOP);
+        }
       }
     }
     break;
@@ -359,6 +374,24 @@ void loop()
         desligaVentilador();
         fsm_substate = fase1;
       }
+    }
+    break;
+  }
+  case ESTADO_FALHA:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    if (fsm_substate == fase1)
+    {
+      ihm.showStatus2msg("FALHA");
+      fsm_substate = fase2;
+    }
+    else if (fsm_substate == fase2)
+    {
     }
     break;
   }
