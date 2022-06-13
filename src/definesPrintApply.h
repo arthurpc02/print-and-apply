@@ -21,23 +21,20 @@ são PARÂMETROS NÃO-ESPECÍFICOS: */
 
 #define EPR_pulsosBracoInicial 4
 #define EPR_pulsosBracoAplicacao 8
-#define EPR_distanciaProduto_p 12
+#define EPR_distanciaProduto_dcmm 12
 
 #define EPR_tempoFinalizarAplicacao 16
 
-#define EPR_rampa 20
+#define EPR_rampa_dcmm 20
 
 #define EPR_contadorAbsoluto 24
 
 #define EPR_statusIntertravamentoIn 28
 
-/* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
-são PARÂMETROS NÃO-ESPECÍFICOS: */
-
 // PARÂMETROS ESPECÍFICOS: salvos uma vez para cada produto
 #define EPR_atrasoSensorProduto 0
 #define EPR_atrasoImpressaoEtiqueta 4
-#define EPR_velocidadeLinearmmps 8
+#define EPR_velocidadeDoBraco_dcmm 8
 // PARÂMETROS ESPECÍFICOS: salvos uma vez para cada produto
 // Eeprom:
 
