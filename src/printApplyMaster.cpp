@@ -179,6 +179,7 @@ void loop()
       {
         if (flag_pause)
         {
+          flag_pause = false;
           changeFsmState(ESTADO_STOP);
         }
         else
@@ -231,6 +232,7 @@ void loop()
       }
       else if (flag_pause)
       {
+        flag_pause = false;
         changeFsmState(ESTADO_STOP);
       }
     }
@@ -278,6 +280,7 @@ void loop()
       {
         if (flag_pause)
         {
+          flag_pause = false;
           changeFsmState(ESTADO_STOP);
         }
         else
