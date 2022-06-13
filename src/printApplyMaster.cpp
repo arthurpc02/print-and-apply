@@ -126,6 +126,12 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    else if(evento == EVT_PLAY_PAUSE)
+    {
+      braco.stop();
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
 
     if (fsm_substate == fase1)
     {
@@ -176,6 +182,12 @@ void loop()
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+    else if(evento == EVT_PLAY_PAUSE)
+    {
+      braco.stop();
+      changeFsmState(ESTADO_STOP);
       break;
     }
     // to do: se receber evt_stop tem que parar também.
@@ -245,6 +257,12 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    else if(evento == EVT_PLAY_PAUSE)
+    {
+      braco.stop();
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
 
     if (fsm_substate == fase1)
     {
@@ -304,6 +322,12 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    else if(evento == EVT_PLAY_PAUSE)
+    {
+      braco.stop();
+      changeFsmState(ESTADO_STOP);
+      break;
+    }    
 
     if (fsm_substate == fase1)
     {
@@ -320,6 +344,12 @@ void loop()
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+    else if(evento == EVT_PLAY_PAUSE)
+    {
+      braco.stop();
+      changeFsmState(ESTADO_STOP);
       break;
     }
 
@@ -357,6 +387,12 @@ void loop()
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+    else if(evento == EVT_PLAY_PAUSE)
+    {
+      braco.stop();
+      changeFsmState(ESTADO_STOP);
       break;
     }
 
