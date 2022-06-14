@@ -345,6 +345,7 @@ int32_t steps_to_dcmm(float _steps);
 void braco_moveTo(int32_t _dcmm);
 void braco_move(int32_t _dcmm);
 void braco_setup(int32_t, int32_t);
+void rebobinador_setup(int32_t, int32_t);
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS);
 void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm);
 
@@ -598,6 +599,7 @@ void braco_setup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
     braco.setMinPulseWidth(2);
 }
 
+
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS)
 {
     int32_t velocidade_p = dcmm_to_steps(_velocidade_dcmmPorS);
@@ -613,6 +615,13 @@ void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
     braco.setAcceleration(aceleracao_p);
     // Serial.print("  acel: ");
     // Serial.println(aceleracao_p);
+}
+
+void rebobinador_setup(int32_t _velocidade_steps, int32_t _aceleracao_steps)
+{
+    rebobinador.setMaxSpeed(_velocidade_steps);
+    rebobinador.setAcceleration(_aceleracao_steps);
+    rebobinador.setMinPulseWidth(2);
 }
 
 void imprimeEtiqueta()

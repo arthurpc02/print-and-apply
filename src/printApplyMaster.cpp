@@ -26,9 +26,9 @@ void setup()
 
   pinInitialization();
   // ventiladorConfig();
-  motorSetup();
+  // motorSetup();
   braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
-  // to do: rebobinador_setup();
+  rebobinador_setup(3 * rebobinador_ppr, 12000);
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
