@@ -177,6 +177,8 @@ int32_t posicaoDeRepouso_dcmm = 1250; // to do: fazer referencial relativo com a
 int32_t velocidadeDeReferenciacao_dcmms = 1000;
 int32_t rampa_dcmm = 100;
 int32_t flag_simulaEtiqueta = false;
+int32_t velocidadeRebobinador = 9600;
+int32_t aceleracaoRebobinador = 12000;
 // int32_t velocidadeDoRebobinador = ; // to do:
 // int32_t aceleracaoDoRebobinador = ; // to do:
 
@@ -246,6 +248,7 @@ Menu menu_velocidadeDeReferenciacao_dcmms = Menu("Veloc Referenciacao", PARAMETR
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
+// Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "pulsos", 5u, 10u, 500u, NULL, 1);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);

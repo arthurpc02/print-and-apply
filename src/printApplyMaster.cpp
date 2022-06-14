@@ -28,7 +28,7 @@ void setup()
   // ventiladorConfig();
   // motorSetup();
   braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
-  rebobinador_setup(3 * rebobinador_ppr, 12000);
+  rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
@@ -122,9 +122,9 @@ void loop()
       {
         // vTaskSuspend(h_eeprom); // to do:
         voltaParaPrimeiroMenu();
-        braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
-        // to do: rebobinador_setup();
         habilitaMotoresEAguardaEstabilizar();
+        braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
+        rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
         if (flag_manutencao)
         {
@@ -133,7 +133,6 @@ void loop()
 
         if (flag_referenciou == false)
         {
-          braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
           changeFsmState(ESTADO_REFERENCIANDO);
         }
         else
