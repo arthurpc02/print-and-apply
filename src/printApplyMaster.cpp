@@ -486,6 +486,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
+        ihm.desligaLEDVermelho();
         changeFsmState(ESTADO_STOP);
       }
     }
