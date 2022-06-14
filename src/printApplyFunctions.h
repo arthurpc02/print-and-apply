@@ -177,7 +177,7 @@ int32_t rampa_dcmm = 100;
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
-int32_t contadorAbsoluto = 0; // to do: mudar nome para contadorTotal
+int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
@@ -243,7 +243,7 @@ Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepou
 Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 10u, 100u, 15000u, NULL, 1);
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
-Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
+Menu menu_contadorTotal = Menu("Contador Total", READONLY, &contadorTotal, " ");
 Menu menu_velocidadeRebobinador = Menu("Veloc Rebobinador", PARAMETRO, &velocidadeRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 Menu menu_aceleracaoRebobinador = Menu("Acel Rebobinador", PARAMETRO, &aceleracaoRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 
@@ -283,10 +283,13 @@ bool checkBotaoBaixo();
 bool checkBotaoEsquerda();
 bool checkBotaoDireita();
 
-void t_eeprom(void *p);
-void restoreBackupParameters();
-void loadProductFromEEPROM(uint16_t);
+void saveParametersToEEPROM();
+void saveProdutoToEEPROM(int16_t _produto);
+void loadParametersFromEEPROM();
+void loadProdutoFromEEPROM(int16_t);
 void presetEEPROM();
+void salvaContadorNaEEPROM();
+void t_eeprom(void *p);
 
 void t_emergencia(void *p);
 void t_intretravamentoIN(void *p);
@@ -357,8 +360,8 @@ void createTasks()
     // xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
     // xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     // xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_3, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_botoesIhm, "botoesIhm task", 4096, NULL, PRIORITY_3, &h_botoesIhm, CORE_0);
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -373,7 +376,7 @@ void createTasks()
 void t_ihm(void *p)
 {
     ihm.configDefaultMsg("   PRINT & APPLY");
-    ihm.configDefaultMsg2((String)contadorAbsoluto);
+    ihm.configDefaultMsg2((String)contadorTotal);
     xSemaphoreTake(mutex_rs485, portMAX_DELAY);
     ihm.setup();
     ihm.desligaLEDvermelho();
@@ -521,7 +524,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
-    ihm.addMenuToIndex(&menu_contadorAbsoluto);
+    ihm.addMenuToIndex(&menu_contadorTotal);
 
     flag_manutencao = true;
 }
@@ -553,7 +556,7 @@ void desabilitaConfiguracaoPelaIhm()
 void incrementaContadores()
 {
     contadorDeCiclos++;
-    contadorAbsoluto++;
+    contadorTotal++;
     //   salvaContadorNaEEPROM();
 }
 
@@ -599,7 +602,6 @@ void braco_setup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
     calculaRampaEmSteps(_velocidade_dcmmPorS, _rampa_dcmm);
     braco.setMinPulseWidth(2);
 }
-
 
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS)
 {
@@ -1054,7 +1056,7 @@ void t_ihm_old(void *p)
     const uint32_t resetDisplay = 120000;
     String cont_str = "Contador: ";
 
-    cont_str.concat(contadorAbsoluto);
+    cont_str.concat(contadorTotal);
     ihm.configDefaultMsg(cont_str);
     ihm.configDefaultMsg2("PRINT APPLY LINEAR");
 
@@ -1085,7 +1087,7 @@ void t_ihm_old(void *p)
                 if (checkMenu == &menu_produto)
                 {
                     menu_produto.addVar(MAIS);
-                    loadProductFromEEPROM(produto);
+                    loadProdutoFromEEPROM(produto);
                 }
                 else if (checkMenu == &menu_statusIntertravamentoIn)
                     updateIntertravamentoIn();
@@ -1102,7 +1104,7 @@ void t_ihm_old(void *p)
                 if (checkMenu == &menu_produto)
                 {
                     menu_produto.addVar(MENOS);
-                    loadProductFromEEPROM(produto);
+                    loadProdutoFromEEPROM(produto);
                 }
                 else if (checkMenu == &menu_statusIntertravamentoIn)
                     updateIntertravamentoIn();
@@ -1265,31 +1267,31 @@ bool checkBotaoDireita()
 //////////////////////////////////////////////////////////////////////
 void t_eeprom(void *p)
 {
-  int16_t intervaloEntreBackups = 3000; //ms
+    int16_t intervaloEntreBackups = 3000; // ms
 
-  while (1)
-  {
-    delay(intervaloEntreBackups);
-    saveParametersToEEPROM();
-  }
+    while (1)
+    {
+        delay(intervaloEntreBackups);
+        saveParametersToEEPROM();
+    }
 }
 
 void saveParametersToEEPROM()
 {
     EEPROM.put(EPR_produto, produto);
-    EEPROM.put(EPR_rampa, rampa);
-    EEPROM.put(EPR_velocidadeG0, velocidadeG0);
-    EEPROM.put(EPR_duracaoPulsoDeImpressao, duracaoPulsoDeImpressao);
-    EEPROM.put(EPR_limiteEixoX, limiteEixoX);
-    EEPROM.put(EPR_limiteEixoY, limiteEixoY);
-    EEPROM.put(EPR_habilitarReversao, habilitarReversao);
-    EEPROM.put(EPR_habilitarIntertravamento1, habilitarIntertravamento1);
-    EEPROM.put(EPR_habilitarIntertravamento2, habilitarIntertravamento2); 
-    EEPROM.put(EPR_habilitaPortaAberta, habilitaPortaAberta); 
-    EEPROM.put(EPR_botaoStartNF, botaoStartNF);
-    EEPROM.put(EPR_produtoAvancado, flag_produtoAvancado);
-    // EEPROM.put(EPR_linhasDeImpressao, linhasDeImpressao);
-    EEPROM.put(EPR_posicaoDeEmergencia, posicaoDeEmergencia);
+    EEPROM.put(EPR_contadorTotal, contadorTotal);
+    EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
+    EEPROM.put(EPR_posicaoLimite_dcmm, EPR_posicaoLimite_dcmm);
+    EEPROM.put(EPR_posicaoDePegarEtiqueta_dcmm, posicaoDePegarEtiqueta_dcmm);
+    EEPROM.put(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
+    EEPROM.put(EPR_velocidadeDeReferenciacao_dcmm, velocidadeDeReferenciacao_dcmm);
+    EEPROM.put(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
+    EEPROM.put(EPR_rampa_dcmm, rampa_dcmm);
+    EEPROM.put(EPR_velocidadeRebobinador, velocidadeRebobinador);
+    EEPROM.put(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
+    // EEPROM.put(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
+    // EEPROM.put(EPR_startNF, startNF);
+
     salvaContadorNaEEPROM();
 
     saveProdutoToEEPROM(produto);
@@ -1300,51 +1302,38 @@ void saveParametersToEEPROM()
 // carrega os parametros que estão salvos na eeprom. Carrega os parâmetros globais e os de produto.
 void loadParametersFromEEPROM()
 {
-    EEPROM.get(EPR_contadorAbsoluto, contadorAbsoluto);
     EEPROM.get(EPR_produto, produto);
-    EEPROM.get(EPR_rampa, rampa);
-    EEPROM.get(EPR_velocidadeG0, velocidadeG0);
-    EEPROM.get(EPR_duracaoPulsoDeImpressao, duracaoPulsoDeImpressao);
-    EEPROM.get(EPR_limiteEixoX, limiteEixoX);
-    EEPROM.get(EPR_limiteEixoY, limiteEixoY);
-    EEPROM.get(EPR_habilitarIntertravamento1, habilitarIntertravamento1);
-    EEPROM.get(EPR_habilitarIntertravamento2, habilitarIntertravamento2);
-    EEPROM.get(EPR_habilitaPortaAberta, habilitaPortaAberta);
-    EEPROM.get(EPR_botaoStartNF, botaoStartNF);
-    EEPROM.get(EPR_habilitarReversao, habilitarReversao);
-    EEPROM.get(EPR_produtoAvancado, flag_produtoAvancado);
-    // EEPROM.get(EPR_linhasDeImpressao, linhasDeImpressao);
-    EEPROM.get(EPR_posicaoDeEmergencia, posicaoDeEmergencia);
-    loadProdutoFromEEPROM();
+    EEPROM.get(EPR_contadorTotal, contadorTotal);
+    EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
+    EEPROM.get(EPR_posicaoLimite_dcmm, posicaoLimite_dcmm);
+    EEPROM.get(EPR_posicaoDePegarEtiqueta_dcmm, posicaoDePegarEtiqueta_dcmm);
+    EEPROM.get(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
+    EEPROM.get(EPR_velocidadeDeReferenciacao_dcmm, velocidadeDeReferenciacao_dcmm);
+    EEPROM.get(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
+    EEPROM.get(EPR_rampa_dcmm, rampa_dcmm);
+    EEPROM.get(EPR_velocidadeRebobinador, velocidadeRebobinador);
+    EEPROM.get(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
+    // EEPROM.get(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
+    // EEPROM.get(EPR_startNF, startNF);
+    loadProdutoFromEEPROM(produto);
 }
 
 // carrega os parametros de um dos produtos
-void loadProdutoFromEEPROM()
+void loadProdutoFromEEPROM(int16_t _produto)
 {
-    // to do: o produto escolhido deve ser obtido como parâmetro para a função
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(X1) * EPR_X1, X1);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(Y1) * EPR_Y1, Y1);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(espacamentoX) * EPR_espacamentoX, espacamentoX);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(espacamentoY) * EPR_espacamentoY, espacamentoY);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(tamanhoDaImpressao) * EPR_tamanhoDaImpressao, tamanhoDaImpressao);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(velocidade) * EPR_velocidade, velocidade);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(quantidadeDeImpressoes) * EPR_quantidadeDeImpressoes, quantidadeDeImpressoes);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(linhasDeImpressao) * EPR_linhasDeImpressao, linhasDeImpressao);
-    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(imprimeEixoY) * EPR_imprimeEixoY, imprimeEixoY);
+    EEPROM.get(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(atrasoSensorProduto) * EPR_atrasoSensorProduto, atrasoSensorProduto);
+    EEPROM.get(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(posicaoDeAguardarProduto_dcmm) * EPR_posicaoDeAguardarProduto_dcmm, posicaoDeAguardarProduto_dcmm);
+    EEPROM.get(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(distanciaProduto_dcmm) * EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);
+    EEPROM.get(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(velocidadeDeTrabalho_dcmm) * EPR_velocidadeDeTrabalho_dcmm, velocidadeDeTrabalho_dcmm);
 }
 
 // salva os parâmetros do _produto na eeprom
-void saveProdutoToEEPROM(int32_t _produto)
+void saveProdutoToEEPROM(int16_t _produto)
 {
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(X1) * EPR_X1, X1);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(Y1) * EPR_Y1, Y1);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(espacamentoX) * EPR_espacamentoX, espacamentoX);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(espacamentoY) * EPR_espacamentoY, espacamentoY);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(tamanhoDaImpressao) * EPR_tamanhoDaImpressao, tamanhoDaImpressao);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(velocidade) * EPR_velocidade, velocidade);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(quantidadeDeImpressoes) * EPR_quantidadeDeImpressoes, quantidadeDeImpressoes);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(linhasDeImpressao) * EPR_linhasDeImpressao, linhasDeImpressao);
-    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(imprimeEixoY) * EPR_imprimeEixoY, imprimeEixoY);
+    EEPROM.put(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(atrasoSensorProduto) * EPR_atrasoSensorProduto, atrasoSensorProduto);
+    EEPROM.put(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(posicaoDeAguardarProduto_dcmm) * EPR_posicaoDeAguardarProduto_dcmm, posicaoDeAguardarProduto_dcmm);
+    EEPROM.put(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(distanciaProduto_dcmm) * EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);
+    EEPROM.put(EPR_inicioDaMemoriaDosProdutos + _produto * EPR_quantoOcupaCadaProdutoNaMemoria + sizeof(velocidadeDeTrabalho_dcmm) * EPR_velocidadeDeTrabalho_dcmm, velocidadeDeTrabalho_dcmm);
 }
 
 // escreve valores default em todos os produtos
@@ -1361,10 +1350,10 @@ void presetEEPROM()
 void salvaContadorNaEEPROM()
 {
     const uint16_t intervaloEntreBackups = 100; // ciclos
-    if ((contadorAbsoluto % intervaloEntreBackups) == 0)
+    if ((contadorTotal % intervaloEntreBackups) == 0)
     {
-        // Serial.print("save contador: ");Serial.println(contadorAbsoluto);
-        EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
+        // Serial.print("save contador: ");Serial.println(contadorTotal);
+        EEPROM.put(EPR_contadorTotal, contadorTotal);
     }
 }
 //////////////////////////////////////////////////////////////////////
