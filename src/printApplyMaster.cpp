@@ -109,6 +109,8 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
+        ihm.desligaLEDverde();
+        delay(1);
         ihm.showStatus2msg("EM PAUSA");
         Serial.println("ESTADO STOP");
         desligaTodosOutputs();
@@ -139,6 +141,7 @@ void loop()
         {
           flag_cicloEmAndamento = true;
           changeFsmState(ESTADO_POSICIONANDO);
+          Serial.println("ligou led verde");
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
@@ -207,8 +210,10 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        changeFsmState(ESTADO_APLICACAO);
+        ihm.ligaLEDverde();
+        delay(1);
         ihm.showStatus2msg("AGUARDANDO PRODUTO");
+        changeFsmState(ESTADO_APLICACAO);
       }
     }
     break;
@@ -478,7 +483,9 @@ void loop()
       flag_referenciou = false;
       ihm.showStatus2msg("FALHA");
       delay(1);
-      ihm.ligaLEDVermelho();
+      ihm.ligaLEDvermelho();
+      delay(1);
+      ihm.desligaLEDverde();
       desligaTodosOutputs();
       fsm_substate = fase2;
     }
@@ -486,7 +493,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
-        ihm.desligaLEDVermelho();
+        ihm.desligaLEDvermelho();
         changeFsmState(ESTADO_STOP);
       }
     }

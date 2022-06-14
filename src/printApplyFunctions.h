@@ -171,8 +171,8 @@ int32_t velocidadeDeTrabalho_dcmms = 640;
 
 // parâmetros manutenção:
 int32_t tempoFinalizarAplicacao = 250;
-int32_t posicaoLimite_dcmm = 3200;
-int32_t posicaoDePegarEtiqueta_dcmm = 330;
+int32_t posicaoLimite_dcmm = 4200;
+int32_t posicaoDePegarEtiqueta_dcmm = 430;
 int32_t posicaoDeRepouso_dcmm = 1250; // to do: fazer referencial relativo com a posicao de repouso como zero.
 int32_t velocidadeDeReferenciacao_dcmms = 1000;
 int32_t rampa_dcmm = 100;
