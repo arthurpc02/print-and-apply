@@ -213,6 +213,7 @@ uint16_t fsm_erro_intertravamento = fase1;
 // Flags:
 bool flag_referenciou = false;
 bool flag_cicloEmAndamento = false;
+bool flag_simulaEtiqueta = false;
 
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
@@ -241,7 +242,7 @@ Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &po
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_velocidadeDeReferenciacao_dcmms = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmms, "mm/s", 10u, 100u, 15000u, NULL, 1);
-Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO_MANU, &rampa_dcmm, "mm", 10u, 10u, 500u, NULL, 1);
+Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 10u, 10u, 500u, NULL, 1);
 Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
@@ -332,7 +333,6 @@ void voltaParaPrimeiroMenu();
 void incrementaContadores();
 void habilitaConfiguracaoPelaIhm();
 void desabilitaConfiguracaoPelaIhm();
-void bloqueiaManutencaoEVoltaParaPrimeiroMenu();
 
 void enviaEvento(Evento event);
 Evento recebeEventos();
@@ -519,12 +519,6 @@ void liberaMenusDeManutencao()
     flag_manutencao = true;
 }
 
-void bloqueiaManutencaoEVoltaParaPrimeiroMenu()
-{
-    bloqueiaMenusDeManutencao();
-    voltaParaPrimeiroMenu();
-}
-
 void bloqueiaMenusDeManutencao()
 {
     for (int i = 0; i < quantidadeDeMenusDeManutencao; i++)
@@ -618,8 +612,14 @@ void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
 
 void imprimeEtiqueta()
 {
-    xTaskCreatePinnedToCore(t_simulaPrintEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    if (flag_simulaEtiqueta)
+    {
+        xTaskCreatePinnedToCore(t_simulaPrintEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    }
+    else
+    {
+        xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    }
 }
 
 // simula a impressão de uma etiqueta, para fins de testes do software.

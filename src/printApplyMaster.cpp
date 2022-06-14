@@ -72,7 +72,7 @@ void loop()
       }
       else if (millis() - timer_emergencia > timeout_emergencia)
       {
-        // ihm.desligaLEDvermelho();
+        ihm.desligaLEDvermelho();
         // falhas.clearAllFaults();
         // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
         changeFsmState(ESTADO_STOP);
@@ -120,9 +120,15 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         // vTaskSuspend(h_eeprom); // to do:
-        bloqueiaManutencaoEVoltaParaPrimeiroMenu();
+        voltaParaPrimeiroMenu();
         braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
         habilitaMotoresEAguardaEstabilizar();
+
+        if (flag_manutencao)
+        {
+          bloqueiaMenusDeManutencao();
+        }
+
         if (flag_referenciou == false)
         {
           braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
@@ -222,7 +228,6 @@ void loop()
       flag_pause = true;
       break;
     }
-    // to do: se receber evt_stop tem que parar também.
 
     if (fsm_substate == fase1)
     {
