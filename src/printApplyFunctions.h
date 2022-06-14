@@ -1265,75 +1265,108 @@ bool checkBotaoDireita()
 //////////////////////////////////////////////////////////////////////
 void t_eeprom(void *p)
 {
-    const uint16_t intervaloEntreBackups = 5000; // ms
+  int16_t intervaloEntreBackups = 3000; //ms
 
-    while (1)
-    {
-        EEPROM.put(EPR_produto, produto);
-
-        EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);          // posicao em que o braco pega a etiqueta
-        EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);      // posicao em que o braco aguarda o sensor de produto
-        EEPROM.put(EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);     // distancia do produto ao sensor de aplicacao
-        EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao); // atraso para colar a etiqueta no produto
-        EEPROM.put(EPR_rampa_dcmm, rampa_dcmm);
-        EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
-
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);               // atraso ate o produto estar posicionado na frente do braco
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);       // tempo que demora para a etiqueta ser impressa
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms); // velocidade do braço
-
-        if ((contadorAbsoluto % quantidadeParaBackups) == 0)
-            EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
-
-        EEPROM.commit();
-
-        delay(intervaloEntreBackups);
-    }
+  while (1)
+  {
+    delay(intervaloEntreBackups);
+    saveParametersToEEPROM();
+  }
 }
 
-/* Salva os parâmetros do equipamento de tempos em tempos os primeiros endereços
-são reservados para parâmetros não-específicos, os demais endereços são separados
-por produto/receita o produto é exibido para o usuário no display como 1 a 10,
-mas o software sempre trata ele como produto -1, para conter o zero. */
-
-// Recupera os parâmetros salvos na eeprom
-void restoreBackupParameters()
+void saveParametersToEEPROM()
 {
-    EEPROM.get(EPR_produto, produto);
+    EEPROM.put(EPR_produto, produto);
+    EEPROM.put(EPR_rampa, rampa);
+    EEPROM.put(EPR_velocidadeG0, velocidadeG0);
+    EEPROM.put(EPR_duracaoPulsoDeImpressao, duracaoPulsoDeImpressao);
+    EEPROM.put(EPR_limiteEixoX, limiteEixoX);
+    EEPROM.put(EPR_limiteEixoY, limiteEixoY);
+    EEPROM.put(EPR_habilitarReversao, habilitarReversao);
+    EEPROM.put(EPR_habilitarIntertravamento1, habilitarIntertravamento1);
+    EEPROM.put(EPR_habilitarIntertravamento2, habilitarIntertravamento2); 
+    EEPROM.put(EPR_habilitaPortaAberta, habilitaPortaAberta); 
+    EEPROM.put(EPR_botaoStartNF, botaoStartNF);
+    EEPROM.put(EPR_produtoAvancado, flag_produtoAvancado);
+    // EEPROM.put(EPR_linhasDeImpressao, linhasDeImpressao);
+    EEPROM.put(EPR_posicaoDeEmergencia, posicaoDeEmergencia);
+    salvaContadorNaEEPROM();
 
-    EEPROM.get(EPR_pulsosBracoInicial, posicaoBracoInicial);
-    EEPROM.get(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);
-    EEPROM.get(EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);
-    EEPROM.get(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
-    EEPROM.get(EPR_rampa_dcmm, rampa_dcmm);
-    EEPROM.get(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
+    saveProdutoToEEPROM(produto);
+
+    EEPROM.commit();
+}
+
+// carrega os parametros que estão salvos na eeprom. Carrega os parâmetros globais e os de produto.
+void loadParametersFromEEPROM()
+{
     EEPROM.get(EPR_contadorAbsoluto, contadorAbsoluto);
-
-    loadProductFromEEPROM(produto);
+    EEPROM.get(EPR_produto, produto);
+    EEPROM.get(EPR_rampa, rampa);
+    EEPROM.get(EPR_velocidadeG0, velocidadeG0);
+    EEPROM.get(EPR_duracaoPulsoDeImpressao, duracaoPulsoDeImpressao);
+    EEPROM.get(EPR_limiteEixoX, limiteEixoX);
+    EEPROM.get(EPR_limiteEixoY, limiteEixoY);
+    EEPROM.get(EPR_habilitarIntertravamento1, habilitarIntertravamento1);
+    EEPROM.get(EPR_habilitarIntertravamento2, habilitarIntertravamento2);
+    EEPROM.get(EPR_habilitaPortaAberta, habilitaPortaAberta);
+    EEPROM.get(EPR_botaoStartNF, botaoStartNF);
+    EEPROM.get(EPR_habilitarReversao, habilitarReversao);
+    EEPROM.get(EPR_produtoAvancado, flag_produtoAvancado);
+    // EEPROM.get(EPR_linhasDeImpressao, linhasDeImpressao);
+    EEPROM.get(EPR_posicaoDeEmergencia, posicaoDeEmergencia);
+    loadProdutoFromEEPROM();
 }
 
-// essa função é chamada toda vez que o usuário usa o display para trocar de produto
-// os parâmetros de cada produto são então carregados nas suas devidas variáveis globais.
-void loadProductFromEEPROM(uint16_t prod)
+// carrega os parametros de um dos produtos
+void loadProdutoFromEEPROM()
 {
-    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
-    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
-    EEPROM.get(EPR_offsetEspecificos + (prod - 1) * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms);
+    // to do: o produto escolhido deve ser obtido como parâmetro para a função
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(X1) * EPR_X1, X1);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(Y1) * EPR_Y1, Y1);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(espacamentoX) * EPR_espacamentoX, espacamentoX);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(espacamentoY) * EPR_espacamentoY, espacamentoY);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(tamanhoDaImpressao) * EPR_tamanhoDaImpressao, tamanhoDaImpressao);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(velocidade) * EPR_velocidade, velocidade);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(quantidadeDeImpressoes) * EPR_quantidadeDeImpressoes, quantidadeDeImpressoes);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(linhasDeImpressao) * EPR_linhasDeImpressao, linhasDeImpressao);
+    EEPROM.get(EPR_inicioProdutos + produto * EPR_sizeParameters + sizeof(imprimeEixoY) * EPR_imprimeEixoY, imprimeEixoY);
 }
 
-// use essa função para restar os valores de todos os produtos.
-// para utilizá-la, chame ela na função setup(), e não use a função loadFromEEPROM()
-// o valor escolhido na inicialização das variáveis é o que será salvo nos presets.
+// salva os parâmetros do _produto na eeprom
+void saveProdutoToEEPROM(int32_t _produto)
+{
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(X1) * EPR_X1, X1);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(Y1) * EPR_Y1, Y1);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(espacamentoX) * EPR_espacamentoX, espacamentoX);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(espacamentoY) * EPR_espacamentoY, espacamentoY);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(tamanhoDaImpressao) * EPR_tamanhoDaImpressao, tamanhoDaImpressao);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(velocidade) * EPR_velocidade, velocidade);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(quantidadeDeImpressoes) * EPR_quantidadeDeImpressoes, quantidadeDeImpressoes);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(linhasDeImpressao) * EPR_linhasDeImpressao, linhasDeImpressao);
+    EEPROM.put(EPR_inicioProdutos + _produto * EPR_sizeParameters + sizeof(imprimeEixoY) * EPR_imprimeEixoY, imprimeEixoY);
+}
+
+// escreve valores default em todos os produtos
 void presetEEPROM()
 {
     for (int i = 0; i < EPR_maxProdutos; i++)
     {
-        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);
-        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);
-        EEPROM.put(EPR_offsetEspecificos + i * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms);
+        saveProdutoToEEPROM(i);
     }
 }
 
+// salva o contador na eeprom. A eeprom não possui um número muito alto de escritas, então é necessário economizar escritas.
+// essa função executa a escrita apenas a cada 100 ciclos.
+void salvaContadorNaEEPROM()
+{
+    const uint16_t intervaloEntreBackups = 100; // ciclos
+    if ((contadorAbsoluto % intervaloEntreBackups) == 0)
+    {
+        // Serial.print("save contador: ");Serial.println(contadorAbsoluto);
+        EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
+    }
+}
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 void t_emergencia(void *p)

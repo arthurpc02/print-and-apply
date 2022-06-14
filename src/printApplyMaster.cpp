@@ -15,7 +15,7 @@ void setup()
   eventQueue = xQueueCreate(3, sizeof(Evento));
 
   EEPROM.begin(EEPROM_SIZE);
-  // restoreBackupParameters();
+  // loadParametersFromEEPROM();
   // presetEEPROM();
 
   desligaTodosOutputs();
