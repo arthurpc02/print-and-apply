@@ -139,7 +139,6 @@ int32_t velocidadeCiclommps = 0;
 uint32_t aceleracaoLinearPulsos = 0;
 int32_t pulsosRampa = 0;
 
-int32_t contadorAbsoluto = 0;
 const uint16_t quantidadeParaBackups = 100;
 
 int16_t testeStatusImpressora = 0;
@@ -159,8 +158,6 @@ int32_t posicaoBracoAplicacao = 250;
 
 int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
 
-// new:
-
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
 int32_t produto = 1;
@@ -168,19 +165,19 @@ int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t distanciaProduto_dcmm = 750;
 int32_t velocidadeDeTrabalho_dcmms = 640;
+// to do: trocar os 'dcmms' dos nomes da variaveis para 'dcmm' mesmo
 
 // parâmetros manutenção:
 int32_t tempoFinalizarAplicacao = 250;
 int32_t posicaoLimite_dcmm = 4200;
 int32_t posicaoDePegarEtiqueta_dcmm = 430;
-int32_t posicaoDeRepouso_dcmm = 1250; // to do: fazer referencial relativo com a posicao de repouso como zero.
+int32_t posicaoDeRepouso_dcmm = 1250;
 int32_t velocidadeDeReferenciacao_dcmms = 1000;
 int32_t rampa_dcmm = 100;
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
-// int32_t velocidadeDoRebobinador = ; // to do:
-// int32_t aceleracaoDoRebobinador = ; // to do:
+int32_t contadorAbsoluto = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
@@ -217,7 +214,6 @@ uint16_t fsm_erro_intertravamento = fase1;
 bool flag_referenciou = false;
 bool flag_cicloEmAndamento = false;
 
-
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
 bool flag_intertravamentoIn = true;
@@ -227,11 +223,11 @@ bool flag_restartDisplay = false;
 bool flag_continuo = false;
 bool flag_manutencao = false;
 bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
+
 // Flags:
 // Parâmetros:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-// Criando menus:
 Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);

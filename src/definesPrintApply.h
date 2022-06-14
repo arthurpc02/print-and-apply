@@ -15,28 +15,36 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define EPR_offsetProduto 12    // quanto de memória, em bytes, um produto ocupa
 #define EPR_offsetEspecificos 32 // as variaveis que dependem de produto são armazenadas depois desse endereço, as que não dependem de produto, antes.
 
-/* PARÂMETROS GERAIS: Os parametros abaixo são salvos na eeprom uma única vez por produto,
-são PARÂMETROS NÃO-ESPECÍFICOS: */
+// PARÂMETROS Globais:
 #define EPR_produto 0
+#define EPR_contadorTotal 4
+#define EPR_tempoFinalizarAplicacao 8
+#define EPR_posicaoLimite_dcmm 12
+#define EPR_posicaoDePegarEtiqueta_dcmm 16
+#define EPR_posicaoDeRepouso_dcmm 20
+#define EPR_velocidadeDeReferenciacao_dcmms 24
+#define EPR_rampa_dcmm 28
+#define EPR_flag_simulaEtiqueta 32
+#define EPR_velocidadeRebobinador 36
+#define EPR_aceleracaoRebobinador 40
+#define EPR_habilitaPortasDeSeguranca 44  // to do:
+#define EPR_startNF // to do:
 
-#define EPR_pulsosBracoInicial 4
-#define EPR_pulsosBracoAplicacao 8
-#define EPR_distanciaProduto_dcmm 12
+// PARÂMETROS ESPECÍFICOS
+#define EPR_atrasoSensorProduto 0
+#define EPR_posicaoDeAguardarProduto_dcmm 1
+#define EPR_distanciaProduto_dcmm 2
+#define EPR_velocidadeDeTrabalho_dcmms 3
 
-#define EPR_tempoFinalizarAplicacao 16
+int32_t contadorDeCiclos = 0;
+int32_t atrasoSensorProduto = 1000; // ms
+int32_t posicaoDeAguardarProduto_dcmm = 1800;
+int32_t distanciaProduto_dcmm = 750;
+int32_t velocidadeDeTrabalho_dcmms = 640;
 
-#define EPR_rampa_dcmm 20
-
-#define EPR_contadorAbsoluto 24
-
-#define EPR_statusIntertravamentoIn 28
-
-// PARÂMETROS ESPECÍFICOS: salvos uma vez para cada produto
 #define EPR_atrasoSensorProduto 0
 #define EPR_atrasoImpressaoEtiqueta 4
 #define EPR_velocidadeDeTrabalho_dcmms 8
-// PARÂMETROS ESPECÍFICOS: salvos uma vez para cada produto
-// Eeprom:
 
 // Fases:
 #define fase11 11
