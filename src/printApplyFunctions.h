@@ -438,7 +438,12 @@ void t_botoesIhm(void *p)
                 ihm.incrementaParametroAtual();
 
                 Menu *checkMenu = ihm.getMenu();
-                if (checkMenu == &menu_contadorDeCiclos)
+                if (checkMenu == &menu_produto)
+                {
+                    // saveProdutoToEEPROM(produto); // to do: salvar produto na eeprom antes de trocar. Tem que ser feito antes de incrementar a variavel
+                    loadProdutoFromEEPROM(produto);
+                }
+                else if (checkMenu == &menu_contadorDeCiclos)
                 {
                     contadorDeCiclos = 0;
                 }
@@ -455,7 +460,12 @@ void t_botoesIhm(void *p)
                 ihm.decrementaParametroAtual();
 
                 Menu *checkMenu = ihm.getMenu();
-                if (checkMenu == &menu_contadorDeCiclos)
+                if (checkMenu == &menu_produto)
+                {
+                    // saveProdutoToEEPROM(produto); // to do: salvar produto na eeprom antes de trocar. Tem que ser feito antes de incrementar a variavel
+                    loadProdutoFromEEPROM(produto);
+                }
+                else if (checkMenu == &menu_contadorDeCiclos)
                 {
                     contadorDeCiclos = 0;
                 }
