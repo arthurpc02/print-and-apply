@@ -22,7 +22,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define EPR_posicaoLimite_dcmm 12
 #define EPR_posicaoDePegarEtiqueta_dcmm 16
 #define EPR_posicaoDeRepouso_dcmm 20
-#define EPR_velocidadeDeReferenciacao_dcmms 24
+#define EPR_velocidadeDeReferenciacao_dcmm 24
 #define EPR_rampa_dcmm 28
 #define EPR_flag_simulaEtiqueta 32
 #define EPR_velocidadeRebobinador 36
@@ -34,17 +34,17 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define EPR_atrasoSensorProduto 0
 #define EPR_posicaoDeAguardarProduto_dcmm 1
 #define EPR_distanciaProduto_dcmm 2
-#define EPR_velocidadeDeTrabalho_dcmms 3
+#define EPR_velocidadeDeTrabalho_dcmm 3
 
 int32_t contadorDeCiclos = 0;
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t distanciaProduto_dcmm = 750;
-int32_t velocidadeDeTrabalho_dcmms = 640;
+int32_t velocidadeDeTrabalho_dcmm = 640;
 
 #define EPR_atrasoSensorProduto 0
 #define EPR_atrasoImpressaoEtiqueta 4
-#define EPR_velocidadeDeTrabalho_dcmms 8
+#define EPR_velocidadeDeTrabalho_dcmm 8
 
 // Fases:
 #define fase11 11

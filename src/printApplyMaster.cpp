@@ -27,7 +27,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   // motorSetup();
-  braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
+  braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
   rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
   Serial.println("End Setup. Print & Apply Linear.");
@@ -125,7 +125,7 @@ void loop()
         // vTaskSuspend(h_eeprom); // to do:
         voltaParaPrimeiroMenu();
         habilitaMotoresEAguardaEstabilizar();
-        braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
+        braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
         rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
         if (flag_manutencao)
@@ -170,7 +170,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
+        braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
         braco_moveTo(posicaoDePegarEtiqueta_dcmm);
         ligaVentilador();
         fsm_substate = fase2;
@@ -322,7 +322,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      braco_setup(velocidadeDeReferenciacao_dcmms, rampa_dcmm);
+      braco_setup(velocidadeDeReferenciacao_dcmm, rampa_dcmm);
       fsm_substate = fase2;
 
       if (emCimaDoSensorHome())

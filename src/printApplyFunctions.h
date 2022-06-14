@@ -164,7 +164,7 @@ int32_t produto = 1;
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t distanciaProduto_dcmm = 750;
-int32_t velocidadeDeTrabalho_dcmms = 640;
+int32_t velocidadeDeTrabalho_dcmm = 640;
 // to do: trocar os 'dcmms' dos nomes da variaveis para 'dcmm' mesmo
 
 // parâmetros manutenção:
@@ -172,7 +172,7 @@ int32_t tempoFinalizarAplicacao = 250;
 int32_t posicaoLimite_dcmm = 4200;
 int32_t posicaoDePegarEtiqueta_dcmm = 430;
 int32_t posicaoDeRepouso_dcmm = 1250;
-int32_t velocidadeDeReferenciacao_dcmms = 1000;
+int32_t velocidadeDeReferenciacao_dcmm = 1000;
 int32_t rampa_dcmm = 100;
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
@@ -233,14 +233,14 @@ Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
 Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda Produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 10u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
-Menu menu_velocidadeDeTrabalho_dcmms = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmms, "mm/s", 10u, 100u, 15000u, &produto, 1);
+Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 10u, 100u, 15000u, &produto, 1);
 
 // manutencao:
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
-Menu menu_velocidadeDeReferenciacao_dcmms = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmms, "mm/s", 10u, 100u, 15000u, NULL, 1);
+Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 10u, 100u, 15000u, NULL, 1);
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
@@ -485,7 +485,7 @@ void t_botoesIhm(void *p)
                 if (flag_manutencao == false)
                 {
                     liberaMenusDeManutencao();
-                    ihm.goToMenu(&menu_velocidadeDeReferenciacao_dcmms);
+                    ihm.goToMenu(&menu_velocidadeDeReferenciacao_dcmm);
                     ihm.showStatus2msg("MANUTENCAO LIBERADA");
                 }
             }
@@ -505,14 +505,14 @@ void liberaMenusDaIhm()
     ihm.addMenuToIndex(&menu_atrasoSensorProduto);
     ihm.addMenuToIndex(&menu_posicaoDeAguardarProduto_dcmm);
     ihm.addMenuToIndex(&menu_distanciaProduto_dcmm);
-    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmms);
+    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmm);
 }
 
 void liberaMenusDeManutencao()
 {
     quantidadeDeMenusDeManutencao = 10;
 
-    ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmms);
+    ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmm);
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
     ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
@@ -882,19 +882,19 @@ void motorRun()
     const int32_t velocidadeEspatula = 8000;
     const int32_t aceleracaoEspatula = 80000;
 
-    if (velocidadeCiclommps != velocidadeDeTrabalho_dcmms)
+    if (velocidadeCiclommps != velocidadeDeTrabalho_dcmm)
     {
         pulsosRampa = resolucao * rampa_dcmm;
 
         rebobinador.setMaxSpeed(velocidadeEspatula);
         rebobinador.setAcceleration(aceleracaoEspatula);
 
-        velocidadeLinearPulsos = round(velocidadeDeTrabalho_dcmms * resolucao);
+        velocidadeLinearPulsos = round(velocidadeDeTrabalho_dcmm * resolucao);
         aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
 
         braco.setMaxSpeed(velocidadeLinearPulsos);
         braco.setAcceleration(aceleracaoLinearPulsos);
-        velocidadeCiclommps = velocidadeDeTrabalho_dcmms;
+        velocidadeCiclommps = velocidadeDeTrabalho_dcmm;
 
         Serial.print("Velocidade Braco: ");
         Serial.println(velocidadeLinearPulsos);
@@ -1068,7 +1068,7 @@ void t_ihm_old(void *p)
 
     ihm.addMenuToIndex(&menu_atrasoSensorProduto);
     ihm.addMenuToIndex(&menu_atrasoImpressaoEtiqueta);
-    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmms);
+    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmm);
 
     ihm.addMenuToIndex(&menu_contadorDeCiclos);
 
