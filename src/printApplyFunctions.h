@@ -85,30 +85,12 @@ extern HardwareSerial rs485;
 // IO's:
 uint8_t output_state = 0; // estado das saídas de uso geral. Usado na função updateIOs().
 uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função updateIOs().
-// IO's:
 
 uint16_t quantidadeDeMenusDeManutencao = 1;
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Parâmetros:
-// Menu:
-int32_t produto = 1;
-
-int32_t atrasoSensorProduto = 1000; // ms
-int32_t atrasoImpressaoEtiqueta = 1000;
-
-
-int32_t posicaoBracoInicial = 10;
-int32_t posicaoBracoAplicacao = 250;
-
-int32_t tempoFinalizarAplicacao = 250;
-
-int32_t contadorDeCiclos = 0;
-
-
-int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
-// Menu:
 
 // Variáveis para os motores:
 // Pulsos:
@@ -169,20 +151,34 @@ int16_t tempoLedStatus = 500;
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
+// Menu:
+int32_t atrasoImpressaoEtiqueta = 1000;
+
+int32_t posicaoBracoInicial = 10;
+int32_t posicaoBracoAplicacao = 250;
+
+int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
+
 // new:
-
-int32_t posicaoDePegarEtiqueta_dcmm = 330;
-int32_t posicaoDeAguardarProduto_dcmm = 1800;
-int32_t posicaoLimite_dcmm = 3200;
-int32_t posicaoDeRepouso_dcmm = 1250;
-int32_t distanciaProduto_dcmm = 750; // pulsos
-
-int32_t rampa_dcmm = 100;
-int32_t velocidadeDeTrabalho_dcmms = 647;
-int32_t velocidadeDeReferenciacao_dcmms = 1000;
 const float resolucao = 2.629;        // steps/dcmm
 const uint32_t braco_ppv = 3200;       // pulsos
 const uint32_t rebobinador_ppv = 3200; // pulsos
+
+// parâmetros comuns:
+int32_t produto = 1;
+int32_t atrasoSensorProduto = 1000; // ms
+int32_t posicaoDeAguardarProduto_dcmm = 1800;
+int32_t distanciaProduto_dcmm = 750; // pulsos
+int32_t velocidadeDeTrabalho_dcmms = 647;
+int32_t contadorDeCiclos = 0;
+
+// parâmetros manutenção:
+int32_t tempoFinalizarAplicacao = 250;
+int32_t posicaoLimite_dcmm = 3200;
+int32_t posicaoDePegarEtiqueta_dcmm = 330;
+int32_t posicaoDeRepouso_dcmm = 1250;
+int32_t velocidadeDeReferenciacao_dcmms = 1000;
+int32_t rampa_dcmm = 100;
 
 // Processo:
 // Fases da fsm:
@@ -582,6 +578,7 @@ void braco_setup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
 {
     calculaVelocidadeEmSteps(_velocidade_dcmmPorS);
     calculaRampaEmSteps(_velocidade_dcmmPorS, _rampa_dcmm);
+    braco.setMinPulseWidth(2);
 }
 
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS)
