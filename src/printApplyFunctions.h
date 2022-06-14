@@ -248,7 +248,8 @@ Menu menu_velocidadeDeReferenciacao_dcmms = Menu("Veloc Referenciacao", PARAMETR
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
-// Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "pulsos", 5u, 10u, 500u, NULL, 1);
+Menu menu_velocidadeRebobinador = Menu("Rampa", PARAMETRO, &velocidadeRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
+Menu menu_aceleracaoRebobinador = Menu("Rampa", PARAMETRO, &aceleracaoRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
@@ -513,17 +514,18 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 8;
+    quantidadeDeMenusDeManutencao = 10;
 
     ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmms);
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
     ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_posicaoDeRepouso_dcmm);
-    ihm.addMenuToIndex(&menu_contadorAbsoluto);
     ihm.addMenuToIndex(&menu_rampa_dcmm);
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
-
+    ihm.addMenuToIndex(&menu_velocidadeRebobinador);
+    ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
+    ihm.addMenuToIndex(&menu_contadorAbsoluto);
 
     flag_manutencao = true;
 }

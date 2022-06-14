@@ -477,6 +477,8 @@ void loop()
       flag_cicloEmAndamento = false;
       flag_referenciou = false;
       ihm.showStatus2msg("FALHA");
+      delay(1);
+      ihm.ligaLEDVermelho();
       desligaTodosOutputs();
       fsm_substate = fase2;
     }
