@@ -120,6 +120,7 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         // vTaskSuspend(h_eeprom); // to do:
+        bloqueiaManutencaoEVoltaParaPrimeiroMenu();
         braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
         habilitaMotoresEAguardaEstabilizar();
         if (flag_referenciou == false)

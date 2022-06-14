@@ -125,7 +125,7 @@ int32_t posicaoBracoDeteccaoProduto = 0;
 int32_t posicaoBracoProduto = 440;
 
 int32_t posicaoBracoEmergencia = 462;
-// Posições:
+
 // Variáveis para os motores:
 
 const int32_t pi = 3.14159265358979;
@@ -167,13 +167,13 @@ int32_t produto = 1;
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t distanciaProduto_dcmm = 750;
-int32_t velocidadeDeTrabalho_dcmms = 647;
+int32_t velocidadeDeTrabalho_dcmms = 640;
 
 // parâmetros manutenção:
 int32_t tempoFinalizarAplicacao = 250;
 int32_t posicaoLimite_dcmm = 3200;
 int32_t posicaoDePegarEtiqueta_dcmm = 330;
-int32_t posicaoDeRepouso_dcmm = 1250;
+int32_t posicaoDeRepouso_dcmm = 1250; // to do: fazer referencial relativo com a posicao de repouso como zero.
 int32_t velocidadeDeReferenciacao_dcmms = 1000;
 int32_t rampa_dcmm = 100;
 // int32_t velocidadeDoRebobinador = ; // to do:
@@ -181,7 +181,7 @@ int32_t rampa_dcmm = 100;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
-const float resolucao = 2.629;        // steps/dcmm
+const float resolucao = 2.629;         // steps/dcmm
 const uint32_t braco_ppr = 3200;       // pulsos/revolucao
 const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
 
@@ -231,18 +231,22 @@ bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ih
 Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
-Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
-Menu menu_distanciaProduto_dcmm = Menu("Espacamento Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 20u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
-Menu menu_velocidadeDeTrabalho_dcmms = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmms, "mm/s", 100u, 100u, 10000u, &produto, 1);
+Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda Produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
+Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 10u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
+Menu menu_velocidadeDeTrabalho_dcmms = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmms, "mm/s", 10u, 100u, 15000u, &produto, 1);
 
 // manutencao:
+Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
+Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
+Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
+Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
+Menu menu_velocidadeDeReferenciacao_dcmms = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmms, "mm/s", 10u, 100u, 15000u, NULL, 1);
+Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO_MANU, &rampa_dcmm, "mm", 10u, 10u, 500u, NULL, 1);
+Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
+
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
-Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
-Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO_MANU, &rampa_dcmm, "mm", 1u, 1u, 200u);
 Menu menu_statusIntertravamentoIn = Menu("Intertravamento In", PARAMETRO_STRING, "     ON ou OFF      ");
-Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
-// Criando menus:
 Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 50u, 3000u, &produto);
 
 //////////////////////////////////////////////////////////////////////
@@ -328,6 +332,7 @@ void voltaParaPrimeiroMenu();
 void incrementaContadores();
 void habilitaConfiguracaoPelaIhm();
 void desabilitaConfiguracaoPelaIhm();
+void bloqueiaManutencaoEVoltaParaPrimeiroMenu();
 
 void enviaEvento(Evento event);
 Evento recebeEventos();
@@ -477,7 +482,7 @@ void t_botoesIhm(void *p)
                 if (flag_manutencao == false)
                 {
                     liberaMenusDeManutencao();
-                    // ihm.goToMenu(&menu_contadorAbsoluto);
+                    ihm.goToMenu(&menu_velocidadeDeReferenciacao_dcmms);
                     ihm.showStatus2msg("MANUTENCAO LIBERADA");
                 }
             }
@@ -494,20 +499,30 @@ void liberaMenusDaIhm()
 {
     ihm.addMenuToIndex(&menu_contadorDeCiclos);
     ihm.addMenuToIndex(&menu_produto);
+    ihm.addMenuToIndex(&menu_atrasoSensorProduto);
+    ihm.addMenuToIndex(&menu_posicaoDeAguardarProduto_dcmm);
+    ihm.addMenuToIndex(&menu_distanciaProduto_dcmm);
+    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmms);
 }
 
 void liberaMenusDeManutencao()
 {
     quantidadeDeMenusDeManutencao = 6;
 
-    ihm.addMenuToIndex(&menu_posicaoBracoInicial);
-    ihm.addMenuToIndex(&menu_posicaoBracoAplicacao);
-    ihm.addMenuToIndex(&menu_distanciaProduto_dcmm);
+    ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmms);
+    ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
+    ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
-    ihm.addMenuToIndex(&menu_rampa_dcmm);
-    ihm.addMenuToIndex(&menu_statusIntertravamentoIn);
+    ihm.addMenuToIndex(&menu_posicaoDeRepouso_dcmm);
+    ihm.addMenuToIndex(&menu_contadorAbsoluto);
 
     flag_manutencao = true;
+}
+
+void bloqueiaManutencaoEVoltaParaPrimeiroMenu()
+{
+    bloqueiaMenusDeManutencao();
+    voltaParaPrimeiroMenu();
 }
 
 void bloqueiaMenusDeManutencao()
@@ -1240,14 +1255,14 @@ void t_eeprom(void *p)
 
         EEPROM.put(EPR_pulsosBracoInicial, posicaoBracoInicial);          // posicao em que o braco pega a etiqueta
         EEPROM.put(EPR_pulsosBracoAplicacao, posicaoBracoAplicacao);      // posicao em que o braco aguarda o sensor de produto
-        EEPROM.put(EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);           // distancia do produto ao sensor de aplicacao
+        EEPROM.put(EPR_distanciaProduto_dcmm, distanciaProduto_dcmm);     // distancia do produto ao sensor de aplicacao
         EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao); // atraso para colar a etiqueta no produto
         EEPROM.put(EPR_rampa_dcmm, rampa_dcmm);
         EEPROM.put(EPR_statusIntertravamentoIn, statusIntertravamentoIn);
 
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);         // atraso ate o produto estar posicionado na frente do braco
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta); // tempo que demora para a etiqueta ser impressa
-        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms);       // velocidade do braço
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoSensorProduto, atrasoSensorProduto);               // atraso ate o produto estar posicionado na frente do braco
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_atrasoImpressaoEtiqueta, atrasoImpressaoEtiqueta);       // tempo que demora para a etiqueta ser impressa
+        EEPROM.put(EPR_offsetEspecificos + (produto - 1) * EPR_offsetProduto + EPR_velocidadeDeTrabalho_dcmms, velocidadeDeTrabalho_dcmms); // velocidade do braço
 
         if ((contadorAbsoluto % quantidadeParaBackups) == 0)
             EEPROM.put(EPR_contadorAbsoluto, contadorAbsoluto);
