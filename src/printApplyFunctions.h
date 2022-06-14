@@ -669,6 +669,7 @@ void t_printEtiqueta(void *p)
             {
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
+                rebobinador.stop();
                 Serial.println("erro print: impressora desligada ou impressão em andamento");
                 vTaskDelete(NULL);
             }
@@ -683,6 +684,7 @@ void t_printEtiqueta(void *p)
             {
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
+                rebobinador.stop();
                 Serial.println("erro impressao: impressao nao comecou");
                 vTaskDelete(NULL);
             }
@@ -701,6 +703,7 @@ void t_printEtiqueta(void *p)
             {
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
+                rebobinador.stop();
                 Serial.println("erro impressao: timeout duracao da impressao");
                 vTaskDelete(NULL);
             }
