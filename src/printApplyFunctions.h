@@ -160,17 +160,14 @@ int32_t posicaoBracoAplicacao = 250;
 int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
 
 // new:
-const float resolucao = 2.629;        // steps/dcmm
-const uint32_t braco_ppv = 3200;       // pulsos
-const uint32_t rebobinador_ppv = 3200; // pulsos
 
 // parâmetros comuns:
+int32_t contadorDeCiclos = 0;
 int32_t produto = 1;
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
-int32_t distanciaProduto_dcmm = 750; // pulsos
+int32_t distanciaProduto_dcmm = 750;
 int32_t velocidadeDeTrabalho_dcmms = 647;
-int32_t contadorDeCiclos = 0;
 
 // parâmetros manutenção:
 int32_t tempoFinalizarAplicacao = 250;
@@ -179,6 +176,14 @@ int32_t posicaoDePegarEtiqueta_dcmm = 330;
 int32_t posicaoDeRepouso_dcmm = 1250;
 int32_t velocidadeDeReferenciacao_dcmms = 1000;
 int32_t rampa_dcmm = 100;
+// int32_t velocidadeDoRebobinador = ; // to do:
+// int32_t aceleracaoDoRebobinador = ; // to do:
+
+// parâmetros de instalação (só podem ser alterados na compilação do software):
+const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
+const float resolucao = 2.629;        // steps/dcmm
+const uint32_t braco_ppr = 3200;       // pulsos/revolucao
+const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
 
 // Processo:
 // Fases da fsm:
@@ -223,24 +228,22 @@ bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ih
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Criando menus:
-Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
-
-Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
-Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 50u, 3000u, &produto);
-Menu menu_velocidadeDeTrabalho_dcmms = Menu("Velocidade Braco", PARAMETRO, &velocidadeDeTrabalho_dcmms, "mm/s", 10u, 10u, 550u, &produto);
-
 Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
+Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
+Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
+Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
+Menu menu_distanciaProduto_dcmm = Menu("Espacamento Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 20u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
+Menu menu_velocidadeDeTrabalho_dcmms = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmms, "mm/s", 100u, 100u, 10000u, &produto, 1);
 
+// manutencao:
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
 Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
-Menu menu_distanciaProduto_dcmm = Menu("Espacamento Produto", PARAMETRO_MANU, &distanciaProduto_dcmm, "mm", 1u, 20u, 200u);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO_MANU, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
-
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO_MANU, &rampa_dcmm, "mm", 1u, 1u, 200u);
 Menu menu_statusIntertravamentoIn = Menu("Intertravamento In", PARAMETRO_STRING, "     ON ou OFF      ");
-
 Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
 // Criando menus:
+Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 50u, 3000u, &produto);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -818,7 +821,7 @@ void motorSetup()
     braco.setAcceleration(5000);
     braco.setPinsInverted();
 
-    rebobinador.setMaxSpeed(3 * rebobinador_ppv);
+    rebobinador.setMaxSpeed(3 * rebobinador_ppr);
     rebobinador.setAcceleration(12000);
     // rebobinador nao tem pino de controle de direcao
 

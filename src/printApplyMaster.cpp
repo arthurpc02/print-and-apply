@@ -406,7 +406,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
-        // rebobinador.move(rebobinador_ppv * 1.5);
+        // rebobinador.move(rebobinador_ppr * 1.5);
         imprimeEtiqueta();
         fsm_substate = fase2;
       }
