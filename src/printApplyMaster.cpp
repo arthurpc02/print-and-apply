@@ -28,6 +28,7 @@ void setup()
   // ventiladorConfig();
   motorSetup();
   braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
+  // to do: rebobinador_setup();
 
   Serial.println("End Setup. Print & Apply Linear.");
 }
@@ -122,6 +123,7 @@ void loop()
         // vTaskSuspend(h_eeprom); // to do:
         voltaParaPrimeiroMenu();
         braco_setup(velocidadeDeTrabalho_dcmms, rampa_dcmm);
+        // to do: rebobinador_setup();
         habilitaMotoresEAguardaEstabilizar();
 
         if (flag_manutencao)

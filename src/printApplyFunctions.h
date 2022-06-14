@@ -176,6 +176,7 @@ int32_t posicaoDePegarEtiqueta_dcmm = 330;
 int32_t posicaoDeRepouso_dcmm = 1250; // to do: fazer referencial relativo com a posicao de repouso como zero.
 int32_t velocidadeDeReferenciacao_dcmms = 1000;
 int32_t rampa_dcmm = 100;
+int32_t flag_simulaEtiqueta = false;
 // int32_t velocidadeDoRebobinador = ; // to do:
 // int32_t aceleracaoDoRebobinador = ; // to do:
 
@@ -213,7 +214,7 @@ uint16_t fsm_erro_intertravamento = fase1;
 // Flags:
 bool flag_referenciou = false;
 bool flag_cicloEmAndamento = false;
-bool flag_simulaEtiqueta = false;
+
 
 bool flag_comandoPlay = false;
 bool flag_statusImpressora = false;
@@ -242,7 +243,8 @@ Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &po
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_velocidadeDeReferenciacao_dcmms = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmms, "mm/s", 10u, 100u, 15000u, NULL, 1);
-Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 10u, 10u, 500u, NULL, 1);
+Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
+Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_contadorAbsoluto = Menu("Contador Total", READONLY, &contadorAbsoluto, " ");
 
 Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
@@ -507,7 +509,7 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 6;
+    quantidadeDeMenusDeManutencao = 8;
 
     ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmms);
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
@@ -515,6 +517,9 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_posicaoDeRepouso_dcmm);
     ihm.addMenuToIndex(&menu_contadorAbsoluto);
+    ihm.addMenuToIndex(&menu_rampa_dcmm);
+    ihm.addMenuToIndex(&menu_simulaEtiqueta);
+
 
     flag_manutencao = true;
 }
