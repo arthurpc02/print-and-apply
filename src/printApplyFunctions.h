@@ -1741,7 +1741,6 @@ void desligaOutput(uint8_t posicaoDoBit)
 
 void desligaTodosOutputs()
 {
-    updateOutput(bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | bit(RLO1) | bit(RLO2));
     digitalWrite(PIN_DO1, HIGH);
     digitalWrite(PIN_DO2, HIGH);
     desligaVentilador();
@@ -1749,6 +1748,12 @@ void desligaTodosOutputs()
     digitalWrite(PIN_HSDO2, LOW);
     digitalWrite(PIN_HSDO3, LOW);
     digitalWrite(PIN_HSDO4, LOW);
+
+    uint8_t output = 0;
+    output = bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7);
+    extIOs.changeOutputState(output);
+    extIOs.ligaOutput(RLO1);
+    extIOs.ligaOutput(RLO2);
 }
 
 //////////////////////////////////////////////////////////////////////
