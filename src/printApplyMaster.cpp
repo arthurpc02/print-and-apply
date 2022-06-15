@@ -312,6 +312,7 @@ void loop()
   {
     // to do: quando inicia a máquina, tem que rebobinar.
 
+    const int32_t distanciaParaSairDoSensor_dcmm = 350;
     static int32_t posicaoZero = 0;
 
     if (evento == EVT_PARADA_EMERGENCIA)
@@ -332,15 +333,27 @@ void loop()
 
       if (emCimaDoSensorHome())
       {
-        braco.move(800);
+        // se já esta no sensor Home, tem que se afastar para fazer a referenciacao
+        braco_move(distanciaParaSairDoSensor_dcmm);
       }
     }
     else if (fsm_substate == fase2)
     {
       if (braco.distanceToGo() == 0)
       {
-        braco.move(-12000);
-        fsm_substate = fase3;
+        if (emCimaDoSensorHome())
+        {
+          // se ainda está no sensor Home, provavelmente o sensor nao esta funcionando ou nao houve movimento.
+          setFault(FALHA_SENSORES);
+          changeFsmState(ESTADO_FALHA);
+        }
+        else
+        {
+          const float mais15porCento = 1.15;
+          const int16_t direcaoNegativa = -1;
+          braco_move(tamanhoMaximoDoBraco_dcmm * mais15porCento * direcaoNegativa);
+          fsm_substate = fase3;
+        }
       }
     }
     else if (fsm_substate == fase3)
@@ -364,7 +377,7 @@ void loop()
         Serial.println(braco.currentPosition());
         Serial.print(" p0: ");
         Serial.println(posicaoZero);
-        braco.setCurrentPosition(posicaoZero - braco.currentPosition());
+        braco.setCurrentPosition(braco.currentPosition() - posicaoZero);
         flag_referenciou = true;
         if (flag_cicloEmAndamento)
         {
@@ -477,7 +490,7 @@ void loop()
   case ESTADO_FALHA:
   {
     static uint32_t timer_verificaoDeFalhas = 0;
-    const uint16_t tempoVerificacaoDeFalhas = 7000; //ms
+    const uint16_t tempoVerificacaoDeFalhas = 7000; // ms
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -511,7 +524,7 @@ void loop()
         changeFsmState(ESTADO_STOP);
       }
 
-      if(millis() - timer_verificaoDeFalhas >= tempoVerificacaoDeFalhas)
+      if (millis() - timer_verificaoDeFalhas >= tempoVerificacaoDeFalhas)
       {
         fsm_substate = fase1;
       }
