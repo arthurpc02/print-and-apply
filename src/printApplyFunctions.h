@@ -196,9 +196,13 @@ int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
-const float resolucao = 2.629;         // steps/dcmm
-const uint32_t braco_ppr = 3200;       // pulsos/revolucao
 const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
+
+const float resolucaoNaCalibracao = 2.629; // steps/dcmm
+const uint32_t pprNaCalibracao = 3200; // pulsos/revolucao
+
+const uint32_t braco_ppr = 3200;       // pulsos/revolucao
+const float resolucao = braco_ppr * resolucaoNaCalibracao / pprNaCalibracao; // steps/dcmm
 
 // Processo:
 // Fases da fsm:

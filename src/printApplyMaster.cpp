@@ -28,6 +28,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   // motorSetup();
+  Serial.print("resolucao braco: "); Serial.println(resolucao);
   braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
   rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
