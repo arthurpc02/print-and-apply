@@ -1397,6 +1397,10 @@ void imprimeFalhaNaIhm()
   {
     codFalha.concat("PORTA ABERTA");
   }
+  else if (checkFault(FALHA_APLICACAO))
+  {
+    codFalha.concat("APLICACAO");
+  }
   else
   {
     codFalha.concat(faultRegister);
