@@ -28,7 +28,7 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   // motorSetup();
-  Serial.print("resolucao braco: "); Serial.println(resolucao);
+  Serial.print("p/dcmm braco: "); Serial.println(resolucao);
   braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
   rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
@@ -312,6 +312,8 @@ void loop()
   {
     // to do: quando inicia a máquina, tem que rebobinar.
 
+    const int16_t tempoDeEstabilizacaoNaReferenciacao = 200; // ms
+
     const int32_t distanciaParaSairDoSensor_dcmm = 350;
     static int32_t posicaoZero = 0;
 
@@ -379,6 +381,7 @@ void loop()
         Serial.println(posicaoZero);
         braco.setCurrentPosition(braco.currentPosition() - posicaoZero);
         flag_referenciou = true;
+        delay(tempoDeEstabilizacaoNaReferenciacao);
         if (flag_cicloEmAndamento)
         {
           changeFsmState(ESTADO_POSICIONANDO);

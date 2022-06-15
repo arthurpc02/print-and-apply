@@ -178,7 +178,7 @@ int32_t produto = 1;
 int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t distanciaProduto_dcmm = 750;
-int32_t velocidadeDeTrabalho_dcmm = 640;
+int32_t velocidadeDeTrabalho_dcmm = 1500;
 // to do: trocar os 'dcmms' dos nomes da variaveis para 'dcmm' mesmo
 
 // parâmetros manutenção:
@@ -186,7 +186,7 @@ int32_t tempoFinalizarAplicacao = 250;
 int32_t posicaoLimite_dcmm = 4200;
 int32_t posicaoDePegarEtiqueta_dcmm = 430;
 int32_t posicaoDeRepouso_dcmm = 1250;
-int32_t velocidadeDeReferenciacao_dcmm = 1000;
+int32_t velocidadeDeReferenciacao_dcmm = 2200;
 int32_t rampa_dcmm = 80;
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
@@ -198,10 +198,10 @@ int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
 const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
 
-const float resolucaoNaCalibracao = 2.629; // steps/dcmm
-const uint32_t pprNaCalibracao = 3200; // pulsos/revolucao
+const float resolucaoNaCalibracao = 20.4803; // steps/dcmm
+const uint32_t pprNaCalibracao = 25000; // pulsos/revolucao
 
-const uint32_t braco_ppr = 6400;       // pulsos/revolucao
+const uint32_t braco_ppr = 3200;       // pulsos/revolucao
 const float resolucao = braco_ppr * resolucaoNaCalibracao / pprNaCalibracao; // steps/dcmm
 
 // Processo:
