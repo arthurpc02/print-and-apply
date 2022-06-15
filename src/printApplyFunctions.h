@@ -77,7 +77,7 @@ Fsm fsm_old;
 SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
 SemaphoreHandle_t mutex_fault; // controla o acesso à variável faultRegister, que é utilizada por várias threads
-QueueHandle_t eventQueue; // os eventos são armazenados em uma fila
+QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
 
 AccelStepper braco(AccelStepper::DRIVER, PIN_PUL_BRACO, PIN_DIR_BRACO);
 AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBOBINADOR); // na verdade o DIR do rebobinador não está conecta. Então defini um pino que não está sendo utilizado.
@@ -1297,116 +1297,121 @@ bool checkBotaoDireita()
 }
 
 // checa qual/quais falhas estão ativas
-// to do: criar classe FAULT
-bool checkFault(uint8_t faultCode)
+// se o parametro faultCode foi colocado em zero(ou vazio), checa por qualquer falha
+bool checkFault(uint8_t faultCode = 0)
 {
-  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
-  {
-    bool check = (faultRegister & faultCode) != 0;
-    xSemaphoreGive(mutex_fault);
-    return check;
-  }
-  else
-  {
-    Serial.println("erro mtx fault");
-  }
-  return true;
+// to do: criar classe FAULT
+    if (faultCode == 0)
+    {
+        return (faultRegister > 0);
+    }
+    else if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+    {
+        bool check = (faultRegister & faultCode) != 0;
+        xSemaphoreGive(mutex_fault);
+        return check;
+    }
+    else
+    {
+        Serial.println("erro mtx fault");
+    }
+    return true;
 }
 
 void clearAllFaults()
 {
-  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
-  {
-    faultRegister = 0;
-    xSemaphoreGive(mutex_fault);
-  }
-  else
-  {
-    Serial.println("erro mtx fault");
-  }
+    if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+    {
+        faultRegister = 0;
+        xSemaphoreGive(mutex_fault);
+    }
+    else
+    {
+        Serial.println("erro mtx fault");
+    }
 }
 
 void updateFault(int16_t _faultCode, bool _faultState)
 {
-  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
-  {
-    if (_faultState == true)
+    if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
     {
-      faultRegister |= _faultCode; // set byte
+        if (_faultState == true)
+        {
+            faultRegister |= _faultCode; // set byte
+        }
+        else
+        {
+            faultRegister &= ~(_faultCode); // clear byte
+        }
+        xSemaphoreGive(mutex_fault);
     }
     else
     {
-      faultRegister &= ~(_faultCode); // clear byte
+        Serial.println("erro mtx fault");
     }
-    xSemaphoreGive(mutex_fault);
-  }
-  else
-  {
-    Serial.println("erro mtx fault");
-  }
 }
 
 void setFault(int16_t _faultCode)
 {
-  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
-  {
-    faultRegister |= _faultCode;
-    xSemaphoreGive(mutex_fault);
-  }
-  else
-  {
-    Serial.println("erro mtx fault");
-  }
+    if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+    {
+        faultRegister |= _faultCode;
+        xSemaphoreGive(mutex_fault);
+    }
+    else
+    {
+        Serial.println("erro mtx fault");
+    }
 }
 
 void clearFault(int16_t _faultCode)
 {
-  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
-  {
-    faultRegister &= ~(_faultCode); // clear byte
-    xSemaphoreGive(mutex_fault);
-  }
-  else
-  {
-    Serial.println("erro mtx fault");
-  }
+    if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+    {
+        faultRegister &= ~(_faultCode); // clear byte
+        xSemaphoreGive(mutex_fault);
+    }
+    else
+    {
+        Serial.println("erro mtx fault");
+    }
 }
 
 // apenas a falha de maior prioridade será exibida na tela.
 // a prioridade é definida pela ordem dos ifs dessa função aqui.
 void imprimeFalhaNaIhm()
 {
-  String codFalha = "FALHA:";
-  if (checkFault(FALHA_EMERGENCIA))
-  {
-    codFalha.concat("EMERGENCIA");
-  }
-  else if (checkFault(FALHA_IMPRESSAO))
-  {
-    codFalha.concat("IMPRESSAO");
-  }
-  else if (checkFault(FALHA_SENSORES))
-  {
-    codFalha.concat("SENSORES");
-  }
-  else if (checkFault(FALHA_IHM))
-  {
-    codFalha.concat("IHM");
-  }
-  else if (checkFault(FALHA_PORTA_ABERTA))
-  {
-    codFalha.concat("PORTA ABERTA");
-  }
-  else if (checkFault(FALHA_APLICACAO))
-  {
-    codFalha.concat("APLICACAO");
-  }
-  else
-  {
-    codFalha.concat(faultRegister);
-  }
+    String codFalha = "FALHA:";
+    if (checkFault(FALHA_EMERGENCIA))
+    {
+        codFalha.concat("EMERGENCIA");
+    }
+    else if (checkFault(FALHA_IMPRESSAO))
+    {
+        codFalha.concat("IMPRESSAO");
+    }
+    else if (checkFault(FALHA_SENSORES))
+    {
+        codFalha.concat("SENSORES");
+    }
+    else if (checkFault(FALHA_IHM))
+    {
+        codFalha.concat("IHM");
+    }
+    else if (checkFault(FALHA_PORTA_ABERTA))
+    {
+        codFalha.concat("PORTA ABERTA");
+    }
+    else if (checkFault(FALHA_APLICACAO))
+    {
+        codFalha.concat("APLICACAO");
+    }
+    else
+    {
+        codFalha.concat(faultRegister);
+    }
 
-  ihm.showStatus2msg(codFalha);
+    ihm.showStatus2msg(codFalha);
 }
 
 //////////////////////////////////////////////////////////////////////

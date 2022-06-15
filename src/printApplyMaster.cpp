@@ -203,6 +203,7 @@ void loop()
       }
       else if (evento == EVT_FALHA)
       {
+        setFault(FALHA_IMPRESSAO);
         Serial.println("falha impressora");
         // to do: faultRegister
         changeFsmState(ESTADO_FALHA);
