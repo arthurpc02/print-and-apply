@@ -201,7 +201,7 @@ const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
 const float resolucaoNaCalibracao = 2.629; // steps/dcmm
 const uint32_t pprNaCalibracao = 3200; // pulsos/revolucao
 
-const uint32_t braco_ppr = 3200;       // pulsos/revolucao
+const uint32_t braco_ppr = 6400;       // pulsos/revolucao
 const float resolucao = braco_ppr * resolucaoNaCalibracao / pprNaCalibracao; // steps/dcmm
 
 // Processo:
@@ -638,15 +638,15 @@ void braco_setup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
 {
     calculaVelocidadeEmSteps(_velocidade_dcmmPorS);
     calculaRampaEmSteps(_velocidade_dcmmPorS, _rampa_dcmm);
-    braco.setMinPulseWidth(2);
+    braco.setMinPulseWidth(3);
 }
 
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS)
 {
     int32_t velocidade_p = dcmm_to_steps(_velocidade_dcmmPorS);
     braco.setMaxSpeed(velocidade_p);
-    // Serial.print("vel: ");
-    // Serial.print(velocidade_p);
+    Serial.print("freq braco: ");
+    Serial.println(velocidade_p);
 }
 
 void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)
@@ -1754,8 +1754,12 @@ void desligaTodosOutputs()
     digitalWrite(PIN_HSDO4, LOW);
 
     uint8_t output = 0;
-    output = bit(DO4) | bit(DO5) | bit(DO6) | bit(DO7);
+    output = bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8);
     extIOs.changeOutputState(output);
+    desabilitaMotores();
+    extIOs.ligaOutput(RLO1);
+    extIOs.ligaOutput(RLO1);
+    extIOs.ligaOutput(RLO1);
     extIOs.ligaOutput(RLO1);
     extIOs.ligaOutput(RLO2);
 }

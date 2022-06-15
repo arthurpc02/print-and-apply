@@ -145,7 +145,6 @@ void loop()
         {
           flag_cicloEmAndamento = true;
           changeFsmState(ESTADO_POSICIONANDO);
-          Serial.println("ligou led verde");
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
