@@ -18,6 +18,16 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <checkSensorPulse.h>
 #include <extendedIOs.h>
 
+// cada falha do equipamento é armazenada em um bit diferente do faultRegister
+#define FALHA_EMERGENCIA (1 << 0)
+#define FALHA_IMPRESSAO (1 << 1)
+#define FALHA_SENSORES (1 << 2)
+#define FALHA_IHM (1 << 3)
+#define FALHA_MOTORES (1 << 4)
+#define FALHA_PORTA_ABERTA (1 << 5)
+#define FALHA_APLICACAO (1 << 6)
+#define FALHA_DESCONHECIDA (1 << 7)
+
 enum Estado
 {
     ESTADO_EMERGENCIA,
@@ -66,6 +76,7 @@ Fsm fsm_old;
 
 SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
+SemaphoreHandle_t mutex_fault; // controla o acesso à variável faultRegister, que é utilizada por várias threads
 QueueHandle_t eventQueue; // os eventos são armazenados em uma fila
 
 AccelStepper braco(AccelStepper::DRIVER, PIN_PUL_BRACO, PIN_DIR_BRACO);
@@ -158,6 +169,9 @@ int32_t posicaoBracoAplicacao = 250;
 
 int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
 
+int32_t faultRegister = 0; // o fault byte armazena as falhas da máquina como se fosse um registrador.
+                           // a vantagem de utilizar o faultRegister, é que é possível ter mais de uma falha ao mesmo tempo.
+
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
 int32_t produto = 1;
@@ -236,6 +250,7 @@ Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanci
 Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 10u, 100u, 15000u, &produto, 1);
 
 // manutencao:
+// to do: menu de falhas.
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
@@ -351,6 +366,11 @@ void braco_setup(int32_t, int32_t);
 void rebobinador_setup(int32_t, int32_t);
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS);
 void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm);
+
+void clearAllFaults();
+void updateFault(int16_t _faultCode, bool _faultState);
+void setFault(int16_t _faultCode);
+void clearFault(int16_t _faultCode);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -498,7 +518,7 @@ void t_botoesIhm(void *p)
                 if (flag_manutencao == false)
                 {
                     liberaMenusDeManutencao();
-                    ihm.goToMenu(&menu_velocidadeDeReferenciacao_dcmm);
+                    ihm.goToMenu(&menu_simulaEtiqueta);
                     ihm.showStatus2msg("MANUTENCAO LIBERADA");
                 }
             }
@@ -525,13 +545,13 @@ void liberaMenusDeManutencao()
 {
     quantidadeDeMenusDeManutencao = 10;
 
+    ihm.addMenuToIndex(&menu_simulaEtiqueta);
     ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmm);
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
     ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
     ihm.addMenuToIndex(&menu_posicaoDeRepouso_dcmm);
     ihm.addMenuToIndex(&menu_rampa_dcmm);
-    ihm.addMenuToIndex(&menu_simulaEtiqueta);
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
     ihm.addMenuToIndex(&menu_contadorTotal);
@@ -680,6 +700,7 @@ void t_printEtiqueta(void *p)
             }
             else
             {
+                setFault(FALHA_IMPRESSAO);
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
                 rebobinador.stop();
@@ -695,6 +716,7 @@ void t_printEtiqueta(void *p)
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
+                setFault(FALHA_IMPRESSAO);
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
                 rebobinador.stop();
@@ -714,6 +736,7 @@ void t_printEtiqueta(void *p)
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
+                setFault(FALHA_IMPRESSAO);
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
                 rebobinador.stop();
@@ -1273,6 +1296,115 @@ bool checkBotaoDireita()
     return 0;
 }
 
+// checa qual/quais falhas estão ativas
+// to do: criar classe FAULT
+bool checkFault(uint8_t faultCode)
+{
+  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+  {
+    bool check = (faultRegister & faultCode) != 0;
+    xSemaphoreGive(mutex_fault);
+    return check;
+  }
+  else
+  {
+    Serial.println("erro mtx fault");
+  }
+  return true;
+}
+
+void clearAllFaults()
+{
+  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+  {
+    faultRegister = 0;
+    xSemaphoreGive(mutex_fault);
+  }
+  else
+  {
+    Serial.println("erro mtx fault");
+  }
+}
+
+void updateFault(int16_t _faultCode, bool _faultState)
+{
+  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+  {
+    if (_faultState == true)
+    {
+      faultRegister |= _faultCode; // set byte
+    }
+    else
+    {
+      faultRegister &= ~(_faultCode); // clear byte
+    }
+    xSemaphoreGive(mutex_fault);
+  }
+  else
+  {
+    Serial.println("erro mtx fault");
+  }
+}
+
+void setFault(int16_t _faultCode)
+{
+  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+  {
+    faultRegister |= _faultCode;
+    xSemaphoreGive(mutex_fault);
+  }
+  else
+  {
+    Serial.println("erro mtx fault");
+  }
+}
+
+void clearFault(int16_t _faultCode)
+{
+  if (xSemaphoreTake(mutex_fault, pdMS_TO_TICKS(10)) == pdTRUE)
+  {
+    faultRegister &= ~(_faultCode); // clear byte
+    xSemaphoreGive(mutex_fault);
+  }
+  else
+  {
+    Serial.println("erro mtx fault");
+  }
+}
+
+// apenas a falha de maior prioridade será exibida na tela.
+// a prioridade é definida pela ordem dos ifs dessa função aqui.
+void imprimeFalhaNaIhm()
+{
+  String codFalha = "FALHA:";
+  if (checkFault(FALHA_EMERGENCIA))
+  {
+    codFalha.concat("EMERGENCIA");
+  }
+  else if (checkFault(FALHA_IMPRESSAO))
+  {
+    codFalha.concat("IMPRESSAO");
+  }
+  else if (checkFault(FALHA_SENSORES))
+  {
+    codFalha.concat("SENSORES");
+  }
+  else if (checkFault(FALHA_IHM))
+  {
+    codFalha.concat("IHM");
+  }
+  else if (checkFault(FALHA_PORTA_ABERTA))
+  {
+    codFalha.concat("PORTA ABERTA");
+  }
+  else
+  {
+    codFalha.concat(faultRegister);
+  }
+
+  ihm.showStatus2msg(codFalha);
+}
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 void t_eeprom(void *p)
@@ -1381,6 +1513,7 @@ void t_emergencia(void *p)
         xSemaphoreGive(mutex_ios);
         if (extIOs.checkInputState(PIN_EMERGENCIA) == LOW)
         {
+            setFault(FALHA_EMERGENCIA);
             enviaEvento(EVT_PARADA_EMERGENCIA);
             //   Serial.println("envia evt: emg");
         }

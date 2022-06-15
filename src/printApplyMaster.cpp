@@ -12,6 +12,7 @@ void setup()
 
   mutex_ios = xSemaphoreCreateMutex();
   mutex_rs485 = xSemaphoreCreateMutex();
+  mutex_fault = xSemaphoreCreateMutex();
   eventQueue = xQueueCreate(3, sizeof(Evento));
 
   EEPROM.begin(EEPROM_SIZE);
@@ -273,6 +274,7 @@ void loop()
       }
       else if (braco.distanceToGo() == 0)
       {
+        setFault(FALHA_APLICACAO);
         changeFsmState(ESTADO_FALHA); // to do:
         Serial.println("erro de aplicação");
       }
@@ -481,12 +483,12 @@ void loop()
     {
       flag_cicloEmAndamento = false;
       flag_referenciou = false;
-      ihm.showStatus2msg("FALHA");
       delay(1);
       ihm.ligaLEDvermelho();
       delay(1);
       ihm.desligaLEDverde();
       desligaTodosOutputs();
+      imprimeFalhaNaIhm();
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -494,6 +496,7 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         ihm.desligaLEDvermelho();
+        clearAllFaults();
         changeFsmState(ESTADO_STOP);
       }
     }
