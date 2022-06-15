@@ -829,12 +829,12 @@ void desligaReprint()
 
 bool sensorDeAplicacaoDetectouProduto()
 {
-    return !digitalRead(PIN_SENSOR_APLICACAO);
+    return !digitalRead(PIN_SENSOR_APLICACAO); // to do: usar checkSensorPulse
 }
 
 bool emCimaDoSensorHome()
 {
-    return !digitalRead(PIN_SENSOR_HOME);
+    return !digitalRead(PIN_SENSOR_HOME); // to do: usar checkSensorPulse
 }
 
 void imprimirZebra()
