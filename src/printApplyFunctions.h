@@ -191,6 +191,7 @@ int32_t rampa_dcmm = 80;
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
+int32_t habilitaPortasDeSeguranca = 1;
 int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
@@ -1300,7 +1301,7 @@ bool checkBotaoDireita()
 // se o parametro faultCode foi colocado em zero(ou vazio), checa por qualquer falha
 bool checkFault(uint8_t faultCode = 0)
 {
-// to do: criar classe FAULT
+    // to do: criar classe FAULT
     if (faultCode == 0)
     {
         return (faultRegister > 0);
@@ -1522,9 +1523,14 @@ void t_emergencia(void *p)
         xSemaphoreGive(mutex_ios);
         if (extIOs.checkInputState(PIN_EMERGENCIA) == LOW)
         {
-            setFault(FALHA_EMERGENCIA);
             enviaEvento(EVT_PARADA_EMERGENCIA);
-            //   Serial.println("envia evt: emg");
+        }
+        else if (habilitaPortasDeSeguranca)
+        {
+            if (extIOs.checkInputState(PIN_SENSOR_DE_PORTAS) == LOW)
+            {
+                enviaEvento(EVT_PARADA_EMERGENCIA);
+            }
         }
     }
 }

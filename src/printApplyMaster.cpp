@@ -481,6 +481,9 @@ void loop()
       break;
     }
 
+    // to do: sempre passar pelo estado de falha antes de ir para o estado emergencia
+    // to do: de 10 em 10 segundos imprime a falha atual na tela.
+
     if (fsm_substate == fase1)
     {
       vTaskResume(h_eeprom);
