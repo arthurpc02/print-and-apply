@@ -187,7 +187,7 @@ int32_t posicaoLimite_dcmm = 4200;
 int32_t posicaoDePegarEtiqueta_dcmm = 430;
 int32_t posicaoDeRepouso_dcmm = 1250;
 int32_t velocidadeDeReferenciacao_dcmm = 1000;
-int32_t rampa_dcmm = 100;
+int32_t rampa_dcmm = 80;
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
@@ -1423,7 +1423,7 @@ void saveParametersToEEPROM()
     EEPROM.put(EPR_produto, produto);
     EEPROM.put(EPR_contadorTotal, contadorTotal);
     EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
-    EEPROM.put(EPR_posicaoLimite_dcmm, EPR_posicaoLimite_dcmm);
+    EEPROM.put(EPR_posicaoLimite_dcmm, posicaoLimite_dcmm);
     EEPROM.put(EPR_posicaoDePegarEtiqueta_dcmm, posicaoDePegarEtiqueta_dcmm);
     EEPROM.put(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
     EEPROM.put(EPR_velocidadeDeReferenciacao_dcmm, velocidadeDeReferenciacao_dcmm);

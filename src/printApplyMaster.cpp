@@ -52,7 +52,7 @@ void loop()
     {
       desabilitaMotores();
       desligaTodosOutputs();
-      // vTaskResume(h_eeprom);
+      vTaskResume(h_eeprom);
       ihm.showStatus2msg("BOTAO EMERGENCIA");
       delay(1);
       ihm.ligaLEDvermelho();
@@ -115,6 +115,7 @@ void loop()
         ihm.showStatus2msg("EM PAUSA");
         Serial.println("ESTADO STOP");
         desligaTodosOutputs();
+        vTaskResume(h_eeprom);
         flag_cicloEmAndamento = false;
         fsm_substate = fase4;
       }
@@ -123,7 +124,7 @@ void loop()
     {
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
-        // vTaskSuspend(h_eeprom); // to do:
+        vTaskSuspend(h_eeprom);
         voltaParaPrimeiroMenu();
         habilitaMotoresEAguardaEstabilizar();
         braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
@@ -481,6 +482,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      vTaskResume(h_eeprom);
       flag_cicloEmAndamento = false;
       flag_referenciou = false;
       delay(1);
