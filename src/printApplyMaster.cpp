@@ -54,7 +54,7 @@ void loop()
       desabilitaMotores();
       desligaTodosOutputs();
       vTaskResume(h_eeprom);
-      ihm.showStatus2msg("BOTAO EMERGENCIA");
+      ihm.showStatus2msg("EMERGENCIA OU PORTA");
       delay(1);
       ihm.ligaLEDvermelho();
       delay(1);
