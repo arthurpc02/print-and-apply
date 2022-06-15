@@ -77,6 +77,7 @@ void loop()
         ihm.desligaLEDvermelho();
         // falhas.clearAllFaults();
         // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
+        clearAllFaults();
         changeFsmState(ESTADO_STOP);
       }
     }
@@ -475,6 +476,9 @@ void loop()
   }
   case ESTADO_FALHA:
   {
+    static uint32_t timer_verificaoDeFalhas = 0;
+    const uint16_t tempoVerificacaoDeFalhas = 7000; //ms
+
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
@@ -495,6 +499,7 @@ void loop()
       ihm.desligaLEDverde();
       desligaTodosOutputs();
       imprimeFalhaNaIhm();
+      timer_verificaoDeFalhas = millis();
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -504,6 +509,11 @@ void loop()
         ihm.desligaLEDvermelho();
         clearAllFaults();
         changeFsmState(ESTADO_STOP);
+      }
+
+      if(millis() - timer_verificaoDeFalhas >= tempoVerificacaoDeFalhas)
+      {
+        fsm_substate = fase1;
       }
     }
     break;

@@ -1526,12 +1526,14 @@ void t_emergencia(void *p)
         xSemaphoreGive(mutex_ios);
         if (extIOs.checkInputState(PIN_EMERGENCIA) == LOW)
         {
+            setFault(FALHA_EMERGENCIA);
             enviaEvento(EVT_PARADA_EMERGENCIA);
         }
         else if (habilitaPortasDeSeguranca)
         {
             if (extIOs.checkInputState(PIN_SENSOR_DE_PORTAS) == LOW)
             {
+                setFault(FALHA_PORTA_ABERTA);
                 enviaEvento(EVT_PARADA_EMERGENCIA);
             }
         }
