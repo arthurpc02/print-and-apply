@@ -75,13 +75,13 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define BUTTON_BAIXO DI6
 #define BUTTON_ESQUERDA DI7
 #define BUTTON_DIREITA DI8
-// Botões:
+
 
 // Ventilador:
 #define PIN_VENTILADOR PIN_DO3
 #define FEEDBACK_VENTILADOR DI2
 #define VENTILADOR_CANAL CANAL_0
-// Ventilador:
+
 
 // Motores:
 // Motor Principal:
@@ -95,11 +95,11 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // Habilita Motores:
 #define PIN_ENABLE_MOTORES DO4
-// Habilita Motores:
 
 #define DIRECAO_HORA 0
 #define DIRECAO_ANTIHORA 1
-// Motores:
+
+#define PIN_TORRE_LUMINOSA RLO2
 
 // Intertravamento:
 #define INTERTRAVAMENTO_IN_1 DI3

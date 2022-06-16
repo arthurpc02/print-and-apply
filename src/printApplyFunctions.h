@@ -199,9 +199,9 @@ const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
 const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
 
 const float resolucaoNaCalibracao = 20.4803; // steps/dcmm
-const uint32_t pprNaCalibracao = 25000; // pulsos/revolucao
+const uint32_t pprNaCalibracao = 25000;      // pulsos/revolucao
 
-const uint32_t braco_ppr = 3200;       // pulsos/revolucao
+const uint32_t braco_ppr = 3200;                                             // pulsos/revolucao
 const float resolucao = braco_ppr * resolucaoNaCalibracao / pprNaCalibracao; // steps/dcmm
 
 // Processo:
@@ -377,6 +377,9 @@ void clearAllFaults();
 void updateFault(int16_t _faultCode, bool _faultState);
 void setFault(int16_t _faultCode);
 void clearFault(int16_t _faultCode);
+
+void torre_ligaLuzVerde();
+void torre_ligaLuzVermelha();
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -675,6 +678,16 @@ void imprimeEtiqueta()
     {
         xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
     }
+}
+
+void torre_ligaLuzVerde()
+{
+    extIOs.ligaOutput(PIN_TORRE_LUMINOSA);
+}
+
+void torre_ligaLuzVermelha()
+{
+    extIOs.desligaOutput(PIN_TORRE_LUMINOSA);
 }
 
 // simula a impressão de uma etiqueta, para fins de testes do software.
@@ -1757,11 +1770,8 @@ void desligaTodosOutputs()
     output = bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8);
     extIOs.changeOutputState(output);
     desabilitaMotores();
+    torre_ligaLuzVermelha();
     extIOs.ligaOutput(RLO1);
-    extIOs.ligaOutput(RLO1);
-    extIOs.ligaOutput(RLO1);
-    extIOs.ligaOutput(RLO1);
-    extIOs.ligaOutput(RLO2);
 }
 
 //////////////////////////////////////////////////////////////////////

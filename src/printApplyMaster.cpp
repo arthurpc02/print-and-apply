@@ -217,6 +217,7 @@ void loop()
       if (braco.distanceToGo() == 0)
       {
         ihm.ligaLEDverde();
+        torre_ligaLuzVerde();
         delay(1);
         ihm.showStatus2msg("AGUARDANDO PRODUTO");
         changeFsmState(ESTADO_APLICACAO);
