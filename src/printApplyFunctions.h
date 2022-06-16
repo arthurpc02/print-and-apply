@@ -195,7 +195,7 @@ int32_t habilitaPortasDeSeguranca = 1;
 int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
-const int32_t tamanhoMaximoDoBraco_dcmm = 4430;
+const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
 const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
 
 const float resolucaoNaCalibracao = 20.4803; // steps/dcmm
@@ -259,7 +259,7 @@ Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &v
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_habilitaPortasDeSeguranca = Menu("Portas de Seguranca", PARAMETRO, &habilitaPortasDeSeguranca, " ", 1u, 0u, 1u, NULL);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
-Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
+Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 5, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 10u, 100u, 15000u, NULL, 1);
