@@ -157,6 +157,7 @@ void loop()
   case ESTADO_POSICIONANDO:
   {
     static bool flag_pause = false;
+    const int16_t tempoExtraAguardandoEtiqueta = 200; //ms
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -198,6 +199,7 @@ void loop()
         }
         else
         {
+          delay(tempoExtraAguardandoEtiqueta);
           braco_moveTo(posicaoDeAguardarProduto_dcmm);
           fsm_substate = fase4;
         }
