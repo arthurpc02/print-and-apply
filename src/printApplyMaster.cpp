@@ -243,7 +243,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      if (sensorDeProdutoOuStart.checkPulse())
+      if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
         timer_atrasoSensorProduto = millis();
         fsm_substate = fase2;
