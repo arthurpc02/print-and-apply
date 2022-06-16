@@ -682,12 +682,12 @@ void imprimeEtiqueta()
 
 void torre_ligaLuzVerde()
 {
-    extIOs.ligaOutput(PIN_TORRE_LUMINOSA);
+    extIOs.desligaOutput(PIN_TORRE_LUMINOSA);
 }
 
 void torre_ligaLuzVermelha()
 {
-    extIOs.desligaOutput(PIN_TORRE_LUMINOSA);
+    extIOs.ligaOutput(PIN_TORRE_LUMINOSA);
 }
 
 // simula a impressão de uma etiqueta, para fins de testes do software.
