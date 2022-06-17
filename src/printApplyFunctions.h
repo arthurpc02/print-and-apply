@@ -88,6 +88,9 @@ TaskHandle_t h_botoesIhm;
 ihmSunnytecMaster ihm{protocoloIhm{PIN_RS485_RX, PIN_RS485_TX, PIN_RS485_EN}};
 extendedIOs extIOs = extendedIOs(PIN_IO_CLOCK, PIN_IO_LATCH, PIN_INPUT_DATA, PIN_OUTPUT_DATA);
 checkSensorPulse sensorDeProdutoOuStart = checkSensorPulse(PIN_SENSOR_PRODUTO, 1);
+checkSensorPulse sinalPrintEnd = checkSensorPulse(PIN_PREND, 1);
+checkSensorPulse sensorAplicacao = checkSensorPulse(PIN_SENSOR_APLICACAO, 1);
+checkSensorPulse sensorHome = checkSensorPulse(PIN_SENSOR_HOME, 1);
 
 extern HardwareSerial rs485;
 
