@@ -28,7 +28,8 @@ void setup()
   pinInitialization();
   // ventiladorConfig();
   // motorSetup();
-  Serial.print("p/dcmm braco: "); Serial.println(resolucao);
+  Serial.print("p/dcmm braco: ");
+  Serial.println(resolucao);
   braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
   rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
@@ -71,12 +72,12 @@ void loop()
     {
       if (evento == EVT_PARADA_EMERGENCIA)
       {
+        imprimeFalhaNaIhm();
         timer_emergencia = millis();
       }
       else if (millis() - timer_emergencia > timeout_emergencia)
       {
         ihm.desligaLEDvermelho();
-        // falhas.clearAllFaults();
         // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
         clearAllFaults();
         changeFsmState(ESTADO_STOP);
@@ -101,7 +102,12 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        if (flag_referenciou)
+        if (checkFault(0))
+        {
+          changeFsmState(ESTADO_FALHA);
+          break;
+        }
+        else if (flag_referenciou)
         {
           braco_moveTo(posicaoDeRepouso_dcmm);
         }
@@ -159,11 +165,16 @@ void loop()
   case ESTADO_POSICIONANDO:
   {
     static bool flag_pause = false;
-    const int16_t tempoExtraAguardandoEtiqueta = 200; //ms
+    const int16_t tempoExtraAguardandoEtiqueta = 200; // ms
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+    else if(checkFault(0))
+    {
+      changeFsmState(ESTADO_STOP);
       break;
     }
     else if (evento == EVT_PLAY_PAUSE)
@@ -210,8 +221,6 @@ void loop()
       {
         setFault(FALHA_IMPRESSAO);
         Serial.println("falha impressora");
-        // to do: faultRegister
-        changeFsmState(ESTADO_FALHA);
       }
     }
     else if (fsm_substate == fase4)
@@ -237,6 +246,11 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    else if(checkFault(0))
+    {
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
     else if (evento == EVT_PLAY_PAUSE)
     {
       flag_pause = true;
@@ -247,7 +261,7 @@ void loop()
     {
       if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
-        timer_atrasoSensorProduto = millis();
+        timer_atrasoSensorProduto = millis(); //
         fsm_substate = fase2;
       }
       else if (flag_pause)
@@ -282,7 +296,6 @@ void loop()
       else if (braco.distanceToGo() == 0)
       {
         setFault(FALHA_APLICACAO);
-        changeFsmState(ESTADO_FALHA); // to do:
         Serial.println("erro de aplicação");
       }
     }
@@ -326,6 +339,11 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    else if(checkFault(0))
+    {
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
     else if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
@@ -351,7 +369,6 @@ void loop()
         {
           // se ainda está no sensor Home, provavelmente o sensor nao esta funcionando ou nao houve movimento.
           setFault(FALHA_SENSORES);
-          changeFsmState(ESTADO_FALHA);
         }
         else
         {
@@ -428,6 +445,11 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
+    else if(checkFault(0))
+    {
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
     else if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
@@ -456,7 +478,6 @@ void loop()
       }
       else if (evento == EVT_FALHA)
       {
-        changeFsmState(ESTADO_FALHA);
         Serial.println("erro impressao");
         fsm_substate = fase1;
       }
