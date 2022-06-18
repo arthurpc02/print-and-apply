@@ -381,8 +381,8 @@ void updateFault(int16_t _faultCode, bool _faultState);
 void setFault(int16_t _faultCode);
 void clearFault(int16_t _faultCode);
 
-void torre_ligaLuzVerde();
 void torre_ligaLuzVermelha();
+void torre_ligaLuzVerde();
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -683,12 +683,12 @@ void imprimeEtiqueta()
     }
 }
 
-void torre_ligaLuzVerde()
+void torre_ligaLuzVermelha()
 {
     extIOs.desligaOutput(PIN_TORRE_LUMINOSA);
 }
 
-void torre_ligaLuzVermelha()
+void torre_ligaLuzVerde()
 {
     extIOs.ligaOutput(PIN_TORRE_LUMINOSA);
 }
@@ -923,7 +923,7 @@ void motorSetup()
 void habilitaMotoresEAguardaEstabilizar()
 {
     habilitaMotores();
-    delay(100);
+    delay(350);
 }
 
 void habilitaMotores()
@@ -1773,7 +1773,7 @@ void desligaTodosOutputs()
     output = bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8);
     extIOs.changeOutputState(output);
     desabilitaMotores();
-    torre_ligaLuzVermelha();
+    torre_ligaLuzVerde();
     extIOs.ligaOutput(RLO1);
 }
 

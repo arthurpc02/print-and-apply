@@ -116,7 +116,8 @@ void loop()
         delay(1);
         ihm.showStatus2msg("EM PAUSA");
         Serial.println("ESTADO STOP");
-        desligaTodosOutputs();
+        desligaVentilador();
+        torre_ligaLuzVerde();
         vTaskResume(h_eeprom);
         flag_cicloEmAndamento = false;
         fsm_substate = fase4;
@@ -131,6 +132,7 @@ void loop()
         habilitaMotoresEAguardaEstabilizar();
         braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
         rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
+        torre_ligaLuzVermelha();
 
         if (flag_manutencao)
         {
@@ -217,7 +219,6 @@ void loop()
       if (braco.distanceToGo() == 0)
       {
         ihm.ligaLEDverde();
-        torre_ligaLuzVerde();
         delay(1);
         ihm.showStatus2msg("AGUARDANDO PRODUTO");
         changeFsmState(ESTADO_APLICACAO);
@@ -505,7 +506,6 @@ void loop()
     }
 
     // to do: sempre passar pelo estado de falha antes de ir para o estado emergencia
-    // to do: de 10 em 10 segundos imprime a falha atual na tela.
 
     if (fsm_substate == fase1)
     {
