@@ -615,7 +615,7 @@ void t_rebobina(void *)
     while (1)
     {
         delay(interval);
-        
+
         if (fsm_rebobina == fase1)
         {
             rebobinador.move(rebobinador_ppr * numeroDeVoltas);
@@ -1588,9 +1588,12 @@ void t_emergencia(void *p)
                 enviaEvento(EVT_PARADA_EMERGENCIA);
             }
         }
-        else if(sinalImpressoraOnline.checkState() == LOW)
+        else if (flag_simulaEtiqueta == false)
         {
-            setFault(FALHA_IMPRESSORA);
+            if (sinalImpressoraOnline.checkState() == LOW)
+            {
+                setFault(FALHA_IMPRESSORA);
+            }
         }
     }
 }
