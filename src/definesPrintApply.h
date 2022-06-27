@@ -64,7 +64,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // SATO / impressora:
 #define PIN_PREND PIN_HSDI4
-#define PIN_M_ERR DI1
+#define PIN_IMPRESSORA_ONLINE PIN_DI1
 
 #define PIN_PRIN PIN_DO1
 #define PIN_PRIN2 PIN_DO2

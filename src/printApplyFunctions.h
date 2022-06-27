@@ -23,7 +23,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define FALHA_IMPRESSAO (1 << 1)
 #define FALHA_SENSORES (1 << 2)
 #define FALHA_IHM (1 << 3)
-#define FALHA_MOTORES (1 << 4)
+#define FALHA_IMPRESSORA (1 << 4)
 #define FALHA_PORTA_ABERTA (1 << 5)
 #define FALHA_APLICACAO (1 << 6)
 #define FALHA_DESCONHECIDA (1 << 7)
@@ -91,6 +91,7 @@ checkSensorPulse sensorDeProdutoOuStart = checkSensorPulse(PIN_SENSOR_PRODUTO, 1
 checkSensorPulse sinalPrintEnd = checkSensorPulse(PIN_PREND, 1);
 checkSensorPulse sensorAplicacao = checkSensorPulse(PIN_SENSOR_APLICACAO, 1);
 checkSensorPulse sensorHome = checkSensorPulse(PIN_SENSOR_HOME, 1);
+checkSensorPulse sinalImpressoraOnline = checkSensorPulse(PIN_IMPRESSORA_ONLINE, 1);
 
 extern HardwareSerial rs485;
 
@@ -1440,6 +1441,10 @@ void imprimeFalhaNaIhm()
     {
         codFalha.concat("IMPRESSAO");
     }
+    else if (checkFault(FALHA_IMPRESSORA))
+    {
+        codFalha.concat("IMPRESSORA OFFLINE");
+    }
     else if (checkFault(FALHA_SENSORES))
     {
         codFalha.concat("SENSORES");
@@ -1582,6 +1587,10 @@ void t_emergencia(void *p)
                 setFault(FALHA_PORTA_ABERTA);
                 enviaEvento(EVT_PARADA_EMERGENCIA);
             }
+        }
+        else if(sinalImpressoraOnline.checkState() == LOW)
+        {
+            setFault(FALHA_IMPRESSORA);
         }
     }
 }
