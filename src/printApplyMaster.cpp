@@ -102,12 +102,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        if (checkFault(0))
-        {
-          changeFsmState(ESTADO_FALHA);
-          break;
-        }
-        else if (flag_referenciou)
+        if (flag_referenciou)
         {
           braco_moveTo(posicaoDeRepouso_dcmm);
         }
@@ -118,6 +113,11 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
+        if (checkFault(0))
+        {
+          changeFsmState(ESTADO_FALHA);
+          break;
+        }
         ihm.desligaLEDverde();
         delay(1);
         ihm.showStatus2msg("EM PAUSA");
