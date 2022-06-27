@@ -20,7 +20,7 @@ void setup()
   // presetEEPROM();
 
   desligaTodosOutputs();
-  
+
   sensorDeProdutoOuStart.setup();
   sinalPrintEnd.setup();
   sensorAplicacao.setup();
@@ -358,6 +358,7 @@ void loop()
     if (fsm_substate == fase1)
     {
       braco_setup(velocidadeDeReferenciacao_dcmm, rampa_dcmm);
+      xTaskCreatePinnedToCore(t_rebobina, "task rebobina", 2048, NULL, PRIORITY_1, NULL, CORE_0);
       fsm_substate = fase2;
 
       if (emCimaDoSensorHome())

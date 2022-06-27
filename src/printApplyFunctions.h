@@ -613,6 +613,8 @@ void t_rebobina(void *)
 
     while (1)
     {
+        delay(interval);
+        
         if (fsm_rebobina == fase1)
         {
             rebobinador.move(rebobinador_ppr * numeroDeVoltas);
