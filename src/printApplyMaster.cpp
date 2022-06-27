@@ -20,7 +20,12 @@ void setup()
   // presetEEPROM();
 
   desligaTodosOutputs();
+  
   sensorDeProdutoOuStart.setup();
+  sinalPrintEnd.setup();
+  sensorAplicacao.setup();
+  sensorHome.setup();
+
   extIOs.init();
 
   createTasks();

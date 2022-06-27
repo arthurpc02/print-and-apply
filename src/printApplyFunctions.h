@@ -715,7 +715,7 @@ void t_printEtiqueta(void *p)
 
         if (fsm_print == fase1)
         {
-            if (digitalRead(PIN_PREND) == LOW)
+            if (sinalPrintEnd.checkState() == LOW)
             {
                 ligaPrint();
                 rebobinador.move(50000);
@@ -734,7 +734,7 @@ void t_printEtiqueta(void *p)
         }
         else if (fsm_print == fase2)
         {
-            if ((digitalRead(PIN_PREND) == HIGH))
+            if (sinalPrintEnd.checkState() == HIGH)
             {
                 fsm_print = fase3;
             }
@@ -750,7 +750,7 @@ void t_printEtiqueta(void *p)
         }
         else if (fsm_print == fase3)
         {
-            if ((digitalRead(PIN_PREND) == LOW))
+            if (sinalPrintEnd.checkState() == LOW)
             {
                 desligaPrint();
                 enviaEvento(EVT_IMPRESSAO_CONCLUIDA);
@@ -845,12 +845,12 @@ void desligaReprint()
 
 bool sensorDeAplicacaoDetectouProduto()
 {
-    return !digitalRead(PIN_SENSOR_APLICACAO); // to do: usar checkSensorPulse
+    return !sensorAplicacao.checkState(); // to do: usar checkSensorPulse
 }
 
 bool emCimaDoSensorHome()
 {
-    return !digitalRead(PIN_SENSOR_HOME); // to do: usar checkSensorPulse
+    return !sensorHome.checkState(); // to do: usar checkSensorPulse
 }
 
 void imprimirZebra()
