@@ -353,6 +353,7 @@ void t_blink(void *p);
 void t_debug(void *p);
 void t_printEtiqueta(void *);
 void t_simulaPrintEtiqueta(void *);
+void t_rebobina(void *);
 
 void t_ihm(void *);
 void t_botoesIhm(void *);
@@ -602,6 +603,29 @@ void incrementaContadores()
     contadorDeCiclos++;
     contadorTotal++;
     //   salvaContadorNaEEPROM();
+}
+
+void t_rebobina(void *)
+{
+    const int16_t interval = 200;
+    int16_t numeroDeVoltas = 3;
+    int16_t fsm_rebobina = fase1;
+
+    while (1)
+    {
+        if (fsm_rebobina == fase1)
+        {
+            rebobinador.move(rebobinador_ppr * numeroDeVoltas);
+            fsm_rebobina = fase2;
+        }
+        else if (fsm_rebobina == fase2)
+        {
+            if (rebobinador.distanceToGo() == 0)
+            {
+                vTaskDelete(NULL);
+            }
+        }
+    }
 }
 
 float dcmm_to_steps(int32_t _dcmm)
