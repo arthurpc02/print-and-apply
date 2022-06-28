@@ -660,12 +660,30 @@ int32_t steps_to_dcmm(float _steps)
 
 void braco_moveTo(int32_t _dcmm)
 {
-    braco.moveTo(dcmm_to_steps(_dcmm));
+    if (_dcmm <= posicaoLimite_dcmm)
+    {
+        braco.moveTo(dcmm_to_steps(_dcmm));
+    }
+    else
+    {
+        Serial.println("targetPosition = posicao limite");
+        braco.moveTo(dcmm_to_steps(posicaoLimite_dcmm));
+    }
+    // to do: se menor que zero tbm dá erro
 }
 
 void braco_move(int32_t _dcmm)
 {
-    braco.move(dcmm_to_steps(_dcmm));
+    if (braco_getCurrentPositionInDcmm() + _dcmm < posicaoLimite_dcmm)
+    {
+        braco.move(dcmm_to_steps(_dcmm));
+    }
+    else
+    {
+        Serial.println("targetPosition = posicao limite");
+        braco.moveTo(dcmm_to_steps(posicaoLimite_dcmm));
+    }
+    // to do: se menor que zero também da erro.
 }
 
 int32_t braco_getCurrentPositionInDcmm()
