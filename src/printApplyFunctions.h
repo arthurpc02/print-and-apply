@@ -377,6 +377,7 @@ void braco_setup(int32_t, int32_t);
 void rebobinador_setup(int32_t, int32_t);
 void calculaVelocidadeEmSteps(int32_t _velocidade_dcmmPorS);
 void calculaRampaEmSteps(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm);
+int32_t braco_getCurrentPositionInDcmm();
 
 void clearAllFaults();
 void updateFault(int16_t _faultCode, bool _faultState);
@@ -665,6 +666,11 @@ void braco_moveTo(int32_t _dcmm)
 void braco_move(int32_t _dcmm)
 {
     braco.move(dcmm_to_steps(_dcmm));
+}
+
+int32_t braco_getCurrentPositionInDcmm()
+{
+    return steps_to_dcmm(braco.currentPosition());
 }
 
 void braco_setup(int32_t _velocidade_dcmmPorS, int32_t _rampa_dcmm)

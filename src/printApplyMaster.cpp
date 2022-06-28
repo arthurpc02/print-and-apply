@@ -288,12 +288,19 @@ void loop()
       if (sensorDeAplicacaoDetectouProduto())
       {
         Serial.println("detectou produto");
-        if (distanciaProduto_dcmm < rampa_dcmm)
+        if(braco_getCurrentPositionInDcmm() + distanciaProduto_dcmm > posicaoLimite_dcmm) // to do: converter para dcmm.
         {
+          // tem que checar se esta proximo do limite para evitar perder passos ao chegar no fim do curso.
+          braco_moveTo(posicaoLimite_dcmm);
+        }
+        else if (distanciaProduto_dcmm < rampa_dcmm)
+        {
+          // to do: provavelmente haverá colisão nesse caso aqui, então o idel seria nao permitir configurar a distancia do produto menor que a rampa.
           braco.stop();
         }
         else
         {
+          // atualiza a distancia do braco para que ele pare bem em cima do produto. (se o parâmetro tiver sido configurado corretamente)
           braco_move(distanciaProduto_dcmm);
         }
         fsm_substate = fase4;
