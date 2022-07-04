@@ -196,7 +196,7 @@ int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
 int32_t habilitaPortasDeSeguranca = 1;
-int32_t potenciaVentilador = 50; // por centagem
+int32_t potenciaVentilador = 30; // por centagem
 int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
@@ -264,6 +264,7 @@ Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &v
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_habilitaPortasDeSeguranca = Menu("Portas de Seguranca", PARAMETRO, &habilitaPortasDeSeguranca, " ", 1u, 0u, 1u, NULL);
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
+Menu menu_potenciaVentilador = Menu("Potencia Ventilador", PARAMETRO, &potenciaVentilador, "%", 1u, 10u, 100u);
 Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 5, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
@@ -557,7 +558,7 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 11; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
+    quantidadeDeMenusDeManutencao = 12; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
@@ -566,6 +567,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
     ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
     ihm.addMenuToIndex(&menu_tempoFinalizarAplicacao);
+    ihm.addMenuToIndex(&menu_potenciaVentilador);
     ihm.addMenuToIndex(&menu_posicaoDeRepouso_dcmm);
     ihm.addMenuToIndex(&menu_rampa_dcmm);
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
@@ -1519,6 +1521,7 @@ void saveParametersToEEPROM()
     EEPROM.put(EPR_velocidadeRebobinador, velocidadeRebobinador);
     EEPROM.put(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
     EEPROM.put(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
+    EEPROM.put(EPR_potenciaVentilador, potenciaVentilador);
     // EEPROM.put(EPR_startNF, startNF);
 
     salvaContadorNaEEPROM();
@@ -1543,6 +1546,7 @@ void loadParametersFromEEPROM()
     EEPROM.get(EPR_velocidadeRebobinador, velocidadeRebobinador);
     EEPROM.get(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
     EEPROM.get(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
+    EEPROM.get(EPR_potenciaVentilador, potenciaVentilador);
     // EEPROM.get(EPR_startNF, startNF);
     loadProdutoFromEEPROM(produto);
 }
@@ -1858,8 +1862,6 @@ void ventiladorWrite(uint16_t canal, uint16_t intensidade)
 
 void ligaVentilador()
 {
-    // digitalWrite(PIN_VENTILADOR, HIGH);
-
     uint16_t dutyCycle = map(potenciaVentilador, 0, 100, 0, 255);
 
     ledcWrite(VENTILADOR_CANAL, dutyCycle);
@@ -1868,7 +1870,6 @@ void ligaVentilador()
 void desligaVentilador()
 {
     ledcWrite(VENTILADOR_CANAL, 0);
-    // digitalWrite(PIN_VENTILADOR, LOW);
 }
 
 //////////////////////////////////////////////////////////////////////
