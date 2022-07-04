@@ -19,14 +19,15 @@ void setup()
   loadParametersFromEEPROM();
   // presetEEPROM();
 
-  desligaTodosOutputs();
 
   sensorDeProdutoOuStart.setup();
   sinalPrintEnd.setup();
   sensorAplicacao.setup();
   sensorHome.setup();
+  ventiladorSetup();
 
   extIOs.init();
+  desligaTodosOutputs();
 
   createTasks();
 

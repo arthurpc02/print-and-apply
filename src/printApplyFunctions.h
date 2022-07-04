@@ -196,6 +196,7 @@ int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
 int32_t habilitaPortasDeSeguranca = 1;
+int32_t potenciaVentilador = 50; // por centagem
 int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
@@ -332,9 +333,7 @@ void ligaOutput(uint8_t);
 void desligaOutput(uint8_t);
 void desligaTodosOutputs();
 
-void ventiladorConfig();
-void ventiladorSetup(uint16_t, uint16_t, uint16_t);
-void ventiladorAttachPin(uint16_t, uint16_t);
+void ventiladorSetup();
 void ventiladorWrite(uint16_t, uint16_t);
 void ligaVentilador();
 void desligaVentilador();
@@ -1841,40 +1840,35 @@ void desligaTodosOutputs()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-void ventiladorConfig()
+void ventiladorSetup()
 {
     const uint16_t frequencia = 1000;
     const uint16_t resolucao = 8;
 
-    ventiladorSetup(VENTILADOR_CANAL, frequencia, resolucao);
-    ventiladorAttachPin(PIN_VENTILADOR, VENTILADOR_CANAL);
-}
-
-void ventiladorSetup(uint16_t canal, uint16_t freq, uint16_t resolucao)
-{
-    ledcSetup(canal, freq, resolucao);
-}
-
-void ventiladorAttachPin(uint16_t pino, uint16_t canal)
-{
-    ledcAttachPin(pino, canal);
+    ledcSetup(VENTILADOR_CANAL, frequencia, resolucao);
+    ledcAttachPin(PIN_VENTILADOR, VENTILADOR_CANAL);
 }
 
 void ventiladorWrite(uint16_t canal, uint16_t intensidade)
 {
-    uint16_t dutyCicle = map(intensidade, 0, 100, 0, 255);
+    uint16_t dutyCycle = map(intensidade, 0, 100, 0, 255);
 
-    ledcWrite(canal, dutyCicle);
+    ledcWrite(canal, dutyCycle);
 }
 
 void ligaVentilador()
 {
-    digitalWrite(PIN_VENTILADOR, HIGH);
+    // digitalWrite(PIN_VENTILADOR, HIGH);
+
+    uint16_t dutyCycle = map(potenciaVentilador, 0, 100, 0, 255);
+
+    ledcWrite(VENTILADOR_CANAL, dutyCycle);
 }
 
 void desligaVentilador()
 {
-    digitalWrite(PIN_VENTILADOR, LOW);
+    ledcWrite(VENTILADOR_CANAL, 0);
+    // digitalWrite(PIN_VENTILADOR, LOW);
 }
 
 //////////////////////////////////////////////////////////////////////
