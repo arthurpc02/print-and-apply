@@ -32,7 +32,6 @@ void setup()
 
   pinInitialization();
   // ventiladorConfig();
-  // motorSetup();
   Serial.print("p/dcmm braco: ");
   Serial.println(resolucao);
   braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);

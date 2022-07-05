@@ -275,11 +275,9 @@ void t_receiveStatusImpressoraZebra(void *p);
 void imprimirZebra();
 void trataDadosImpressora(String);
 
-void motorSetup();
 void habilitaMotoresEAguardaEstabilizar();
 void desabilitaMotores();
 void habilitaMotores();
-void motorRun();
 
 int checkSensorProduto();
 int checkSensorHomeInit();
@@ -288,13 +286,6 @@ int checkSensorEspatulaInit();
 int checkSensorEspatula();
 int checkSensorAplicacao();
 
-int checkBotaoStart();
-
-void t_ihm_old(void *p);
-bool checkBotaoCima();
-bool checkBotaoBaixo();
-bool checkBotaoEsquerda();
-bool checkBotaoDireita();
 
 void saveParametersToEEPROM();
 void saveProdutoToEEPROM(int16_t _produto);
@@ -305,23 +296,14 @@ void salvaContadorNaEEPROM();
 void t_eeprom(void *p);
 
 void t_emergencia(void *p);
-void t_intretravamentoIN(void *p);
 void updateIntertravamentoIn();
 
-void t_manutencao(void *p);
 void liberaMenusDeManutencao();
 void bloqueiaMenusDeManutencao();
 
-void t_io(void *p);
-void resetBits(uint8_t);
-void setBits(uint8_t);
-void updateOutput(uint8_t);
-void ligaOutput(uint8_t);
-void desligaOutput(uint8_t);
 void desligaTodosOutputs();
 
 void ventiladorSetup();
-void ventiladorWrite(uint16_t, uint16_t);
 void ligaVentilador();
 void desligaVentilador();
 
@@ -869,32 +851,6 @@ void enviaEvento(Evento event)
     // Serial.print("enviou evento: "); Serial.println(event);
 }
 
-void t_requestStatusImpressoraZebra(void *p)
-{
-    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-    ihm.statusImpressoraRS485();
-    xSemaphoreGive(mutex_rs485);
-
-    vTaskDelete(NULL);
-}
-
-void t_receiveStatusImpressoraZebra(void *p)
-{
-    delay(tempoRequestStatusImpressora);
-
-    while (1)
-    {
-        if (rs485.available() > 0)
-        {
-            xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-            String frame = rs485.readString();
-            xSemaphoreGive(mutex_rs485);
-            trataDadosImpressora(frame);
-        }
-        delay(1000);
-    }
-}
-
 void ligaPrint()
 {
     digitalWrite(PIN_PRIN, LOW);
@@ -925,72 +881,6 @@ bool emCimaDoSensorHome()
     return !sensorHome.checkState(); // to do: usar checkSensorPulse
 }
 
-void imprimirZebra()
-{
-    ihm.imprimirRS485();
-}
-
-void playZebra()
-{
-    // ihm.playRS485();
-}
-
-void trataDadosImpressora(String mensagemImpressora)
-{
-    // if (mensagemImpressora.compareTo(" ") == 0)
-    //     Serial.print("Mensagem impressora: Vazia... ");
-
-    testeStatusImpressora = mensagemImpressora.indexOf(printerStatus, 45);
-
-    if (testeStatusImpressora != -1)
-    {
-        flag_statusImpressora = true;
-        Serial.println(mensagemImpressora);
-        flag_comandoPlay = true;
-    }
-    else if (testeStatusImpressora == -1)
-    {
-        flag_statusImpressora = false;
-        Serial.println(mensagemImpressora);
-        if (flag_comandoPlay)
-        {
-            playZebra();
-            flag_comandoPlay = false;
-        }
-    }
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-void motorSetup()
-{
-    const int32_t velocidadeReferencia = 165;
-    const int32_t velocidadeReferenciaEspatula = 1750;
-    const int32_t aceleracaoReferenciaEspatula = 5000;
-
-    pulsosRampa = resolucao * rampa_dcmm;
-
-    int32_t velocidadeLinearPulsosBracoInit = round(velocidadeReferencia * resolucao);
-    int32_t aceleracaoLinearPulsosBracoInit = round(((velocidadeLinearPulsosBracoInit * velocidadeLinearPulsosBracoInit) / (2 * pulsosRampa)));
-
-    // braco.setMaxSpeed(velocidadeLinearPulsosBracoInit); // escolhe velocidade em que o motor vai trabalhar
-    // braco.setAcceleration(aceleracaoLinearPulsosBracoInit);
-    // braco.setPinsInverted(DIRECAO_HORA); // muda direção do motor
-
-    // rebobinador.setMaxSpeed(velocidadeReferenciaEspatula);
-    // rebobinador.setAcceleration(aceleracaoReferenciaEspatula);
-    // rebobinador.setPinsInverted(DIRECAO_ANTIHORA);
-
-    braco.setMaxSpeed(1700);
-    braco.setAcceleration(5000);
-    braco.setPinsInverted();
-
-    rebobinador.setMaxSpeed(3 * rebobinador_ppr);
-    rebobinador.setAcceleration(12000);
-    // rebobinador nao tem pino de controle de direcao
-
-    velocidadeCiclommps = velocidadeReferencia;
-}
 
 void habilitaMotoresEAguardaEstabilizar()
 {
@@ -1008,339 +898,7 @@ void desabilitaMotores()
     extIOs.ligaOutput(PIN_ENABLE_MOTORES);
 }
 
-void motorRun()
-{
-    const int32_t velocidadeEspatula = 8000;
-    const int32_t aceleracaoEspatula = 80000;
 
-    if (velocidadeCiclommps != velocidadeDeTrabalho_dcmm)
-    {
-        pulsosRampa = resolucao * rampa_dcmm;
-
-        rebobinador.setMaxSpeed(velocidadeEspatula);
-        rebobinador.setAcceleration(aceleracaoEspatula);
-
-        velocidadeLinearPulsos = round(velocidadeDeTrabalho_dcmm * resolucao);
-        aceleracaoLinearPulsos = round(((velocidadeLinearPulsos * velocidadeLinearPulsos) / (2 * pulsosRampa)));
-
-        braco.setMaxSpeed(velocidadeLinearPulsos);
-        braco.setAcceleration(aceleracaoLinearPulsos);
-        velocidadeCiclommps = velocidadeDeTrabalho_dcmm;
-
-        Serial.print("Velocidade Braco: ");
-        Serial.println(velocidadeLinearPulsos);
-
-        Serial.print("Aceleracao: ");
-        Serial.println(aceleracaoLinearPulsos);
-
-        Serial.print("Resolucao: ");
-        Serial.println(resolucao);
-    }
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-int checkSensorProduto()
-{
-    static bool flag_sp = 0;
-
-    if (flag_sp == 0)
-    {
-        if (digitalRead(PIN_SENSOR_PRODUTO) == HIGH)
-        {
-            flag_sp = 1;
-        }
-    }
-    else if (flag_sp == 1)
-    {
-        if (digitalRead(PIN_SENSOR_PRODUTO) == LOW)
-        {
-            flag_sp = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-int checkSensorHomeInit()
-{
-    if (digitalRead(PIN_SENSOR_HOME) == LOW)
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-int checkSensorHome()
-{
-    static bool flag_sh = 0;
-
-    if (flag_sh == 0)
-    {
-        if (digitalRead(PIN_SENSOR_HOME) == HIGH)
-        {
-            flag_sh = 1;
-        }
-    }
-    else if (flag_sh == 1)
-    {
-        if (digitalRead(PIN_SENSOR_HOME) == LOW)
-        {
-            flag_sh = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-int checkSensorEspatulaInit()
-{
-    if (digitalRead(PIN_SENSOR_ESPATULA) == LOW)
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-int checkSensorEspatula()
-{
-    static bool flag_se = 0;
-
-    if (flag_se == 0)
-    {
-        if (digitalRead(PIN_SENSOR_ESPATULA) == LOW)
-        {
-            flag_se = 1;
-        }
-    }
-    else if (flag_se == 1)
-    {
-        if (digitalRead(PIN_SENSOR_ESPATULA) == HIGH)
-        {
-            flag_se = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-int checkSensorAplicacao()
-{
-    static bool flag_sa = 0;
-
-    if (flag_sa == 0)
-    {
-        if (digitalRead(PIN_SENSOR_APLICACAO) == HIGH)
-        {
-            flag_sa = 1;
-        }
-    }
-    else if (flag_sa == 1)
-    {
-        if (digitalRead(PIN_SENSOR_APLICACAO) == LOW)
-        {
-            flag_sa = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-int checkBotaoStart()
-{
-    static bool flag_c_start = false;
-
-    const uint8_t start = bit(BUTTON_START);
-
-    if (flag_c_start == 0)
-    {
-        if ((input_state & start) == start)
-        {
-            flag_c_start = 1;
-        }
-    }
-    else if (flag_c_start == 1)
-    {
-        if ((input_state & start) == 0)
-        {
-            flag_c_start = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Checa se os botoes foram pressionados e já atualiza o display
-void t_ihm_old(void *p)
-{
-    mutex_rs485 = xSemaphoreCreateMutex();
-
-    uint32_t timer_display = 0;
-    const uint32_t resetDisplay = 120000;
-    String cont_str = "Contador: ";
-
-    cont_str.concat(contadorTotal);
-    ihm.configDefaultMsg(cont_str);
-    ihm.configDefaultMsg2("PRINT APPLY LINEAR");
-
-    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-    ihm.setup();
-    xSemaphoreGive(mutex_rs485);
-
-    delay(3000);
-
-    ihm.addMenuToIndex(&menu_produto);
-
-    ihm.addMenuToIndex(&menu_atrasoSensorProduto);
-    ihm.addMenuToIndex(&menu_atrasoImpressaoEtiqueta);
-    ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmm);
-
-    ihm.addMenuToIndex(&menu_contadorDeCiclos);
-
-    // ihm.focus(&menu_produto); // Direciona a ihm para iniciar nesse menu
-
-    while (1)
-    {
-        
-
-        if (millis() - timer_display >= resetDisplay)
-        {
-            flag_restartDisplay = true;
-            timer_display = millis();
-        }
-        if (flag_restartDisplay)
-        {
-            Wire.flush();
-            // ihm.displayFull();
-
-            flag_restartDisplay = false;
-        }
-
-        // ihm.task();
-
-        delay(25);
-    }
-}
-
-bool checkBotaoCima()
-{
-    static bool flag_c_cima = false;
-    const uint8_t cima = bit(BUTTON_CIMA);
-
-    static uint32_t timer_hold = 0;
-    const uint16_t timeout_hold = 1500; // ms
-
-    if (flag_c_cima == 0)
-    {
-        if ((input_state & cima) == 0)
-        {
-            flag_c_cima = 1;
-        }
-        else
-        {
-            if (millis() - timer_hold >= timeout_hold)
-            {
-                return 1;
-            }
-        }
-    }
-    else if (flag_c_cima == 1)
-    {
-        if ((input_state & cima) == cima)
-        {
-            flag_c_cima = 0;
-            timer_hold = millis();
-            return 1;
-        }
-    }
-    return 0;
-}
-
-bool checkBotaoBaixo()
-{
-    static bool flag_c_baixo = false;
-    const uint8_t baixo = bit(BUTTON_BAIXO);
-
-    static uint32_t timer_hold = 0;
-    const uint16_t timeout_hold = 1500; // ms
-
-    if (flag_c_baixo == 0)
-    {
-        if ((input_state & baixo) == 0)
-        {
-            flag_c_baixo = 1;
-        }
-        else
-        {
-            if (millis() - timer_hold >= timeout_hold)
-            {
-                return 1;
-            }
-        }
-    }
-    else if (flag_c_baixo == 1)
-    {
-        if ((input_state & baixo) == baixo)
-        {
-            flag_c_baixo = 0;
-            timer_hold = millis();
-            return 1;
-        }
-    }
-    return 0;
-}
-
-bool checkBotaoEsquerda()
-{
-    static bool flag_c_esquerda = false;
-    const uint8_t esquerda = bit(BUTTON_ESQUERDA);
-
-    if (flag_c_esquerda == 0)
-    {
-        if ((input_state & esquerda) == esquerda)
-        {
-            flag_c_esquerda = 1;
-        }
-    }
-    else if (flag_c_esquerda == 1)
-    {
-        if ((input_state & esquerda) == 0)
-        {
-            flag_c_esquerda = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
-
-bool checkBotaoDireita()
-{
-    static bool flag_c_direita = false;
-    const uint8_t direita = bit(BUTTON_DIREITA);
-
-    if (flag_c_direita == 0)
-    {
-        if ((input_state & direita) == direita)
-        {
-            flag_c_direita = 1;
-        }
-    }
-    else if (flag_c_direita == 1)
-    {
-        if ((input_state & direita) == 0)
-        {
-            flag_c_direita = 0;
-            return 1;
-        }
-    }
-    return 0;
-}
 
 // checa qual/quais falhas estão ativas
 // se o parametro faultCode foi colocado em zero(ou vazio), checa por qualquer falha
@@ -1595,58 +1153,6 @@ void t_emergencia(void *p)
     }
 }
 
-void t_intretravamentoIN(void *p)
-{
-    static uint32_t timer_hold_on = 0;
-    static uint32_t timer_hold_off = 0;
-    const uint16_t timeout_hold = 750; // ms
-
-    bool flag_intertravamentoIn_Hold_On = false;
-
-    while (1)
-    {
-        if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_ON)
-        {
-            flag_intertravamentoIn_Hold_On = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-
-            if (flag_intertravamentoIn_Hold_On == HIGH)
-            {
-                if (millis() - (timer_hold_on) >= timeout_hold)
-                {
-                    flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-                    timer_hold_on = millis();
-                    timer_hold_off = millis();
-                }
-                else
-                {
-                    timer_hold_off = millis();
-                }
-            }
-            else if (flag_intertravamentoIn_Hold_On == LOW)
-            {
-                if (millis() - (timer_hold_off) >= timeout_hold)
-                {
-                    flag_intertravamentoIn = !(input_state & bit(INTERTRAVAMENTO_IN_1));
-                    timer_hold_off = millis();
-                    timer_hold_on = millis();
-                }
-                else
-                {
-                    timer_hold_on = millis();
-                }
-            }
-        }
-
-        else
-        {
-            statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
-            menu_statusIntertravamentoIn.changeMsg(F("OFF"));
-        }
-
-        delay(500);
-    }
-}
-
 void updateIntertravamentoIn()
 {
     if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_OFF)
@@ -1661,136 +1167,6 @@ void updateIntertravamentoIn()
     }
 
     ihm.signalVariableChange();
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-void t_manutencao(void *p)
-{
-    static uint32_t timer_manutencao = 0;
-    const uint16_t tempoParaAtivarMenuManutencao = 3000;
-
-    while (1)
-    {
-        if (flag_manutencao)
-        {
-            if ((input_state & bit(BUTTON_DIREITA)) == bit(BUTTON_DIREITA)) // botao direita
-            {
-                if (millis() - timer_manutencao >= tempoParaAtivarMenuManutencao)
-                {
-                    fsm_emergencia = fase1;
-                }
-            }
-            else
-            {
-                timer_manutencao = millis();
-            }
-        }
-        delay(100);
-    }
-}
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Thread que controla as entradas e saídas gerais
-void t_io(void *p)
-{
-    while (1)
-    {
-        if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(5))) // mutex output_state
-        {
-            digitalWrite(PIN_IO_LATCH, LOW);
-            delayMicroseconds(50);
-            digitalWrite(PIN_IO_LATCH, HIGH);
-            uint8_t input_buffer = 0;
-            for (int i = 0; i < 8; i++)
-            {
-                input_buffer = input_buffer | (digitalRead(PIN_INPUT_DATA) << (7 - i));
-                digitalWrite(PIN_OUTPUT_DATA, !!(output_state & (1 << (7 - i))));
-                digitalWrite(PIN_IO_CLOCK, HIGH);
-                delayMicroseconds(20);
-                digitalWrite(PIN_IO_CLOCK, LOW);
-                delayMicroseconds(20);
-            }
-            input_state = ~input_buffer;
-            digitalWrite(PIN_IO_LATCH, LOW);
-            xSemaphoreGive(mutex_ios); // mutex output_state
-        }
-        delay(3);
-    }
-}
-
-void resetBits(uint8_t posicaoDoBit)
-{
-    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // mutex output_state
-    {
-        output_state &= ~bit(posicaoDoBit);
-        updateOutput(output_state);
-        xSemaphoreGive(mutex_ios); // mutex output_state
-    }
-    else
-    {
-        Serial.println("mtx reset");
-    }
-}
-
-void setBits(uint8_t posicaoDoBit)
-{
-    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // mutex output_state
-    {
-        output_state |= bit(posicaoDoBit);
-        updateOutput(output_state);
-        xSemaphoreGive(mutex_ios); // mutex output_state
-    }
-    else
-    {
-        Serial.println("mtx set");
-    }
-}
-
-void updateOutput(uint8_t outputByte)
-{
-    digitalWrite(PIN_IO_LATCH, LOW);
-    delayMicroseconds(50);
-    digitalWrite(PIN_IO_LATCH, HIGH);
-    for (int i = 0; i < 8; i++)
-    {
-        digitalWrite(PIN_OUTPUT_DATA, !!(outputByte & (1 << (7 - i))));
-        digitalWrite(PIN_IO_CLOCK, HIGH);
-        delayMicroseconds(20);
-        digitalWrite(PIN_IO_CLOCK, LOW);
-        delayMicroseconds(20);
-    }
-    digitalWrite(PIN_IO_LATCH, LOW);
-    output_state = outputByte;
-}
-
-void ligaOutput(uint8_t posicaoDoBit)
-{
-    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // Mutex output_state
-    {
-        output_state &= ~bit(posicaoDoBit);
-        updateOutput(output_state);
-        xSemaphoreGive(mutex_ios); // Mutex output_state
-    }
-    else
-    {
-        Serial.println("mtx reset");
-    }
-}
-
-void desligaOutput(uint8_t posicaoDoBit)
-{
-    if (xSemaphoreTake(mutex_ios, pdMS_TO_TICKS(1))) // Mutex output_state
-    {
-        output_state |= bit(posicaoDoBit);
-        updateOutput(output_state);
-        xSemaphoreGive(mutex_ios); // Mutex output_state
-    }
-    else
-    {
-        Serial.println("mtx set");
-    }
 }
 
 void desligaTodosOutputs()
@@ -1822,12 +1198,6 @@ void ventiladorSetup()
     ledcAttachPin(PIN_VENTILADOR, VENTILADOR_CANAL);
 }
 
-void ventiladorWrite(uint16_t canal, uint16_t intensidade)
-{
-    uint16_t dutyCycle = map(intensidade, 0, 100, 0, 255);
-
-    ledcWrite(canal, dutyCycle);
-}
 
 void ligaVentilador()
 {
@@ -1841,19 +1211,7 @@ void desligaVentilador()
     ledcWrite(VENTILADOR_CANAL, 0);
 }
 
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-void piscaLedStatus()
-{
-    static uint32_t timer_led = 0;
 
-    setBits(LED_STATUS);
-    if (millis() - timer_led >= tempoLedStatus)
-    {
-        resetBits(LED_STATUS);
-        timer_led = millis();
-    }
-}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
