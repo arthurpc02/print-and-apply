@@ -40,6 +40,7 @@ enum Estado
     ESTADO_TESTE_DE_IMPRESSAO,
     ESTADO_TESTE_DO_BRACO,
     ESTADO_TESTE_DO_VENTILADOR,
+    ESTADO_TESTE_COMUNICACAO,
     // Estados:
     PARADA_EMERGENCIA_OLD,
     ATIVO_OLD,
@@ -65,6 +66,7 @@ enum Evento
     EVT_START,
     EVT_HOLD_PLAY_PAUSE,
     EVT_IMPRESSAO_CONCLUIDA,
+    EVT_MENSAGEM_ENVIADA,
 };
 
 typedef struct
@@ -80,7 +82,7 @@ SemaphoreHandle_t mutex_fault; // controla o acesso à variável faultRegister, 
 QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
 
 AccelStepper braco(AccelStepper::DRIVER, PIN_PUL_BRACO, PIN_DIR_BRACO);
-AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBOBINADOR); // na verdade o DIR do rebobinador não está conecta. Então defini um pino que não está sendo utilizado.
+AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBOBINADOR); // na verdade o DIR do rebobinador não está conectado. Então defini um pino que não está sendo utilizado.
 
 TaskHandle_t h_eeprom;
 TaskHandle_t h_botoesIhm;
@@ -164,6 +166,8 @@ int16_t tempoLedStatus = 500;
 
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
+
+String mensagemTeste = "AV100H200P3L0403XMABCDQ2Z";
 
 // Menu:
 int32_t atrasoImpressaoEtiqueta = 1000;
@@ -386,6 +390,8 @@ void clearFault(int16_t _faultCode);
 
 void torre_ligaLuzVermelha();
 void torre_ligaLuzVerde();
+
+void enviaMensagemParaImpressora(String);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////

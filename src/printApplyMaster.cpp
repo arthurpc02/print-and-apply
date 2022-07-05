@@ -19,7 +19,6 @@ void setup()
   loadParametersFromEEPROM();
   // presetEEPROM();
 
-
   sensorDeProdutoOuStart.setup();
   sinalPrintEnd.setup();
   sensorAplicacao.setup();
@@ -563,6 +562,23 @@ void loop()
       if (millis() - timer_verificaoDeFalhas >= tempoVerificacaoDeFalhas)
       {
         fsm_substate = fase1;
+      }
+    }
+    break;
+  }
+  case ESTADO_TESTE_COMUNICACAO:
+  {
+    if(fsm_substate == fase1)
+    {
+      enviaMensagemParaImpressora();
+      ihm.showStatus2msg("Enviou msg");
+      fsm_substate = fase2;
+    }
+    else if(fsm_substate == fase2)
+    {
+      if(evento == EVT_MENSAGEM_ENVIADA)
+      {
+        changeFsmState(ESTADO_STOP);
       }
     }
     break;
