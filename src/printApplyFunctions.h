@@ -41,17 +41,6 @@ enum Estado
     ESTADO_TESTE_DO_BRACO,
     ESTADO_TESTE_DO_VENTILADOR,
     ESTADO_TESTE_COMUNICACAO,
-    // Estados:
-    PARADA_EMERGENCIA_OLD,
-    ATIVO_OLD,
-    ERRO_OLD,
-    // Sub-estados:
-    EMERGENCIA_TOP_OLD,
-    MANUTENCAO_OLD,
-    REFERENCIANDO_INIT_OLD,
-    REFERENCIANDO_CICLO_OLD,
-    PRONTO_OLD,
-    CICLO_OLD,
 } fsm;
 uint16_t fsm_substate = fase1;
 
@@ -68,13 +57,6 @@ enum Evento
     EVT_IMPRESSAO_CONCLUIDA,
     EVT_MENSAGEM_ENVIADA,
 };
-
-typedef struct
-{
-    Estado estado = ESTADO_DESATIVADO;
-    Estado sub_estado = EMERGENCIA_TOP_OLD;
-} Fsm;
-Fsm fsm_old;
 
 SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
@@ -1225,57 +1207,7 @@ void t_ihm_old(void *p)
 
     while (1)
     {
-        if (fsm_old.estado == PARADA_EMERGENCIA_OLD || fsm_old.sub_estado == PRONTO_OLD)
-        {
-            xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-            if (checkBotaoCima())
-            {
-                Menu *checkMenu = ihm.getMenu();
-                if (checkMenu == &menu_produto)
-                {
-                    menu_produto.addVar(MAIS);
-                    loadProdutoFromEEPROM(produto);
-                }
-                else if (checkMenu == &menu_statusIntertravamentoIn)
-                    updateIntertravamentoIn();
-                else
-                {
-                    checkMenu->addVar(MAIS);
-                }
-
-                timer_display = millis();
-            }
-            else if (checkBotaoBaixo())
-            {
-                Menu *checkMenu = ihm.getMenu();
-                if (checkMenu == &menu_produto)
-                {
-                    menu_produto.addVar(MENOS);
-                    loadProdutoFromEEPROM(produto);
-                }
-                else if (checkMenu == &menu_statusIntertravamentoIn)
-                    updateIntertravamentoIn();
-                else
-                {
-                    checkMenu->addVar(MENOS);
-                }
-
-                timer_display = millis();
-            }
-            else if (checkBotaoEsquerda())
-            {
-                ihm.changeMenu(PREVIOUS);
-                timer_display = millis();
-            }
-
-            else if (checkBotaoDireita())
-            {
-                ihm.changeMenu(NEXT);
-                timer_display = millis();
-            }
-
-            xSemaphoreGive(mutex_rs485);
-        }
+        
 
         if (millis() - timer_display >= resetDisplay)
         {
@@ -1746,7 +1678,6 @@ void t_manutencao(void *p)
             {
                 if (millis() - timer_manutencao >= tempoParaAtivarMenuManutencao)
                 {
-                    fsm_old.sub_estado = MANUTENCAO_OLD;
                     fsm_emergencia = fase1;
                 }
             }
