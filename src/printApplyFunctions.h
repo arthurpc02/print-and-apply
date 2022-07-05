@@ -83,6 +83,7 @@ checkSensorPulse sinalImpressoraOnline = checkSensorPulse(PIN_IMPRESSORA_ONLINE,
 uint16_t quantidadeDeMenusDeManutencao = 1;
 
 String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // \e é ESC ou 0x1B
+String msgBuffer_out;
 
 int32_t faultRegister = 0; // o fault byte armazena as falhas da máquina como se fosse um registrador.
                            // a vantagem de utilizar o faultRegister, é que é possível ter mais de uma falha ao mesmo tempo.
@@ -223,7 +224,7 @@ void clearFault(int16_t _faultCode);
 void torre_ligaLuzVermelha();
 void torre_ligaLuzVerde();
 
-void enviaMensagemParaImpressora();
+void enviaMensagemDeTesteParaImpressora();
 void t_enviaMensagem(void *p);
 
 ////////////////////////////////////////////////////////////////////////
@@ -380,18 +381,20 @@ void t_botoesIhm(void *p)
     }
 }
 
-void enviaMensagemParaImpressora()
+void enviaMensagemDeTesteParaImpressora()
 {
+    msgBuffer_out = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ";
     xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
 void t_enviaMensagem(void *p)
 {
     xSemaphoreTake(mutex_rs485, portMAX_DELAY);
-    ihm.liquidC.envio485(mensagemTeste); // to do: separar rs485 da lib da ihm, para que o software principal possa utilizar o RS485 separado.
+    ihm.liquidC.envio485(msgBuffer_out); // to do: separar rs485 da lib da ihm, para que o software principal possa utilizar o RS485 separado.
     xSemaphoreGive(mutex_rs485);
 
     enviaEvento(EVT_MENSAGEM_ENVIADA);
+    // to do: checar confirmação da impressora
 
     vTaskDelete(NULL);
 }

@@ -571,7 +571,7 @@ void loop()
   {
     if(fsm_substate == fase1)
     {
-      enviaMensagemParaImpressora();
+      enviaMensagemDeTesteParaImpressora();
       ihm.showStatus2msg("Enviou msg");
       fsm_substate = fase2;
     }
