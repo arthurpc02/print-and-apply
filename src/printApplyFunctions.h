@@ -116,6 +116,7 @@ int32_t aceleracaoRebobinador = 12000;
 int32_t habilitaPortasDeSeguranca = 1;
 int32_t potenciaVentilador = 30; // porcentagem
 int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
+int32_t enviaMensagem = 0;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
@@ -151,6 +152,7 @@ Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u
 Menu menu_contadorTotal = Menu("Contador Total", READONLY, &contadorTotal, " ");
 Menu menu_velocidadeRebobinador = Menu("Veloc Rebobinador", PARAMETRO, &velocidadeRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 Menu menu_aceleracaoRebobinador = Menu("Acel Rebobinador", PARAMETRO, &aceleracaoRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
+Menu menu_enviaMensagem = Menu("Envia Mensagem", PARAMETRO, &enviaMensagem, " ", 1u, 0u, 0u, NULL);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -317,6 +319,10 @@ void t_botoesIhm(void *p)
                 {
                     contadorDeCiclos = 0;
                 }
+                else if(checkMenu == &menu_enviaMensagem)
+                {
+                    enviaMensagemDeTesteParaImpressora();
+                }
             }
             else if (bt == BOTAO_ESQUERDA)
             {
@@ -383,7 +389,7 @@ void t_botoesIhm(void *p)
 
 void enviaMensagemDeTesteParaImpressora()
 {
-    msgBuffer_out = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ";
+    msgBuffer_out = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // mensagem simples, texto = ABCD e quantidade = 2.
     xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
@@ -394,6 +400,7 @@ void t_enviaMensagem(void *p)
     xSemaphoreGive(mutex_rs485);
 
     enviaEvento(EVT_MENSAGEM_ENVIADA);
+    Serial.println("msg de teste enviada.");
     // to do: checar confirmação da impressora
 
     vTaskDelete(NULL);
@@ -411,7 +418,7 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 12; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
+    quantidadeDeMenusDeManutencao = 13; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
@@ -425,6 +432,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_rampa_dcmm);
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
+    ihm.addMenuToIndex(&menu_enviaMensagem);
     ihm.addMenuToIndex(&menu_contadorTotal);
 
     flag_manutencao = true;

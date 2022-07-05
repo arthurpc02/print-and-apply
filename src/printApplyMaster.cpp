@@ -156,8 +156,8 @@ void loop()
         else
         {
           flag_cicloEmAndamento = true;
-          // changeFsmState(ESTADO_POSICIONANDO);
-          changeFsmState(ESTADO_TESTE_COMUNICACAO);
+          changeFsmState(ESTADO_POSICIONANDO);
+          // changeFsmState(ESTADO_TESTE_COMUNICACAO);
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
