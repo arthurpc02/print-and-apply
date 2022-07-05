@@ -82,7 +82,7 @@ checkSensorPulse sinalImpressoraOnline = checkSensorPulse(PIN_IMPRESSORA_ONLINE,
 // Outros:
 uint16_t quantidadeDeMenusDeManutencao = 1;
 
-String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ";
+String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // \e é ESC ou 0x1B
 
 int32_t faultRegister = 0; // o fault byte armazena as falhas da máquina como se fosse um registrador.
                            // a vantagem de utilizar o faultRegister, é que é possível ter mais de uma falha ao mesmo tempo.
@@ -114,7 +114,7 @@ int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
 int32_t habilitaPortasDeSeguranca = 1;
 int32_t potenciaVentilador = 30; // porcentagem
-int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
+int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
@@ -170,13 +170,11 @@ void t_eeprom(void *p);
 
 void t_emergencia(void *p);
 
-
 void desligaTodosOutputs();
 
 void ventiladorSetup();
 void ligaVentilador();
 void desligaVentilador();
-
 
 void imprimeEtiqueta();
 void ligaPrint();
@@ -389,24 +387,9 @@ void enviaMensagemParaImpressora()
 
 void t_enviaMensagem(void *p)
 {
-    // "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"
-    // String msg = 0x1B;
-    // msg.concat('A');
-    // msg.concat(0x1B);
-    // msg.concat("XMABCD");
-    // msg.concat(0x1B);
-    // msg.concat('Z');
-
-    // to do: mutex
-    // to do: encapsular a parte de habilitar e desabilitar a transmissão.
-    digitalWrite(PIN_RS485_EN, RS485_TRANSMIT);
-
-    rs485.print(mensagemTeste);
-    rs485.print('\n');
-    rs485.flush();
-    // Serial.println(mensagem);
-    digitalWrite(PIN_RS485_EN, RS485_RECEIVE);
-    delay(10);
+    xSemaphoreTake(mutex_rs485, portMAX_DELAY);
+    ihm.liquidC.envio485(mensagemTeste); // to do: separar rs485 da lib da ihm, para que o software principal possa utilizar o RS485 separado.
+    xSemaphoreGive(mutex_rs485);
 
     enviaEvento(EVT_MENSAGEM_ENVIADA);
 
@@ -746,7 +729,6 @@ bool emCimaDoSensorHome()
     return !sensorHome.checkState(); // to do: usar checkSensorPulse
 }
 
-
 void habilitaMotoresEAguardaEstabilizar()
 {
     habilitaMotores();
@@ -762,8 +744,6 @@ void desabilitaMotores()
 {
     extIOs.ligaOutput(PIN_ENABLE_MOTORES);
 }
-
-
 
 // checa qual/quais falhas estão ativas
 // se o parametro faultCode foi colocado em zero(ou vazio), checa por qualquer falha
@@ -1047,7 +1027,6 @@ void ventiladorSetup()
     ledcAttachPin(PIN_VENTILADOR, VENTILADOR_CANAL);
 }
 
-
 void ligaVentilador()
 {
     uint16_t dutyCycle = map(potenciaVentilador, 0, 100, 0, 255);
@@ -1059,8 +1038,6 @@ void desligaVentilador()
 {
     ledcWrite(VENTILADOR_CANAL, 0);
 }
-
-
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
