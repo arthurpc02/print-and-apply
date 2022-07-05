@@ -167,7 +167,7 @@ int16_t tempoLedStatus = 500;
 int32_t tempoReinicioEspatula = 100;
 int32_t tempoParaEstabilizarMotorBraco = 2500;
 
-String mensagemTeste = "AV100H200P3L0403XMABCDQ2Z";
+String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ";
 
 // Menu:
 int32_t atrasoImpressaoEtiqueta = 1000;
@@ -200,7 +200,7 @@ int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
 int32_t habilitaPortasDeSeguranca = 1;
-int32_t potenciaVentilador = 30; // por centagem
+int32_t potenciaVentilador = 30; // porcentagem
 int32_t contadorTotal = 0; // to do: mudar nome para contadorTotal
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
@@ -391,7 +391,8 @@ void clearFault(int16_t _faultCode);
 void torre_ligaLuzVermelha();
 void torre_ligaLuzVerde();
 
-void enviaMensagemParaImpressora(String);
+void enviaMensagemParaImpressora();
+void t_enviaMensagem(void *p);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -550,6 +551,37 @@ void t_botoesIhm(void *p)
             Serial.println(bt);
         }
     }
+}
+
+void enviaMensagemParaImpressora()
+{
+    xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+}
+
+void t_enviaMensagem(void *p)
+{
+    // "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"
+    // String msg = 0x1B;
+    // msg.concat('A');
+    // msg.concat(0x1B);
+    // msg.concat("XMABCD");
+    // msg.concat(0x1B);
+    // msg.concat('Z');
+
+    // to do: mutex
+    // to do: encapsular a parte de habilitar e desabilitar a transmissão.
+    digitalWrite(PIN_RS485_EN, RS485_TRANSMIT);
+
+    rs485.print(mensagemTeste);
+    rs485.print('\n');
+    rs485.flush();
+    // Serial.println(mensagem);
+    digitalWrite(PIN_RS485_EN, RS485_RECEIVE);
+    delay(10);
+
+    enviaEvento(EVT_MENSAGEM_ENVIADA);
+
+    vTaskDelete(NULL);
 }
 
 void liberaMenusDaIhm()

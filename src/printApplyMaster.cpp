@@ -157,7 +157,8 @@ void loop()
         else
         {
           flag_cicloEmAndamento = true;
-          changeFsmState(ESTADO_POSICIONANDO);
+          // changeFsmState(ESTADO_POSICIONANDO);
+          changeFsmState(ESTADO_TESTE_COMUNICACAO);
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
           // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
@@ -578,6 +579,7 @@ void loop()
     {
       if(evento == EVT_MENSAGEM_ENVIADA)
       {
+        Serial.println("fim do teste de mensagem");
         changeFsmState(ESTADO_STOP);
       }
     }
