@@ -32,7 +32,6 @@ enum Estado
 {
     ESTADO_EMERGENCIA,
     ESTADO_STOP,
-    ESTADO_DESATIVADO,
     ESTADO_REFERENCIANDO,
     ESTADO_APLICACAO,
     ESTADO_POSICIONANDO,
@@ -58,6 +57,7 @@ enum Evento
     EVT_MENSAGEM_ENVIADA,
 };
 
+// Objetos:
 SemaphoreHandle_t mutex_ios;
 SemaphoreHandle_t mutex_rs485;
 SemaphoreHandle_t mutex_fault; // controla o acesso à variável faultRegister, que é utilizada por várias threads
@@ -69,6 +69,8 @@ AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBO
 TaskHandle_t h_eeprom;
 TaskHandle_t h_botoesIhm;
 
+extern HardwareSerial rs485;
+
 ihmSunnytecMaster ihm{protocoloIhm{PIN_RS485_RX, PIN_RS485_TX, PIN_RS485_EN}};
 extendedIOs extIOs = extendedIOs(PIN_IO_CLOCK, PIN_IO_LATCH, PIN_INPUT_DATA, PIN_OUTPUT_DATA);
 checkSensorPulse sensorDeProdutoOuStart = checkSensorPulse(PIN_SENSOR_PRODUTO, 1);
@@ -77,90 +79,19 @@ checkSensorPulse sensorAplicacao = checkSensorPulse(PIN_SENSOR_APLICACAO, 1);
 checkSensorPulse sensorHome = checkSensorPulse(PIN_SENSOR_HOME, 1);
 checkSensorPulse sinalImpressoraOnline = checkSensorPulse(PIN_IMPRESSORA_ONLINE, 1);
 
-extern HardwareSerial rs485;
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// IO's:
-uint8_t output_state = 0; // estado das saídas de uso geral. Usado na função updateIOs().
-uint8_t input_state = 0;  // estado das entradas de uso geral. Usado na função updateIOs().
-
+// Outros:
 uint16_t quantidadeDeMenusDeManutencao = 1;
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Parâmetros:
-
-// Variáveis para os motores:
-// Pulsos:
-const int32_t pulsosEspatulaRecuoInit = 3000;
-const int32_t pulsosEspatulaAvancoInit = 750;
-
-const int32_t pulsosEspatulaAvanco = 2350;
-const int32_t pulsosEspatulaRecuo = 3000;
-
-const int32_t pulsosBracoMaximo = 60000;
-const int32_t pulsosBracoForaSensor = 10000;
-
-int32_t pulsosBracoEspacamento = 0;
-
-int32_t pulsosBracoInicial = 0;
-int32_t pulsosBracoAplicacao = 0;
-int32_t pulsosBracoProduto = 0;
-
-int32_t pulsosBracoEmergencia = 0;
-// Pulsos:
-
-// Posições:
-int32_t posicaoEspatulaSensor = 0;
-int32_t posicaoEspatulaReferencia = 0;
-int32_t posicaoEspatulaCorrecao = 0;
-
-int32_t posicaoBracoSensor = 0;
-int32_t posicaoBracoReferencia = 0;
-int32_t posicaoBracoCorrecao = 0;
-int32_t posicaoBracoDeteccaoProduto = 0;
-
-int32_t posicaoBracoProduto = 440;
-
-int32_t posicaoBracoEmergencia = 462;
-
-// Variáveis para os motores:
-
-const int32_t pi = 3.14159265358979;
-const int32_t raio = 20;
-const int32_t subdivisao = 50;
-const int32_t pulsosporVolta = 200;
-// const int32_t resolucao = round((pulsosporVolta * subdivisao) / (2 * pi * raio));
-
-int32_t velocidadeLinearPulsos = 0;
-int32_t velocidadeCiclommps = 0;
-uint32_t aceleracaoLinearPulsos = 0;
-int32_t pulsosRampa = 0;
-
-const uint16_t quantidadeParaBackups = 100;
-
-int16_t testeStatusImpressora = 0;
-int32_t tempoRequestStatusImpressora = 15000;
-String printerStatus = "1";
-
-int16_t tempoLedStatus = 500;
-
-int32_t tempoReinicioEspatula = 100;
-int32_t tempoParaEstabilizarMotorBraco = 2500;
 
 String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ";
 
-// Menu:
-int32_t atrasoImpressaoEtiqueta = 1000;
-
-int32_t posicaoBracoInicial = 10;
-int32_t posicaoBracoAplicacao = 250;
-
-int32_t statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
-
 int32_t faultRegister = 0; // o fault byte armazena as falhas da máquina como se fosse um registrador.
                            // a vantagem de utilizar o faultRegister, é que é possível ter mais de uma falha ao mesmo tempo.
+// Flags:
+bool flag_referenciou = false;
+bool flag_cicloEmAndamento = false;
+bool flag_debugEnabled = true;
+bool flag_manutencao = false;
+bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
 
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
@@ -195,49 +126,9 @@ const uint32_t pprNaCalibracao = 25000;      // pulsos/revolucao
 const uint32_t braco_ppr = 3200;                                             // pulsos/revolucao
 const float resolucao = braco_ppr * resolucaoNaCalibracao / pprNaCalibracao; // steps/dcmm
 
-// Processo:
-// Fases da fsm:
-uint16_t fsm_emergencia = fase1;
-uint16_t fsm_manutencao = fase1;
-
-uint16_t fsm_referenciando_init = fase1;
-uint16_t fsm_referenciando_init_espatula = fase1;
-uint16_t fsm_referenciando_init_motor = fase1;
-
-uint16_t fsm_referenciando_ciclo = fase1;
-uint16_t fsm_referenciando_ciclo_espatula = fase1;
-uint16_t fsm_referenciando_ciclo_motor = fase1;
-
-uint16_t fsm_pronto_init = fase1;
-uint16_t fsm_pronto_ciclo = fase1;
-
-uint16_t fsm_ciclo = fase1;
-
-uint16_t fsm_erro_aplicacao = fase1;
-uint16_t fsm_erro_impressora = fase1;
-uint16_t fsm_erro_intertravamento = fase1;
-
-// Fases da fsm:
-// Processo:
-
-// Flags:
-bool flag_referenciou = false;
-bool flag_cicloEmAndamento = false;
-
-bool flag_comandoPlay = false;
-bool flag_statusImpressora = false;
-bool flag_intertravamentoIn = true;
-bool flag_emergencia = false;
-bool flag_debugEnabled = true;
-bool flag_restartDisplay = false;
-bool flag_continuo = false;
-bool flag_manutencao = false;
-bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
-
-// Flags:
-// Parâmetros:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+// menus:
 Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
@@ -245,7 +136,7 @@ Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda Produto", PARAMETRO,
 Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 10u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 10u, 100u, 15000u, &produto, 1);
 
-// manutencao:
+// menus de manutencao:
 // to do: menu de falhas.
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_habilitaPortasDeSeguranca = Menu("Portas de Seguranca", PARAMETRO, &habilitaPortasDeSeguranca, " ", 1u, 0u, 1u, NULL);
@@ -260,32 +151,14 @@ Menu menu_contadorTotal = Menu("Contador Total", READONLY, &contadorTotal, " ");
 Menu menu_velocidadeRebobinador = Menu("Veloc Rebobinador", PARAMETRO, &velocidadeRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 Menu menu_aceleracaoRebobinador = Menu("Acel Rebobinador", PARAMETRO, &aceleracaoRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 
-Menu menu_posicaoBracoInicial = Menu("Posicao Inicial", PARAMETRO_MANU, &posicaoBracoInicial, "mm", 1u, 0u, 400u);
-Menu menu_posicaoBracoAplicacao = Menu("Posicao Aplicacao", PARAMETRO_MANU, &posicaoBracoAplicacao, "mm", 10u, 100u, 450u);
-Menu menu_statusIntertravamentoIn = Menu("Intertravamento In", PARAMETRO_STRING, "     ON ou OFF      ");
-Menu menu_atrasoImpressaoEtiqueta = Menu("Atraso Imp Etiqueta", PARAMETRO, &atrasoImpressaoEtiqueta, "ms", 10u, 50u, 3000u, &produto);
-
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Prototypes:
 void createTasks();
 
-void t_requestStatusImpressoraZebra(void *p);
-void t_receiveStatusImpressoraZebra(void *p);
-void imprimirZebra();
-void trataDadosImpressora(String);
-
 void habilitaMotoresEAguardaEstabilizar();
 void desabilitaMotores();
 void habilitaMotores();
-
-int checkSensorProduto();
-int checkSensorHomeInit();
-int checkSensorHome();
-int checkSensorEspatulaInit();
-int checkSensorEspatula();
-int checkSensorAplicacao();
-
 
 void saveParametersToEEPROM();
 void saveProdutoToEEPROM(int16_t _produto);
@@ -296,10 +169,7 @@ void salvaContadorNaEEPROM();
 void t_eeprom(void *p);
 
 void t_emergencia(void *p);
-void updateIntertravamentoIn();
 
-void liberaMenusDeManutencao();
-void bloqueiaMenusDeManutencao();
 
 void desligaTodosOutputs();
 
@@ -307,7 +177,6 @@ void ventiladorSetup();
 void ligaVentilador();
 void desligaVentilador();
 
-void piscaLedStatus();
 
 void imprimeEtiqueta();
 void ligaPrint();
@@ -328,6 +197,7 @@ void t_ihm(void *);
 void t_botoesIhm(void *);
 void liberaMenusDaIhm();
 void liberaMenusDeManutencao();
+void bloqueiaMenusDeManutencao();
 void voltaParaPrimeiroMenu();
 void incrementaContadores();
 void habilitaConfiguracaoPelaIhm();
@@ -358,15 +228,10 @@ void torre_ligaLuzVerde();
 void enviaMensagemParaImpressora();
 void t_enviaMensagem(void *p);
 
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void createTasks()
 {
-    // xTaskCreatePinnedToCore(t_ihm_old, "ihm task", 4096, NULL, PRIORITY_4, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_io, "io task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_intretravamentoIN, "intertravamento in task", 2048, NULL, PRIORITY_2, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_manutencao, "manutencao task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
-    // xTaskCreatePinnedToCore(t_receiveStatusImpressoraZebra, "resposta status impressora task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_eeprom, "eeprom task", 8192, NULL, PRIORITY_1, &h_eeprom, CORE_0);
     xTaskCreatePinnedToCore(t_ihm, "ihm task", 4096, NULL, PRIORITY_3, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_botoesIhm, "botoesIhm task", 4096, NULL, PRIORITY_3, &h_botoesIhm, CORE_0);
@@ -607,7 +472,7 @@ void incrementaContadores()
 {
     contadorDeCiclos++;
     contadorTotal++;
-    //   salvaContadorNaEEPROM();
+    //   salvaContadorNaEEPROM(); // to do: reativar
 }
 
 void t_rebobina(void *)
@@ -1151,22 +1016,6 @@ void t_emergencia(void *p)
             }
         }
     }
-}
-
-void updateIntertravamentoIn()
-{
-    if (statusIntertravamentoIn == INTERTRAVAMENTO_IN_OFF)
-    {
-        statusIntertravamentoIn = INTERTRAVAMENTO_IN_ON;
-        menu_statusIntertravamentoIn.changeMsg(F("ON"));
-    }
-    else
-    {
-        statusIntertravamentoIn = INTERTRAVAMENTO_IN_OFF;
-        menu_statusIntertravamentoIn.changeMsg(F("OFF"));
-    }
-
-    ihm.signalVariableChange();
 }
 
 void desligaTodosOutputs()
