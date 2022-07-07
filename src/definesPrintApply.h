@@ -36,28 +36,12 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define EPR_distanciaProduto_dcmm 2
 #define EPR_velocidadeDeTrabalho_dcmm 3
 
-// Fases:
-#define fase11 11
-#define fase12 12
-#define fase13 13
-#define fase14 14
-#define fase15 15
-#define fase16 16
-#define fase17 17
-#define fase18 18
-#define fase19 19
-// Fases:
-/////////////////////////////////////////////////
-// SOFTWARE DEFINES: ////////////////////////////
-
-
 /////////////////////////////////////////////////
 // HARDWARE DEFINES: ////////////////////////////
 // Sensores:
 #define PIN_SENSOR_PRODUTO PIN_HSDI1 // Sensor de Produto ou sinal de START
 #define PIN_SENSOR_HOME PIN_HSDI2 // Sensor de Posição (HOME 1)
 #define PIN_SENSOR_APLICACAO PIN_HSDI3 // Sensor de Aplicação
-#define PIN_SENSOR_ESPATULA PIN_HSDI4 // Sensor de Espátula (HOME 2)
 
 #define PIN_EMERGENCIA DI5
 #define PIN_SENSOR_DE_PORTAS DI6
@@ -70,51 +54,25 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define PIN_PRIN PIN_DO1
 #define PIN_PRIN2 PIN_DO2
 
-// Botões:
-#define BUTTON_START PIN_DI1 // to do:
-#define BUTTON_CIMA DI5
-#define BUTTON_BAIXO DI6
-#define BUTTON_ESQUERDA DI7
-#define BUTTON_DIREITA DI8
-
-
 // Ventilador:
 #define PIN_VENTILADOR PIN_DO3
 #define FEEDBACK_VENTILADOR DI2
 #define VENTILADOR_CANAL CANAL_0
 
-
 // Motores:
 // Motor Principal:
 #define PIN_PUL_BRACO PIN_HSDO1
 #define PIN_DIR_BRACO PIN_HSDO3
-// Motor Principal:
-// Motor Espátula:
+
+// Motor Rebobinador:
 #define PIN_PUL_REBOBINADOR PIN_HSDO2          
 #define PIN_DIR_REBOBINADOR PIN_SDA
-// Motor Espátula:
 
 // Habilita Motores:
 #define PIN_ENABLE_MOTORES DO4
 
-#define DIRECAO_HORA 0
-#define DIRECAO_ANTIHORA 1
-
 #define PIN_TORRE_LUMINOSA RLO2
-
-// Intertravamento:
-#define INTERTRAVAMENTO_IN_1 DI3
 #define PIN_INTERTRAVAMENTO_OUT RLO1
-// Intertravamento:
-
-// Status Intertravamento:
-#define INTERTRAVAMENTO_IN_OFF 0
-#define INTERTRAVAMENTO_IN_ON 1
-// Status Intertravamento:
-
-// Sinalização:
-#define LED_STATUS RLO2
-// Sinalização:
 
 // HARDWARE DEFINES: ////////////////////////////
 /////////////////////////////////////////////////
