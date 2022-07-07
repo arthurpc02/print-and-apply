@@ -998,14 +998,9 @@ void t_emergencia(void *p)
                 setFault(FALHA_PORTA_ABERTA);
                 enviaEvento(EVT_PARADA_EMERGENCIA);
             }
-        }
-        else if (flag_simulaEtiqueta == false)
-        {
-            if (sinalImpressoraOnline.checkState() == LOW)
-            {
-                setFault(FALHA_IMPRESSORA);
-            }
-        }
+        } // to do: trocar "else if" por vários if's independentes
+
+        updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
     }
 }
 
@@ -1085,6 +1080,8 @@ void t_debug(void *p)
         Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
         Serial.print(" PREND: ");
         Serial.print(digitalRead(PIN_PREND));
+        Serial.print(" ONLINE: ");
+        Serial.print(sinalImpressoraOnline.checkState());
         Serial.print(" braco_pos: ");
         Serial.print(braco.currentPosition());
 

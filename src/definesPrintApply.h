@@ -26,7 +26,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define EPR_rampa_dcmm 28
 #define EPR_velocidadeRebobinador 32
 #define EPR_aceleracaoRebobinador 36
-#define EPR_habilitaPortasDeSeguranca 40  // to do:
+#define EPR_habilitaPortasDeSeguranca 40
 #define EPR_startNF 44 // to do:
 #define EPR_potenciaVentilador 48
 
