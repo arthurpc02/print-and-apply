@@ -319,7 +319,7 @@ void t_botoesIhm(void *p)
                 {
                     contadorDeCiclos = 0;
                 }
-                else if(checkMenu == &menu_enviaMensagem)
+                else if (checkMenu == &menu_enviaMensagem)
                 {
                     enviaMensagemDeTesteParaImpressora();
                 }
@@ -1000,7 +1000,10 @@ void t_emergencia(void *p)
             }
         } // to do: trocar "else if" por vários if's independentes
 
-        updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
+        if (flag_simulaEtiqueta == false)
+            updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
+        else
+            updateFault(FALHA_IMPRESSORA, false);
     }
 }
 
