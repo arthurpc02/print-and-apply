@@ -177,10 +177,17 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    else if(checkFault(0))
+    else if (checkFault(0))
     {
-      changeFsmState(ESTADO_STOP);
-      break;
+      if (checkFault(FALHA_IMPRESSORA))
+      {
+        // não faz nada
+      }
+      else
+      {
+        changeFsmState(ESTADO_STOP);
+        break;
+      }
     }
     else if (evento == EVT_PLAY_PAUSE)
     {
@@ -251,10 +258,17 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    else if(checkFault(0))
+    else if (checkFault(0))
     {
-      changeFsmState(ESTADO_STOP);
-      break;
+      if (checkFault(FALHA_IMPRESSORA))
+      {
+        // não faz nada
+      }
+      else
+      {
+        changeFsmState(ESTADO_STOP);
+        break;
+      }
     }
     else if (evento == EVT_PLAY_PAUSE)
     {
@@ -347,7 +361,7 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    else if(checkFault(0))
+    else if (checkFault(0))
     {
       changeFsmState(ESTADO_STOP);
       break;
@@ -454,7 +468,7 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    else if(checkFault(0))
+    else if (checkFault(0))
     {
       changeFsmState(ESTADO_STOP);
       break;
@@ -569,15 +583,15 @@ void loop()
   }
   case ESTADO_TESTE_COMUNICACAO:
   {
-    if(fsm_substate == fase1)
+    if (fsm_substate == fase1)
     {
       enviaMensagemDeTesteParaImpressora();
       ihm.showStatus2msg("Enviou msg");
       fsm_substate = fase2;
     }
-    else if(fsm_substate == fase2)
+    else if (fsm_substate == fase2)
     {
-      if(evento == EVT_MENSAGEM_ENVIADA)
+      if (evento == EVT_MENSAGEM_ENVIADA)
       {
         Serial.println("fim do teste de mensagem");
         changeFsmState(ESTADO_STOP);
@@ -586,5 +600,4 @@ void loop()
     break;
   }
   }
-
 }
