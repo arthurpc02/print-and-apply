@@ -71,6 +71,7 @@ void loop()
       flag_referenciou = false;
       flag_cicloEmAndamento = false;
       fsm_substate = fase2;
+      ihm.liquidC.endSerial();
     }
     else if (fsm_substate == fase2)
     {
@@ -85,6 +86,7 @@ void loop()
         // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
         clearAllFaults();
         changeFsmState(ESTADO_STOP);
+        ihm.liquidC.init();
       }
     }
     break;
