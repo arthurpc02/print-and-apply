@@ -34,7 +34,7 @@ void setup()
   // ventiladorConfig();
   Serial.print("p/dcmm braco: ");
   Serial.println(resolucao);
-  braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
+  braco_setup(velocidadeDeTrabalho_dcmm, rampa_referenciacao_dcmm);
   rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
 
   Serial.println("End Setup. Print & Apply Linear.");
@@ -142,7 +142,7 @@ void loop()
         vTaskSuspend(h_eeprom);
         voltaParaPrimeiroMenu();
         habilitaMotoresEAguardaEstabilizar();
-        braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
+        braco_setup(velocidadeDeTrabalho_dcmm, rampa_referenciacao_dcmm);
         rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
         torre_ligaLuzVermelha();
 
@@ -376,7 +376,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      braco_setup(velocidadeDeReferenciacao_dcmm, rampa_dcmm);
+      braco_setup(velocidadeDeReferenciacao_dcmm, rampa_referenciacao_dcmm);
       xTaskCreatePinnedToCore(t_rebobina, "task rebobina", 2048, NULL, PRIORITY_1, NULL, CORE_0);
       fsm_substate = fase2;
 

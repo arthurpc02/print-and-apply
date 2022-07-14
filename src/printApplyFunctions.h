@@ -110,6 +110,7 @@ int32_t posicaoDePegarEtiqueta_dcmm = 430;
 int32_t posicaoDeRepouso_dcmm = 1250;
 int32_t velocidadeDeReferenciacao_dcmm = 2200;
 int32_t rampa_dcmm = 80;
+int32_t rampa_referenciacao_dcmm = 200; // to do: fazer menu e colocar na eeprom
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
