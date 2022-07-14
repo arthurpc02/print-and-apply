@@ -652,6 +652,7 @@ void t_printEtiqueta(void *p)
         {
             if (sinalPrintEnd.checkState() == LOW)
             {
+                habilitaMotores();
                 ligaPrint();
                 rebobinador.move(50000);
                 timer_duracaoDaImpressao = millis();
