@@ -10,3 +10,6 @@
 [submodule "lib/ihmSunnytecMaster_v2.0"]
 	path = lib/ihmSunnytecMaster_v2.0
 	url = git@github.com:Atsunnytec/ihmSunnytecMaster_v2.0.git
+[submodule "lib/SunnyAccelStepper"]
+	path = lib/SunnyAccelStepper
+	url = git@github.com:Atsunnytec/SunnyAccelStepper.git
