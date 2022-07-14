@@ -191,7 +191,8 @@ void loop()
         break;
       }
     }
-    else if (evento == EVT_PLAY_PAUSE)
+    
+    if (evento == EVT_PLAY_PAUSE)
     {
       flag_pause = true;
       break;
@@ -272,7 +273,8 @@ void loop()
         break;
       }
     }
-    else if (evento == EVT_PLAY_PAUSE)
+    
+     if (evento == EVT_PLAY_PAUSE)
     {
       flag_pause = true;
       break;
@@ -368,7 +370,8 @@ void loop()
       changeFsmState(ESTADO_STOP);
       break;
     }
-    else if (evento == EVT_PLAY_PAUSE)
+    
+    if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
       break;
@@ -447,7 +450,8 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    else if (evento == EVT_PLAY_PAUSE)
+   
+    if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
       break;
@@ -475,7 +479,8 @@ void loop()
       changeFsmState(ESTADO_STOP);
       break;
     }
-    else if (evento == EVT_PLAY_PAUSE)
+    
+    if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
       break;
@@ -516,7 +521,8 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    else if (evento == EVT_PLAY_PAUSE)
+    
+     if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
       break;
