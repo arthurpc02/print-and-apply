@@ -101,6 +101,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      delay(500);
       braco.stop();
       fsm_substate = fase2;
     }
@@ -322,7 +323,6 @@ void loop()
       {
         setFault(FALHA_APLICACAO);
         Serial.println("erro de aplicação");
-        // delay(100);
       }
     }
     else if (fsm_substate == fase4)

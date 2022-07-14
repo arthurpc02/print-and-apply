@@ -137,7 +137,7 @@ Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)
 Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
 Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda Produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 10u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
-Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 10u, 100u, 15000u, &produto, 1);
+Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 100u, 100u, 15000u, &produto, 1);
 
 // menus de manutencao:
 // to do: menu de falhas.
@@ -148,7 +148,7 @@ Menu menu_potenciaVentilador = Menu("Potencia Ventilador", PARAMETRO, &potenciaV
 Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 5, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
-Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 10u, 100u, 15000u, NULL, 1);
+Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 100u, 100u, 15000u, NULL, 1);
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
 Menu menu_rampaReferenciacao_dcmm = Menu("Rampa Ref", PARAMETRO, &rampaReferenciacao_dcmm, "mm", 5u, 10u, 200u, NULL, 1);
 Menu menu_contadorTotal = Menu("Contador Total", READONLY, &contadorTotal, " ");
