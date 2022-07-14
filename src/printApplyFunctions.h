@@ -110,7 +110,7 @@ int32_t posicaoDePegarEtiqueta_dcmm = 430;
 int32_t posicaoDeRepouso_dcmm = 1250;
 int32_t velocidadeDeReferenciacao_dcmm = 2200;
 int32_t rampa_dcmm = 80;
-int32_t rampa_referenciacao_dcmm = 200; // to do: fazer menu e colocar na eeprom
+int32_t rampaReferenciacao_dcmm = 200; // to do: fazer menu e colocar na eeprom
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
@@ -150,6 +150,7 @@ Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 10u, 100u, 15000u, NULL, 1);
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
+Menu menu_rampaReferenciacao_dcmm = Menu("Rampa Ref", PARAMETRO, &rampaReferenciacao_dcmm, "mm", 5u, 10u, 200u, NULL, 1);
 Menu menu_contadorTotal = Menu("Contador Total", READONLY, &contadorTotal, " ");
 Menu menu_velocidadeRebobinador = Menu("Veloc Rebobinador", PARAMETRO, &velocidadeRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 Menu menu_aceleracaoRebobinador = Menu("Acel Rebobinador", PARAMETRO, &aceleracaoRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
@@ -419,7 +420,7 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 13; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
+    quantidadeDeMenusDeManutencao = 14; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
@@ -431,6 +432,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_potenciaVentilador);
     ihm.addMenuToIndex(&menu_posicaoDeRepouso_dcmm);
     ihm.addMenuToIndex(&menu_rampa_dcmm);
+    ihm.addMenuToIndex(&menu_rampaReferenciacao_dcmm);
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
     ihm.addMenuToIndex(&menu_enviaMensagem);
@@ -903,6 +905,7 @@ void saveParametersToEEPROM()
     EEPROM.put(EPR_velocidadeDeReferenciacao_dcmm, velocidadeDeReferenciacao_dcmm);
     EEPROM.put(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
     EEPROM.put(EPR_rampa_dcmm, rampa_dcmm);
+    EEPROM.put(EPR_rampaReferenciacao_dcmm, rampaReferenciacao_dcmm);
     EEPROM.put(EPR_velocidadeRebobinador, velocidadeRebobinador);
     EEPROM.put(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
     EEPROM.put(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
@@ -928,6 +931,7 @@ void loadParametersFromEEPROM()
     EEPROM.get(EPR_velocidadeDeReferenciacao_dcmm, velocidadeDeReferenciacao_dcmm);
     EEPROM.get(EPR_posicaoDeRepouso_dcmm, posicaoDeRepouso_dcmm);
     EEPROM.get(EPR_rampa_dcmm, rampa_dcmm);
+    EEPROM.get(EPR_rampaReferenciacao_dcmm, rampaReferenciacao_dcmm);
     EEPROM.get(EPR_velocidadeRebobinador, velocidadeRebobinador);
     EEPROM.get(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
     EEPROM.get(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
