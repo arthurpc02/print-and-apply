@@ -118,6 +118,7 @@ int32_t habilitaPortasDeSeguranca = 1;
 int32_t potenciaVentilador = 30; // porcentagem
 int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
+int32_t printTest = 0;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
@@ -154,7 +155,8 @@ Menu menu_rampaReferenciacao_dcmm = Menu("Rampa Ref", PARAMETRO, &rampaReferenci
 Menu menu_contadorTotal = Menu("Contador Total", READONLY, &contadorTotal, " ");
 Menu menu_velocidadeRebobinador = Menu("Veloc Rebobinador", PARAMETRO, &velocidadeRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
 Menu menu_aceleracaoRebobinador = Menu("Acel Rebobinador", PARAMETRO, &aceleracaoRebobinador, "pulsos", 100u, 1000u, 50000u, NULL);
-Menu menu_enviaMensagem = Menu("Envia Mensagem", PARAMETRO, &enviaMensagem, " ", 1u, 0u, 0u, NULL);
+Menu menu_enviaMensagem = Menu("Envia Mensagem", PARAMETRO, &enviaMensagem, " ", 1u, 0u, 1u, NULL);
+Menu menu_printTest = Menu("Print Test", PARAMETRO, &printTest, " ", 1u, 0u, 1u, NULL);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -324,6 +326,12 @@ void t_botoesIhm(void *p)
                 else if (checkMenu == &menu_enviaMensagem)
                 {
                     enviaMensagemDeTesteParaImpressora();
+                    enviaMensagem = 0;
+                }
+                else if (checkMenu == &menu_printTest)
+                {
+                    xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+                    printTest = 0;
                 }
             }
             else if (bt == BOTAO_ESQUERDA)
@@ -346,6 +354,16 @@ void t_botoesIhm(void *p)
                 else if (checkMenu == &menu_contadorDeCiclos)
                 {
                     contadorDeCiclos = 0;
+                }
+                else if (checkMenu == &menu_enviaMensagem)
+                {
+                    enviaMensagemDeTesteParaImpressora();
+                    enviaMensagem = 0;
+                }
+                else if (checkMenu == &menu_printTest)
+                {
+                    xTaskCreatePinnedToCore(t_printEtiqueta, "print task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+                    printTest = 0;
                 }
             }
             else if (bt == BOTAO_DIREITA)
@@ -420,7 +438,7 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 14; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
+    quantidadeDeMenusDeManutencao = 15; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
@@ -436,6 +454,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
     ihm.addMenuToIndex(&menu_enviaMensagem);
+    ihm.addMenuToIndex(&menu_printTest);
     ihm.addMenuToIndex(&menu_contadorTotal);
 
     flag_manutencao = true;
