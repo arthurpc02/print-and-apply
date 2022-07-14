@@ -469,7 +469,7 @@ void incrementaContadores()
 {
     contadorDeCiclos++;
     contadorTotal++;
-    //   salvaContadorNaEEPROM(); // to do: reativar
+      salvaContadorNaEEPROM(); // to do: reativar
 }
 
 void t_rebobina(void *)

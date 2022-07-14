@@ -331,7 +331,7 @@ void loop()
         timer_finalizaAplicacao = millis();
         fsm_substate = fase5;
         desligaVentilador();
-        // to do: incrementaContadores();
+        incrementaContadores();
       }
     }
     else if (fsm_substate == fase5)
