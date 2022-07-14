@@ -322,6 +322,7 @@ void loop()
       {
         setFault(FALHA_APLICACAO);
         Serial.println("erro de aplicação");
+        // delay(100);
       }
     }
     else if (fsm_substate == fase4)

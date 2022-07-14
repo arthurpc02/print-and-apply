@@ -469,7 +469,7 @@ void incrementaContadores()
 {
     contadorDeCiclos++;
     contadorTotal++;
-      salvaContadorNaEEPROM(); // to do: reativar
+    salvaContadorNaEEPROM(); // to do: reativar
 }
 
 void t_rebobina(void *)
@@ -897,7 +897,6 @@ void t_eeprom(void *p)
 void saveParametersToEEPROM()
 {
     EEPROM.put(EPR_produto, produto);
-    EEPROM.put(EPR_contadorTotal, contadorTotal);
     EEPROM.put(EPR_tempoFinalizarAplicacao, tempoFinalizarAplicacao);
     EEPROM.put(EPR_posicaoLimite_dcmm, posicaoLimite_dcmm);
     EEPROM.put(EPR_posicaoDePegarEtiqueta_dcmm, posicaoDePegarEtiqueta_dcmm);
@@ -974,7 +973,8 @@ void salvaContadorNaEEPROM()
     const uint16_t intervaloEntreBackups = 100; // ciclos
     if ((contadorTotal % intervaloEntreBackups) == 0)
     {
-        // Serial.print("save contador: ");Serial.println(contadorTotal);
+        Serial.print("save contador: ");
+        Serial.println(contadorTotal);
         EEPROM.put(EPR_contadorTotal, contadorTotal);
     }
 }
