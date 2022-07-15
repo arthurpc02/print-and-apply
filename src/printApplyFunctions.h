@@ -336,7 +336,8 @@ void t_botoesIhm(void *p)
                 }
                 else if (checkMenu == &menu_enviaMensagem)
                 {
-                    enviaMensagemDeTesteParaImpressora();
+                    // enviaMensagemDeTesteParaImpressora();
+                    chamaEtiquetaUm();
                     enviaMensagem = 0;
                 }
                 else if (checkMenu == &menu_printTest)
@@ -368,7 +369,8 @@ void t_botoesIhm(void *p)
                 }
                 else if (checkMenu == &menu_enviaMensagem)
                 {
-                    enviaMensagemDeTesteParaImpressora();
+                    // enviaMensagemDeTesteParaImpressora();
+                    chamaEtiquetaDois();
                     enviaMensagem = 0;
                 }
                 else if (checkMenu == &menu_printTest)
@@ -427,13 +429,13 @@ void enviaMensagemDeTesteParaImpressora()
 
 void chamaEtiquetaUm()
 {
-    msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ "; // mensagem um
+    msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ"; // mensagem um
     xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
 void chamaEtiquetaDois()
 {
-    msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ "; // mensagem um
+    msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ"; // mensagem dois
     xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
