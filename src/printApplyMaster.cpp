@@ -71,6 +71,7 @@ void loop()
       flag_referenciou = false;
       flag_cicloEmAndamento = false;
       fsm_substate = fase2;
+      delay(100); // pra garantir que vai printar EMERGENCIA na ihm antes de desligar a Serial.
       ihm.liquidC.endSerial(); // a serial está sendo desligada durante o emergencia para garantir que o pc não terá concorrência para comunicar com a impressora SATO.
     }
     else if (fsm_substate == fase2)
