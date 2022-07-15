@@ -234,6 +234,8 @@ void torre_ligaLuzVermelha();
 void torre_ligaLuzVerde();
 
 void enviaMensagemDeTesteParaImpressora();
+void chamaEtiquetaUm();
+void chamaEtiquetaDois();
 void t_enviaMensagem(void *p);
 
 ////////////////////////////////////////////////////////////////////////
@@ -289,8 +291,8 @@ void t_botoesIhm(void *p)
         xSemaphoreTake(mutex_rs485, portMAX_DELAY);
         bt = ihm.requestButtons();
         xSemaphoreGive(mutex_rs485);
-        
-        if(flag_zeraBotoes)
+
+        if (flag_zeraBotoes)
         {
             bt = BOTAO_NENHUM;
             flag_zeraBotoes = false;
@@ -419,6 +421,19 @@ void t_botoesIhm(void *p)
 void enviaMensagemDeTesteParaImpressora()
 {
     msgBuffer_out = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // mensagem simples, texto = ABCD e quantidade = 2.
+    // msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ "; // mensagem um
+    xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+}
+
+void chamaEtiquetaUm()
+{
+    msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ "; // mensagem um
+    xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+}
+
+void chamaEtiquetaDois()
+{
+    msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ "; // mensagem um
     xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
