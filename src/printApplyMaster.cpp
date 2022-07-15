@@ -192,7 +192,7 @@ void loop()
         break;
       }
     }
-    
+
     if (evento == EVT_PLAY_PAUSE)
     {
       flag_pause = true;
@@ -274,8 +274,8 @@ void loop()
         break;
       }
     }
-    
-     if (evento == EVT_PLAY_PAUSE)
+
+    if (evento == EVT_PLAY_PAUSE)
     {
       flag_pause = true;
       break;
@@ -323,6 +323,7 @@ void loop()
       {
         setFault(FALHA_APLICACAO);
         Serial.println("erro de aplicação");
+        changeFsmState(ESTADO_STOP);
       }
     }
     else if (fsm_substate == fase4)
@@ -371,7 +372,7 @@ void loop()
       changeFsmState(ESTADO_STOP);
       break;
     }
-    
+
     if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
@@ -451,7 +452,7 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-   
+
     if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
@@ -480,7 +481,7 @@ void loop()
       changeFsmState(ESTADO_STOP);
       break;
     }
-    
+
     if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
@@ -522,8 +523,8 @@ void loop()
       changeFsmState(ESTADO_EMERGENCIA);
       break;
     }
-    
-     if (evento == EVT_PLAY_PAUSE)
+
+    if (evento == EVT_PLAY_PAUSE)
     {
       changeFsmState(ESTADO_STOP);
       break;
