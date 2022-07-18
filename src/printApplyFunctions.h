@@ -239,6 +239,8 @@ void chamaEtiquetaDois();
 void t_enviaMensagem(void *p);
 
 void t_checaSunnyVision(void *p);
+bool checkSunnyVision_A();
+bool checkSunnyVision_B();
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -261,19 +263,68 @@ void t_checaSunnyVision(void *p)
 {
     int16_t intervalo = 5; // ms
 
-    while(1)
+    uint32_t timer_sunnyvision = 0;
+    uint16_t tempoMinimoParaDeteccaoDoSunnyVision = 1000; // ms
+
+    while (1)
     {
         delay(intervalo);
 
         xSemaphoreTake(mutex_ios, portMAX_DELAY);
         extIOs.updateInputState();
         xSemaphoreGive(mutex_ios);
+        // to do: [bug] parece que os IOs estam falhando ocasionalmente depois de implementar essa task
 
-        // if(sunnyVision_A.checkPulse() && extIOs.checkInputState(PIN_SUNNYVISION_B))
-        // {
+        bool stateA = checkSunnyVision_A();
+        bool stateB = checkSunnyVision_B();
 
-        // }
+        if (stateA == true && stateB == true)
+        {
+            if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
+            {
+                // enviaEvento(EVT_SUNNYVISION_BIGBAG);
+                Serial.println("big bag");
+                timer_sunnyvision = millis();
+            }
+        }
+        else if (stateA == true && stateB == false)
+        {
+            if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
+            {
+                // enviaEvento(EVT_SUNNYVISION_LINHA2);
+                Serial.println("linha 2");
+                timer_sunnyvision = millis();
+            }
+        }
+        else if (stateA == false && stateB == true)
+        {
+            if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
+            {
+                // enviaEvento(EVT_SUNNYVISION_LINHA1);
+                Serial.println("linha 1");
+                timer_sunnyvision = millis();
+            }
+        }
+        else
+        {
+            timer_sunnyvision = millis();
+        }
     }
+}
+
+bool checkSunnyVision_A()
+{
+    // como as entradas A e B do sunnyvision foram colocados em tipos de inputs diferentes na placa genérica, estou utilizando o software para
+    // que elas sejam true e false nas mesmas condições.
+    bool state = false;
+    state = !sunnyVision_A.checkState();
+    return state;
+}
+
+bool checkSunnyVision_B()
+{
+    // para melhor funcionamento dessa função, tem que executar o extIOs.updateInputState() antes.
+    return extIOs.checkInputState(PIN_SUNNYVISION_B);
 }
 
 void t_ihm(void *p)
@@ -1041,11 +1092,12 @@ void salvaContadorNaEEPROM()
     const uint16_t intervaloEntreBackups = 100; // ciclos
     if ((contadorTotal % intervaloEntreBackups) == 0)
     {
-        Serial.print("save contador: ");
-        Serial.println(contadorTotal);
+        // Serial.print("save contador: ");
+        // Serial.println(contadorTotal);
         EEPROM.put(EPR_contadorTotal, contadorTotal);
     }
 }
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 void t_emergencia(void *p)
@@ -1162,7 +1214,7 @@ void t_debug(void *p)
         xSemaphoreTake(mutex_ios, portMAX_DELAY);
         extIOs.updateInputState();
         xSemaphoreGive(mutex_ios);
-        
+
         Serial.print(" SV_B: ");
         Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_B));
         Serial.print(" SV_INTT: ");
