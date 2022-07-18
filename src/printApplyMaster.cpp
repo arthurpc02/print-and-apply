@@ -23,6 +23,7 @@ void setup()
   sinalPrintEnd.setup();
   sensorAplicacao.setup();
   sensorHome.setup();
+  sunnyVision_A.setup();
   ventiladorSetup();
 
   extIOs.init();

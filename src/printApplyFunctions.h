@@ -78,6 +78,7 @@ checkSensorPulse sinalPrintEnd = checkSensorPulse(PIN_PREND, 1);
 checkSensorPulse sensorAplicacao = checkSensorPulse(PIN_SENSOR_APLICACAO, 1);
 checkSensorPulse sensorHome = checkSensorPulse(PIN_SENSOR_HOME, 1);
 checkSensorPulse sinalImpressoraOnline = checkSensorPulse(PIN_IMPRESSORA_ONLINE, 1);
+checkSensorPulse sunnyVision_A = checkSensorPulse(PIN_SUNNYVISION_A, 1);
 
 // Outros:
 uint16_t quantidadeDeMenusDeManutencao = 1;
@@ -104,7 +105,6 @@ int32_t atrasoSensorProduto = 1000; // ms
 int32_t posicaoDeAguardarProduto_dcmm = 1800;
 int32_t distanciaProduto_dcmm = 750;
 int32_t velocidadeDeTrabalho_dcmm = 1500;
-// to do: trocar os 'dcmms' dos nomes da variaveis para 'dcmm' mesmo
 
 // parâmetros manutenção:
 int32_t tempoFinalizarAplicacao = 250;
@@ -238,6 +238,8 @@ void chamaEtiquetaUm();
 void chamaEtiquetaDois();
 void t_enviaMensagem(void *p);
 
+void t_checaSunnyVision(void *p);
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void createTasks()
@@ -247,6 +249,7 @@ void createTasks()
     xTaskCreatePinnedToCore(t_botoesIhm, "botoesIhm task", 4096, NULL, PRIORITY_3, &h_botoesIhm, CORE_0);
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_checaSunnyVision, "sunnyvision task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
 
     if (flag_debugEnabled)
         xTaskCreatePinnedToCore(t_debug, "Debug task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -254,6 +257,25 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+void t_checaSunnyVision(void *p)
+{
+    int16_t intervalo = 5; // ms
+
+    while(1)
+    {
+        delay(intervalo);
+
+        xSemaphoreTake(mutex_ios, portMAX_DELAY);
+        extIOs.updateInputState();
+        xSemaphoreGive(mutex_ios);
+
+        // if(sunnyVision_A.checkPulse() && extIOs.checkInputState(PIN_SUNNYVISION_B))
+        // {
+
+        // }
+    }
+}
+
 void t_ihm(void *p)
 {
     ihm.configDefaultMsg("   PRINT & APPLY");
@@ -1132,12 +1154,19 @@ void t_debug(void *p)
         Serial.print(digitalRead(PIN_SENSOR_HOME));
         Serial.print(" SA: ");
         Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
-        Serial.print(" PREND: ");
-        Serial.print(digitalRead(PIN_PREND));
-        Serial.print(" ONLINE: ");
-        Serial.print(sinalImpressoraOnline.checkState());
         Serial.print(" braco_pos: ");
         Serial.print(braco.currentPosition());
+        Serial.print(" SV_A: ");
+        Serial.print(sunnyVision_A.checkState());
+
+        xSemaphoreTake(mutex_ios, portMAX_DELAY);
+        extIOs.updateInputState();
+        xSemaphoreGive(mutex_ios);
+        
+        Serial.print(" SV_B: ");
+        Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_B));
+        Serial.print(" SV_INTT: ");
+        Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_INTT));
 
         Serial.println();
         delay(2000);
