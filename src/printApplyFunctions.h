@@ -68,6 +68,7 @@ AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBO
 
 TaskHandle_t h_eeprom;
 TaskHandle_t h_botoesIhm;
+TaskHandle_t h_filaDoSunnyVision;
 
 extern HardwareSerial rs485;
 
@@ -238,9 +239,11 @@ void chamaEtiquetaUm();
 void chamaEtiquetaDois();
 void t_enviaMensagem(void *p);
 
-void t_checaSunnyVision(void *p);
+void t_filaDoSunnyVision(void *p);
 bool checkSunnyVision_A();
 bool checkSunnyVision_B();
+void criaTaskFilaDoSunnyVision();
+void finalizaTaskFilaDoSunnyVision();
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -251,7 +254,6 @@ void createTasks()
     xTaskCreatePinnedToCore(t_botoesIhm, "botoesIhm task", 4096, NULL, PRIORITY_3, &h_botoesIhm, CORE_0);
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
-    xTaskCreatePinnedToCore(t_checaSunnyVision, "sunnyvision task", 2048, NULL, PRIORITY_3, NULL, CORE_0);
 
     if (flag_debugEnabled)
         xTaskCreatePinnedToCore(t_debug, "Debug task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -259,7 +261,17 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-void t_checaSunnyVision(void *p)
+void criaTaskFilaDoSunnyVision()
+{
+    xTaskCreatePinnedToCore(t_filaDoSunnyVision, "fila do sunnyvision task", 2048, NULL, PRIORITY_3, &h_filaDoSunnyVision, CORE_0);
+}
+
+void finalizaTaskFilaDoSunnyVision()
+{
+    vTaskDelete(h_filaDoSunnyVision);
+}
+
+void t_filaDoSunnyVision(void *p)
 {
     int16_t intervalo = 5; // ms
 
@@ -273,7 +285,7 @@ void t_checaSunnyVision(void *p)
         xSemaphoreTake(mutex_ios, portMAX_DELAY);
         extIOs.updateInputState();
         xSemaphoreGive(mutex_ios);
-        // to do: [bug] parece que os IOs estam falhando ocasionalmente depois de implementar essa task
+        // to do: [bug] parece que os IOs estão falhando ocasionalmente depois de implementar essa task
 
         bool stateA = checkSunnyVision_A();
         bool stateB = checkSunnyVision_B();
@@ -284,6 +296,7 @@ void t_checaSunnyVision(void *p)
             {
                 // enviaEvento(EVT_SUNNYVISION_BIGBAG);
                 Serial.println("big bag");
+                // to do: delay(intervalo entre sinais)
                 timer_sunnyvision = millis();
             }
         }

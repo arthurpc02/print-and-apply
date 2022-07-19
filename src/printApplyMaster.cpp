@@ -57,6 +57,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
+      // finalizaTaskFilaDoSunnyVision();
       desabilitaMotores();
       desligaTodosOutputs();
       vTaskResume(h_eeprom);
@@ -128,6 +129,7 @@ void loop()
           changeFsmState(ESTADO_FALHA);
           break;
         }
+        // finalizaTaskFilaDoSunnyVision();
         ihm.desligaLEDverde();
         delay(1);
         ihm.showStatus2msg("EM PAUSA");
@@ -162,6 +164,7 @@ void loop()
         else
         {
           flag_cicloEmAndamento = true;
+          criaTaskFilaDoSunnyVision();
           changeFsmState(ESTADO_POSICIONANDO);
           // changeFsmState(ESTADO_TESTE_COMUNICACAO);
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
