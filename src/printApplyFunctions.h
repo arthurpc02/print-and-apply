@@ -69,7 +69,7 @@ AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBO
 
 enum tiposDeProduto
 {
-    Linha1,
+    Linha1 = 1, // tem que começar igual a 1, para qdo tiver zero, ser considerado erro.
     Linha2,
     BigBag,
 };
@@ -266,7 +266,7 @@ void createTasks()
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_filaDoSunnyVision, "fila do sunnyvision task", 2048, NULL, PRIORITY_3, &h_filaDoSunnyVision, CORE_0);
-    vTaskSuspend(h_filaDoSunnyVision);
+    // vTaskSuspend(h_filaDoSunnyVision);
 
     if (flag_debugEnabled)
         xTaskCreatePinnedToCore(t_debug, "Debug task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -560,7 +560,7 @@ void t_enviaMensagem(void *p)
     xSemaphoreGive(mutex_rs485);
 
     enviaEvento(EVT_MENSAGEM_ENVIADA);
-    Serial.println("msg de teste enviada.");
+    Serial.println("msg enviada.");
     // to do: checar confirmação da impressora
 
     vTaskDelete(NULL);
