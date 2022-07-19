@@ -242,8 +242,6 @@ void t_enviaMensagem(void *p);
 void t_filaDoSunnyVision(void *p);
 bool checkSunnyVision_A();
 bool checkSunnyVision_B();
-void criaTaskFilaDoSunnyVision();
-void finalizaTaskFilaDoSunnyVision();
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -254,6 +252,8 @@ void createTasks()
     xTaskCreatePinnedToCore(t_botoesIhm, "botoesIhm task", 4096, NULL, PRIORITY_3, &h_botoesIhm, CORE_0);
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+    xTaskCreatePinnedToCore(t_filaDoSunnyVision, "fila do sunnyvision task", 2048, NULL, PRIORITY_3, &h_filaDoSunnyVision, CORE_0);
+    vTaskSuspend(h_filaDoSunnyVision);
 
     if (flag_debugEnabled)
         xTaskCreatePinnedToCore(t_debug, "Debug task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -261,16 +261,6 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-void criaTaskFilaDoSunnyVision()
-{
-    xTaskCreatePinnedToCore(t_filaDoSunnyVision, "fila do sunnyvision task", 2048, NULL, PRIORITY_3, &h_filaDoSunnyVision, CORE_0);
-}
-
-void finalizaTaskFilaDoSunnyVision()
-{
-    vTaskDelete(h_filaDoSunnyVision);
-}
-
 void t_filaDoSunnyVision(void *p)
 {
     int16_t intervalo = 5; // ms
