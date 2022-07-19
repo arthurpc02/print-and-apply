@@ -17,6 +17,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #include <ihmSunnytecMaster_v2.0.h>
 #include <checkSensorPulse.h>
 #include <extendedIOs.h>
+#include <fifo.h>
 
 // cada falha do equipamento é armazenada em um bit diferente do faultRegister
 #define FALHA_EMERGENCIA (1 << 0)
@@ -65,6 +66,16 @@ QueueHandle_t eventQueue;      // os eventos são armazenados em uma fila
 
 AccelStepper braco(AccelStepper::DRIVER, PIN_PUL_BRACO, PIN_DIR_BRACO);
 AccelStepper rebobinador(AccelStepper::DRIVER, PIN_PUL_REBOBINADOR, PIN_DIR_REBOBINADOR); // na verdade o DIR do rebobinador não está conectado. Então defini um pino que não está sendo utilizado.
+
+enum tiposDeProduto
+{
+    Linha1,
+    Linha2,
+    BigBag,
+};
+
+const int16_t LIMITE_DE_PRODUTOS_NA_LINHA = 6;
+FIFO<tiposDeProduto> filaDeProdutos = FIFO<tiposDeProduto>(LIMITE_DE_PRODUTOS_NA_LINHA);
 
 TaskHandle_t h_eeprom;
 TaskHandle_t h_botoesIhm;
@@ -243,6 +254,8 @@ void t_filaDoSunnyVision(void *p);
 bool checkSunnyVision_A();
 bool checkSunnyVision_B();
 
+void preparaAplicacaoDependendoDoProduto();
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void createTasks()
@@ -261,10 +274,32 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+void preparaAplicacaoDependendoDoProduto()
+{
+    if (filaDeProdutos.peek() == Linha1)
+    {
+        chamaEtiquetaUm();
+    }
+    else if (filaDeProdutos.peek() == Linha2)
+    {
+        chamaEtiquetaDois();
+    }
+    else if (filaDeProdutos.peek() == BigBag)
+    {
+        // to do: Big Bag
+    }
+    else
+    {
+        Serial.println("erro");
+    }
+
+    filaDeProdutos.pop();
+}
+
 void t_filaDoSunnyVision(void *p)
 {
-    const int16_t intervalo = 5; // ms
-    const int16_t intervaloEntreProdutos = 1000; //ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
+    const int16_t intervalo = 5;                 // ms
+    const int16_t intervaloEntreProdutos = 1000; // ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
 
     uint32_t timer_sunnyvision = 0;
     uint16_t tempoMinimoParaDeteccaoDoSunnyVision = 1000; // ms
@@ -285,7 +320,7 @@ void t_filaDoSunnyVision(void *p)
         {
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
-                // enviaEvento(EVT_SUNNYVISION_BIGBAG);
+                filaDeProdutos.push(BigBag);
                 Serial.println("big bag");
                 delay(intervaloEntreProdutos);
                 timer_sunnyvision = millis();
@@ -295,7 +330,7 @@ void t_filaDoSunnyVision(void *p)
         {
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
-                // enviaEvento(EVT_SUNNYVISION_LINHA2);
+                filaDeProdutos.push(Linha2);
                 Serial.println("linha 2");
                 delay(intervaloEntreProdutos);
                 timer_sunnyvision = millis();
@@ -305,7 +340,7 @@ void t_filaDoSunnyVision(void *p)
         {
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
-                // enviaEvento(EVT_SUNNYVISION_LINHA1);
+                filaDeProdutos.push(Linha1);
                 delay(intervaloEntreProdutos);
                 Serial.println("linha 1");
                 timer_sunnyvision = millis();
@@ -1131,9 +1166,10 @@ void t_emergencia(void *p)
             }
         } // to do: trocar "else if" por vários if's independentes
 
-        if (flag_simulaEtiqueta == false)
-            updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
-        else
+        // to do: reativar falha de impressora online
+        // if (flag_simulaEtiqueta == false)
+        //     updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
+        // else
             updateFault(FALHA_IMPRESSORA, false);
     }
 }

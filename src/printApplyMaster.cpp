@@ -291,6 +291,7 @@ void loop()
     {
       if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
+        preparaAplicacaoDependendoDoProduto();
         timer_atrasoSensorProduto = millis(); //
         fsm_substate = fase2;
       }
