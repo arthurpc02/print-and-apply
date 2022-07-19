@@ -13,3 +13,6 @@
 [submodule "lib/SunnyAccelStepper"]
 	path = lib/SunnyAccelStepper
 	url = git@github.com:Atsunnytec/SunnyAccelStepper.git
+[submodule "lib/fifo"]
+	path = lib/fifo
+	url = git@github.com:Atsunnytec/fifo.git
