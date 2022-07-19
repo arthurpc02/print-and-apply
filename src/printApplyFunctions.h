@@ -33,6 +33,7 @@ enum Estado
 {
     ESTADO_EMERGENCIA,
     ESTADO_STOP,
+    ESTADO_PRONTO_PARA_COMECAR,
     ESTADO_REFERENCIANDO,
     ESTADO_APLICACAO,
     ESTADO_POSICIONANDO,
@@ -1170,7 +1171,7 @@ void t_emergencia(void *p)
         // if (flag_simulaEtiqueta == false)
         //     updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
         // else
-            updateFault(FALHA_IMPRESSORA, false);
+            // updateFault(FALHA_IMPRESSORA, false);
     }
 }
 
@@ -1250,6 +1251,10 @@ void t_debug(void *p)
         Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
         Serial.print(" braco_pos: ");
         Serial.print(braco.currentPosition());
+        Serial.print(" fila_count: ");
+        Serial.print(filaDeProdutos.count);
+
+
         // Serial.print(" SV_A: ");
         // Serial.print(sunnyVision_A.checkState());
 

@@ -73,7 +73,7 @@ void loop()
       flag_referenciou = false;
       flag_cicloEmAndamento = false;
       fsm_substate = fase2;
-      delay(100); // pra garantir que vai printar EMERGENCIA na ihm antes de desligar a Serial.
+      delay(100);              // pra garantir que vai printar EMERGENCIA na ihm antes de desligar a Serial.
       ihm.liquidC.endSerial(); // a serial está sendo desligada durante o emergencia para garantir que o pc não terá concorrência para comunicar com a impressora SATO.
     }
     else if (fsm_substate == fase2)
@@ -165,7 +165,8 @@ void loop()
         {
           flag_cicloEmAndamento = true;
           // vTaskResume(h_filaDoSunnyVision);
-          changeFsmState(ESTADO_POSICIONANDO);
+          changeFsmState(ESTADO_PRONTO_PARA_COMECAR);
+          // changeFsmState(ESTADO_POSICIONANDO);
           // changeFsmState(ESTADO_TESTE_COMUNICACAO);
           // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
           // changeFsmState(ESTADO_TESTE_DO_BRACO);
@@ -174,6 +175,55 @@ void loop()
         }
       }
     }
+    break;
+  }
+  case ESTADO_PRONTO_PARA_COMECAR:
+  {
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+    else if (checkFault(0))
+    {
+      if (checkFault(FALHA_IMPRESSORA))
+      {
+        // não faz nada
+      }
+      else
+      {
+        changeFsmState(ESTADO_STOP);
+        break;
+      }
+    }
+
+    if (evento == EVT_PLAY_PAUSE)
+    {
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
+
+    if (fsm_substate == fase1)
+    {
+      ihm.showStatus2msg("AGUARDANDO ETIQUETAS");
+      fsm_substate = fase2;
+    }
+    else if (fsm_substate == fase2)
+    {
+      // to do: aqui depende do modo de funcionamento
+      if (sensorDeProdutoOuStart.checkPulse())
+      {
+        Serial.println("falha: sem fila.");
+        setFault(FALHA_IMPRESSORA);
+        changeFsmState(ESTADO_FALHA);
+      }
+      else if (filaDeProdutos.isEmpty() != true)
+      {
+        preparaAplicacaoDependendoDoProduto(); // to do: depende do modo de funcionamento
+        changeFsmState(ESTADO_POSICIONANDO);
+      }
+    }
+
     break;
   }
   case ESTADO_POSICIONANDO:
@@ -291,8 +341,8 @@ void loop()
     {
       if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
-        preparaAplicacaoDependendoDoProduto();
-        timer_atrasoSensorProduto = millis(); //
+        
+        timer_atrasoSensorProduto = millis();  //
         fsm_substate = fase2;
       }
       else if (flag_pause)
@@ -442,7 +492,7 @@ void loop()
         delay(tempoDeEstabilizacaoNaReferenciacao);
         if (flag_cicloEmAndamento)
         {
-          changeFsmState(ESTADO_POSICIONANDO);
+          changeFsmState(ESTADO_PRONTO_PARA_COMECAR);
         }
         else
         {
