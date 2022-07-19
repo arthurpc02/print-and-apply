@@ -263,7 +263,8 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 void t_filaDoSunnyVision(void *p)
 {
-    int16_t intervalo = 5; // ms
+    const int16_t intervalo = 5; // ms
+    const int16_t intervaloEntreProdutos = 1000; //ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
 
     uint32_t timer_sunnyvision = 0;
     uint16_t tempoMinimoParaDeteccaoDoSunnyVision = 1000; // ms
@@ -286,7 +287,7 @@ void t_filaDoSunnyVision(void *p)
             {
                 // enviaEvento(EVT_SUNNYVISION_BIGBAG);
                 Serial.println("big bag");
-                // to do: delay(intervalo entre sinais)
+                delay(intervaloEntreProdutos);
                 timer_sunnyvision = millis();
             }
         }
@@ -296,6 +297,7 @@ void t_filaDoSunnyVision(void *p)
             {
                 // enviaEvento(EVT_SUNNYVISION_LINHA2);
                 Serial.println("linha 2");
+                delay(intervaloEntreProdutos);
                 timer_sunnyvision = millis();
             }
         }
@@ -304,6 +306,7 @@ void t_filaDoSunnyVision(void *p)
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
                 // enviaEvento(EVT_SUNNYVISION_LINHA1);
+                delay(intervaloEntreProdutos);
                 Serial.println("linha 1");
                 timer_sunnyvision = millis();
             }
@@ -1211,17 +1214,17 @@ void t_debug(void *p)
         Serial.print(digitalRead(PIN_SENSOR_APLICACAO));
         Serial.print(" braco_pos: ");
         Serial.print(braco.currentPosition());
-        Serial.print(" SV_A: ");
-        Serial.print(sunnyVision_A.checkState());
+        // Serial.print(" SV_A: ");
+        // Serial.print(sunnyVision_A.checkState());
 
-        xSemaphoreTake(mutex_ios, portMAX_DELAY);
-        extIOs.updateInputState();
-        xSemaphoreGive(mutex_ios);
+        // xSemaphoreTake(mutex_ios, portMAX_DELAY);
+        // extIOs.updateInputState();
+        // xSemaphoreGive(mutex_ios);
 
-        Serial.print(" SV_B: ");
-        Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_B));
-        Serial.print(" SV_INTT: ");
-        Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_INTT));
+        // Serial.print(" SV_B: ");
+        // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_B));
+        // Serial.print(" SV_INTT: ");
+        // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_INTT));
 
         Serial.println();
         delay(2000);
