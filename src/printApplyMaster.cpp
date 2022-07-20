@@ -227,6 +227,7 @@ void loop()
 
         if (proximoProduto == BigBag)
         {
+          ihm.showStatus2msg("BIG BAG");
           changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
         }
         else
@@ -236,6 +237,52 @@ void loop()
       }
     }
 
+    break;
+  }
+  case ESTADO_AGUARDA_BIGBAG_PASSAR:
+  {
+    uint32_t timer_aguardaBigBag = 0;
+    const uint16_t tempoDeAguardarBigBag = 2000; //ms
+
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+    else if (checkFault(0))
+    {
+      if (checkFault(FALHA_IMPRESSORA))
+      {
+        // não faz nada
+      }
+      else
+      {
+        changeFsmState(ESTADO_STOP);
+        break;
+      }
+    }
+
+    if (evento == EVT_PLAY_PAUSE)
+    {
+      changeFsmState(ESTADO_STOP);
+      break;
+    }
+
+    if(fsm_substate == fase1)
+    {
+      if (sensorDeProdutoOuStart.checkPulse())
+      {
+        timer_aguardaBigBag = millis();
+        fsm_substate = fase2;
+      }
+    }
+    else if(fsm_substate == fase2)
+    {
+      if(millis() - timer_aguardaBigBag >= tempoDeAguardarBigBag)
+      {
+        changeFsmState(ESTADO_PRONTO_PARA_COMECAR);
+      }
+    }
     break;
   }
   case ESTADO_POSICIONANDO:
