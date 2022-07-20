@@ -211,6 +211,7 @@ void loop()
     else if (fsm_substate == fase2)
     {
       // to do: aqui depende do modo de funcionamento
+
       if (sensorDeProdutoOuStart.checkPulse())
       {
         Serial.println("falha: sem fila.");
@@ -219,8 +220,19 @@ void loop()
       }
       else if (filaDeProdutos.isEmpty() != true)
       {
-        preparaAplicacaoDependendoDoProduto(); // to do: depende do modo de funcionamento
-        changeFsmState(ESTADO_POSICIONANDO);
+        tiposDeProduto proximoProduto;
+        proximoProduto = filaDeProdutos.peek();
+        filaDeProdutos.pop();
+        preparaAplicacaoDependendoDoProduto(proximoProduto);
+
+        if (proximoProduto == BigBag)
+        {
+          changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+        }
+        else
+        {
+          changeFsmState(ESTADO_POSICIONANDO);
+        }
       }
     }
 
@@ -341,8 +353,8 @@ void loop()
     {
       if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
-        
-        timer_atrasoSensorProduto = millis();  //
+
+        timer_atrasoSensorProduto = millis(); //
         fsm_substate = fase2;
       }
       else if (flag_pause)

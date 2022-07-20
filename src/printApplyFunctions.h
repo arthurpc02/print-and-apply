@@ -38,6 +38,7 @@ enum Estado
     ESTADO_APLICACAO,
     ESTADO_POSICIONANDO,
     ESTADO_FALHA,
+    ESTADO_AGUARDA_BIGBAG_PASSAR,
     ESTADO_TESTE_DE_IMPRESSAO,
     ESTADO_TESTE_DO_BRACO,
     ESTADO_TESTE_DO_VENTILADOR,
@@ -275,26 +276,24 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-void preparaAplicacaoDependendoDoProduto()
+void preparaAplicacaoDependendoDoProduto(tiposDeProduto tipoProduto)
 {
-    if (filaDeProdutos.peek() == Linha1)
+    if (tipoProduto == Linha1)
     {
         chamaEtiquetaUm();
     }
-    else if (filaDeProdutos.peek() == Linha2)
+    else if (tipoProduto == Linha2)
     {
         chamaEtiquetaDois();
     }
-    else if (filaDeProdutos.peek() == BigBag)
+    else if (tipoProduto == BigBag)
     {
-        // to do: Big Bag
+        Serial.println("big bag = nao aplica");
     }
     else
     {
         Serial.println("erro");
     }
-
-    filaDeProdutos.pop();
 }
 
 void t_filaDoSunnyVision(void *p)
