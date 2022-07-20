@@ -57,7 +57,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      // vTaskSuspend(h_filaDoSunnyVision);
+      resetaFilaDeProdutos();
       desabilitaMotores();
       desligaTodosOutputs();
       vTaskResume(h_eeprom);
@@ -129,7 +129,7 @@ void loop()
           changeFsmState(ESTADO_FALHA);
           break;
         }
-        // vTaskSuspend(h_filaDoSunnyVision);
+        resetaFilaDeProdutos();
         ihm.desligaLEDverde();
         delay(1);
         ihm.showStatus2msg("EM PAUSA");

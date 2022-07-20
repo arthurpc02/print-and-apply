@@ -253,6 +253,7 @@ void chamaEtiquetaDois();
 void t_enviaMensagem(void *p);
 
 void t_filaDoSunnyVision(void *p);
+void resetaFilaDeProdutos();
 bool checkSunnyVision_A();
 bool checkSunnyVision_B();
 
@@ -279,6 +280,13 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+void resetaFilaDeProdutos()
+{
+    Serial.println("reseta fila de produtos");
+    filaDeProdutos.clear();
+}
+
+
 void enviaSinalFimDeAplicacao()
 {
     xTaskCreatePinnedToCore(t_fimDeAplicacao, "fim de Aplicacao task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
