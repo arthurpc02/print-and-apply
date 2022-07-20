@@ -456,6 +456,7 @@ void loop()
     {
       if (millis() - timer_finalizaAplicacao > tempoFinalizarAplicacao)
       {
+        enviaSinalFimDeAplicacao();
         if (flag_pause)
         {
           flag_pause = false;

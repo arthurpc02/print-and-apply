@@ -51,9 +51,6 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 // SATO / impressora:
 #define PIN_PREND PIN_HSDI4
 #define PIN_IMPRESSORA_ONLINE PIN_DI1
-#define PIN_SUNNYVISION_A PIN_DI2
-#define PIN_SUNNYVISION_B DI3
-#define PIN_SUNNYVISION_INTT DI4
 
 #define PIN_PRIN PIN_DO1
 #define PIN_PRIN2 PIN_DO2
@@ -61,6 +58,12 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 // Ventilador:
 #define PIN_VENTILADOR PIN_DO3
 #define VENTILADOR_CANAL CANAL_0
+
+// outras interfaces:
+#define PIN_SUNNYVISION_A PIN_DI2
+#define PIN_SUNNYVISION_B DI3
+#define PIN_SUNNYVISION_INTT DI4
+#define PIN_FIM_DE_APLICACAO DO5
 
 // Motores:
 // Motor Principal:

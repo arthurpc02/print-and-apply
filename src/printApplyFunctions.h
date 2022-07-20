@@ -258,6 +258,9 @@ bool checkSunnyVision_B();
 
 void preparaAplicacaoDependendoDoProduto();
 
+void enviaSinalFimDeAplicacao();
+void t_fimDeAplicacao(void *);
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void createTasks()
@@ -276,6 +279,26 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+void enviaSinalFimDeAplicacao()
+{
+    xTaskCreatePinnedToCore(t_fimDeAplicacao, "fim de Aplicacao task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
+}
+
+void t_fimDeAplicacao(void *p)
+{
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
+    extIOs.ligaOutput(PIN_FIM_DE_APLICACAO);
+    xSemaphoreGive(mutex_ios);
+
+    delay(2000);
+
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
+    extIOs.desligaOutput(PIN_FIM_DE_APLICACAO);
+    xSemaphoreGive(mutex_ios);
+
+    vTaskDelete(NULL);
+}
+
 void preparaAplicacaoDependendoDoProduto(tiposDeProduto tipoProduto)
 {
     if (tipoProduto == Linha1)
@@ -1170,7 +1193,7 @@ void t_emergencia(void *p)
         // if (flag_simulaEtiqueta == false)
         //     updateFault(FALHA_IMPRESSORA, !sinalImpressoraOnline.checkState());
         // else
-            // updateFault(FALHA_IMPRESSORA, false);
+        // updateFault(FALHA_IMPRESSORA, false);
     }
 }
 
@@ -1252,7 +1275,6 @@ void t_debug(void *p)
         Serial.print(braco.currentPosition());
         Serial.print(" fila_count: ");
         Serial.print(filaDeProdutos.count);
-
 
         // Serial.print(" SV_A: ");
         // Serial.print(sunnyVision_A.checkState());
