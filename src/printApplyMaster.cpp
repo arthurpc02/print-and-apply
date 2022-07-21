@@ -164,14 +164,7 @@ void loop()
         else
         {
           flag_cicloEmAndamento = true;
-          // vTaskResume(h_filaDoSunnyVision);
           changeFsmState(ESTADO_PRONTO_PARA_COMECAR);
-          // changeFsmState(ESTADO_POSICIONANDO);
-          // changeFsmState(ESTADO_TESTE_COMUNICACAO);
-          // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
-          // changeFsmState(ESTADO_TESTE_DO_BRACO);
-          // changeFsmState(ESTADO_TESTE_DO_VENTILADOR);
-          // changeFsmState(ESTADO_APLICACAO);
         }
       }
     }
@@ -205,34 +198,41 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      ihm.showStatus2msg("AGUARDANDO ETIQUETAS");
+      ihm.showStatus2msg("AGUARDANDO PRODUTOS");
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
     {
       // to do: aqui depende do modo de funcionamento
 
-      if (sensorDeProdutoOuStart.checkPulse())
+      if (modoDeFuncionamento == Padrao)
       {
-        Serial.println("falha: sem fila.");
-        setFault(FALHA_IMPRESSORA);
-        changeFsmState(ESTADO_FALHA);
+        changeFsmState(ESTADO_POSICIONANDO);
       }
-      else if (filaDeProdutos.isEmpty() != true)
+      else if (modoDeFuncionamento == DiversosProdutos)
       {
-        tiposDeProduto proximoProduto;
-        proximoProduto = filaDeProdutos.peek();
-        filaDeProdutos.pop();
-        preparaAplicacaoDependendoDoProduto(proximoProduto);
-
-        if (proximoProduto == BigBag)
+        if (sensorDeProdutoOuStart.checkPulse())
         {
-          ihm.showStatus2msg("BIG BAG");
-          changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+          Serial.println("falha: sem fila.");
+          setFault(FALHA_IMPRESSORA);
+          changeFsmState(ESTADO_FALHA);
         }
-        else
+        else if (filaDeProdutos.isEmpty() != true)
         {
-          changeFsmState(ESTADO_POSICIONANDO);
+          tiposDeProduto proximoProduto;
+          proximoProduto = filaDeProdutos.peek();
+          filaDeProdutos.pop();
+          preparaAplicacaoDependendoDoProduto(proximoProduto);
+
+          if (proximoProduto == BigBag)
+          {
+            ihm.showStatus2msg("BIG BAG");
+            changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+          }
+          else
+          {
+            changeFsmState(ESTADO_POSICIONANDO);
+          }
         }
       }
     }
@@ -242,7 +242,7 @@ void loop()
   case ESTADO_AGUARDA_BIGBAG_PASSAR:
   {
     uint32_t timer_aguardaBigBag = 0;
-    const uint16_t tempoDeAguardarBigBag = 2000; //ms
+    const uint16_t tempoDeAguardarBigBag = 2000; // ms
 
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -268,7 +268,7 @@ void loop()
       break;
     }
 
-    if(fsm_substate == fase1)
+    if (fsm_substate == fase1)
     {
       if (sensorDeProdutoOuStart.checkPulse())
       {
@@ -276,9 +276,9 @@ void loop()
         fsm_substate = fase2;
       }
     }
-    else if(fsm_substate == fase2)
+    else if (fsm_substate == fase2)
     {
-      if(millis() - timer_aguardaBigBag >= tempoDeAguardarBigBag)
+      if (millis() - timer_aguardaBigBag >= tempoDeAguardarBigBag)
       {
         changeFsmState(ESTADO_PRONTO_PARA_COMECAR);
       }
@@ -328,6 +328,7 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
+        // to do: colocar um delay aqui para esperar o ventilador acelerar?
         imprimeEtiqueta();
         fsm_substate = fase3;
       }

@@ -79,6 +79,12 @@ enum tiposDeProduto
 const int16_t LIMITE_DE_PRODUTOS_NA_LINHA = 6;
 FIFO<tiposDeProduto> filaDeProdutos = FIFO<tiposDeProduto>(LIMITE_DE_PRODUTOS_NA_LINHA);
 
+enum modoDeFuncionamento
+{
+    Padrao,
+    DiversosProdutos,
+};
+
 TaskHandle_t h_eeprom;
 TaskHandle_t h_botoesIhm;
 TaskHandle_t h_filaDoSunnyVision;
@@ -136,6 +142,7 @@ int32_t potenciaVentilador = 30; // porcentagem
 int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
 int32_t printTest = 0;
+int32_t modoDeFuncionamento = Padrao;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
@@ -272,7 +279,6 @@ void createTasks()
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_filaDoSunnyVision, "fila do sunnyvision task", 2048, NULL, PRIORITY_3, &h_filaDoSunnyVision, CORE_0);
-    // vTaskSuspend(h_filaDoSunnyVision);
 
     if (flag_debugEnabled)
         xTaskCreatePinnedToCore(t_debug, "Debug task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -285,7 +291,6 @@ void resetaFilaDeProdutos()
     Serial.println("reseta fila de produtos");
     filaDeProdutos.clear();
 }
-
 
 void enviaSinalFimDeAplicacao()
 {
