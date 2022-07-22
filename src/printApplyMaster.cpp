@@ -328,7 +328,6 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        // to do: colocar um delay aqui para esperar o ventilador acelerar?
         imprimeEtiqueta();
         fsm_substate = fase3;
       }
