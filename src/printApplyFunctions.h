@@ -203,6 +203,8 @@ void t_eeprom(void *p);
 void t_emergencia(void *p);
 
 void desligaTodosOutputs();
+void fechaIntertravamento();
+void abreIntertravamento();
 
 void ventiladorSetup();
 void ligaVentilador();
@@ -814,12 +816,16 @@ void imprimeEtiqueta()
 
 void torre_ligaLuzVermelha()
 {
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
     extIOs.desligaOutput(PIN_TORRE_LUMINOSA);
+    xSemaphoreGive(mutex_ios);
 }
 
 void torre_ligaLuzVerde()
 {
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
     extIOs.ligaOutput(PIN_TORRE_LUMINOSA);
+    xSemaphoreGive(mutex_ios);
 }
 
 // simula a impressão de uma etiqueta, para fins de testes do software.
@@ -965,12 +971,16 @@ void habilitaMotoresEAguardaEstabilizar()
 
 void habilitaMotores()
 {
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
     extIOs.desligaOutput(PIN_ENABLE_MOTORES);
+    xSemaphoreGive(mutex_ios);
 }
 
 void desabilitaMotores()
 {
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
     extIOs.ligaOutput(PIN_ENABLE_MOTORES);
+    xSemaphoreGive(mutex_ios);
 }
 
 // checa qual/quais falhas estão ativas
@@ -1230,6 +1240,13 @@ void t_emergencia(void *p)
     }
 }
 
+void fechaIntertravamento()
+{
+
+}
+
+void abreIntertravamento();
+
 void desligaTodosOutputs()
 {
     digitalWrite(PIN_DO1, HIGH);
@@ -1242,10 +1259,14 @@ void desligaTodosOutputs()
 
     uint8_t output = 0;
     output = bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8);
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
     extIOs.changeOutputState(output);
+    xSemaphoreGive(mutex_ios);
     desabilitaMotores();
     torre_ligaLuzVerde();
-    extIOs.ligaOutput(RLO1);
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
+    extIOs.ligaOutput(RLO1); // to do: desligar esse output junto com os outros, pra usar o mutex uma vez a menos.
+    xSemaphoreGive(mutex_ios);
 }
 
 //////////////////////////////////////////////////////////////////////
