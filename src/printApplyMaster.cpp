@@ -129,6 +129,7 @@ void loop()
           changeFsmState(ESTADO_FALHA);
           break;
         }
+        abreIntertravamento();
         resetaFilaDeProdutos();
         ihm.desligaLEDverde();
         delay(1);
@@ -199,6 +200,7 @@ void loop()
     if (fsm_substate == fase1)
     {
       ihm.showStatus2msg("AGUARDANDO PRODUTOS");
+      fechaIntertravamento();
       fsm_substate = fase2;
     }
     else if (fsm_substate == fase2)
@@ -681,6 +683,7 @@ void loop()
     if (fsm_substate == fase1)
     {
       vTaskResume(h_eeprom);
+      abreIntertravamento();
       flag_cicloEmAndamento = false;
       flag_referenciou = false;
       delay(1);
