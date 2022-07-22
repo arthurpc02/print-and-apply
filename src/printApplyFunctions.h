@@ -1242,10 +1242,17 @@ void t_emergencia(void *p)
 
 void fechaIntertravamento()
 {
-
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
+    extIOs.desligaOutput(PIN_INTERTRAVAMENTO_OUT);
+    xSemaphoreGive(mutex_ios);
 }
 
-void abreIntertravamento();
+void abreIntertravamento()
+{
+    xSemaphoreTake(mutex_ios, portMAX_DELAY);
+    extIOs.ligaOutput(PIN_INTERTRAVAMENTO_OUT);
+    xSemaphoreGive(mutex_ios);
+}
 
 void desligaTodosOutputs()
 {
@@ -1258,15 +1265,11 @@ void desligaTodosOutputs()
     digitalWrite(PIN_HSDO4, LOW);
 
     uint8_t output = 0;
-    output = bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8);
+    output = bit(DO5) | bit(DO6) | bit(DO7) | bit(DO8) | (!bit(RLO1)) | (!bit(RLO2));
     xSemaphoreTake(mutex_ios, portMAX_DELAY);
     extIOs.changeOutputState(output);
     xSemaphoreGive(mutex_ios);
     desabilitaMotores();
-    torre_ligaLuzVerde();
-    xSemaphoreTake(mutex_ios, portMAX_DELAY);
-    extIOs.ligaOutput(RLO1); // to do: desligar esse output junto com os outros, pra usar o mutex uma vez a menos.
-    xSemaphoreGive(mutex_ios);
 }
 
 //////////////////////////////////////////////////////////////////////
