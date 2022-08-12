@@ -121,24 +121,24 @@ bool flag_zeraBotoes = false;                 // Quando a conexao serial é desl
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
 int32_t produto = 1;
-int32_t atrasoSensorProduto = 1000; // ms
-int32_t posicaoDeAguardarProduto_dcmm = 1800;
-int32_t distanciaProduto_dcmm = 750;
-int32_t velocidadeDeTrabalho_dcmm = 1500;
+int32_t atrasoSensorProduto = 100; // ms
+int32_t posicaoDeAguardarProduto_dcmm = 1200;
+int32_t distanciaProduto_dcmm = 950;
+int32_t velocidadeDeTrabalho_dcmm = 4000;
 
 // parâmetros manutenção:
 int32_t tempoFinalizarAplicacao = 250;
-int32_t posicaoLimite_dcmm = 4200;
-int32_t posicaoDePegarEtiqueta_dcmm = 430;
-int32_t posicaoDeRepouso_dcmm = 1250;
-int32_t velocidadeDeReferenciacao_dcmm = 2200;
-int32_t rampa_dcmm = 80;
-int32_t rampaReferenciacao_dcmm = 200; // to do: fazer menu e colocar na eeprom
+int32_t posicaoLimite_dcmm = 4400;
+int32_t posicaoDePegarEtiqueta_dcmm = 280;
+int32_t posicaoDeRepouso_dcmm = 1000;
+int32_t velocidadeDeReferenciacao_dcmm = 4000;
+int32_t rampa_dcmm = 250;
+int32_t rampaReferenciacao_dcmm = 190; // to do: fazer menu e colocar na eeprom
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
 int32_t habilitaPortasDeSeguranca = 0;
-int32_t potenciaVentilador = 30; // porcentagem
+int32_t potenciaVentilador = 35; // porcentagem
 int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
 int32_t printTest = 0;
@@ -598,14 +598,16 @@ void enviaMensagemDeTesteParaImpressora()
 
 void chamaEtiquetaUm()
 {
-    msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ"; // mensagem um
-    xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    Serial.println("@Linha1#");
+    // msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ"; // mensagem um
+    // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
 void chamaEtiquetaDois()
 {
-    msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ"; // mensagem dois
-    xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
+    Serial.println("@Linha2#");
+    // msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ"; // mensagem dois
+    // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
 void t_enviaMensagem(void *p)
@@ -1332,6 +1334,7 @@ void t_debug(void *p)
         Serial.print(braco.currentPosition());
         Serial.print(" fila_count: ");
         Serial.print(filaDeProdutos.count);
+        // Serial.println(" @Linha2");
 
         // Serial.print(" SV_A: ");
         // Serial.print(sunnyVision_A.checkState());
