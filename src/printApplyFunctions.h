@@ -114,7 +114,6 @@ bool flag_cicloEmAndamento = false;
 bool flag_debugEnabled = true;
 bool flag_manutencao = false;
 bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
-bool flag_zeraBotoes = false;                 // Quando a conexao serial é desligada para permitir comunicacao com a SATO, a IHM ainda fica registrando os botoes.
                                               // Quando a conexao é reestabelecida, é necessário ignorar esse botoes que foram pressionados enquanto nao tinha conexão.
                                               // Por esse motivo a flag_zeraBotoes foi criada.
 
@@ -447,13 +446,7 @@ void t_botoesIhm(void *p)
         bt = ihm.requestButtons();
         xSemaphoreGive(mutex_rs485);
 
-        if (flag_zeraBotoes)
-        {
-            bt = BOTAO_NENHUM;
-            flag_zeraBotoes = false;
-        }
-
-        if (bt == TIMEOUT)
+                if (bt == TIMEOUT)
         {
             Serial.println("timeout ihm");
         }
