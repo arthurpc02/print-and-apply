@@ -610,6 +610,8 @@ void chamaEtiquetaDois()
     // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
+
+
 void t_enviaMensagem(void *p) // SBPL
 {
     xSemaphoreTake(mutex_rs485, portMAX_DELAY);
@@ -635,7 +637,7 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 16; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
+    quantidadeDeMenusDeManutencao = 15; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
@@ -651,7 +653,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_rampaReferenciacao_dcmm);
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
-    ihm.addMenuToIndex(&menu_enviaMensagem);
+    // ihm.addMenuToIndex(&menu_enviaMensagem);
     ihm.addMenuToIndex(&menu_printTest);
     ihm.addMenuToIndex(&menu_contadorTotal);
 
