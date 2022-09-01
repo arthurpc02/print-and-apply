@@ -23,7 +23,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define FALHA_EMERGENCIA (1 << 0)
 #define FALHA_IMPRESSAO (1 << 1)
 #define FALHA_SENSORES (1 << 2)
-#define FALHA_IHM (1 << 3)
+#define FALHA_CAMERA (1 << 3)
 #define FALHA_IMPRESSORA (1 << 4)
 #define FALHA_PORTA_ABERTA (1 << 5)
 #define FALHA_APLICACAO (1 << 6)
@@ -272,6 +272,8 @@ void preparaAplicacaoDependendoDoProduto();
 void enviaSinalFimDeAplicacao();
 void t_fimDeAplicacao(void *);
 
+bool sunnyvisionEstaEmFuncionamento();
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void createTasks()
@@ -338,9 +340,9 @@ void preparaAplicacaoDependendoDoProduto(tiposDeProduto tipoProduto)
 void t_filaDoSunnyVision(void *p)
 {
     const int16_t intervalo = 5;                 // ms
-    const int16_t intervaloEntreProdutos = 1000; // ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
 
     uint32_t timer_sunnyvision = 0;
+    const int16_t intervaloEntreProdutos = 1000; // ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
     uint16_t tempoMinimoParaDeteccaoDoSunnyVision = 1000; // ms
 
     while (1)
@@ -405,6 +407,11 @@ bool checkSunnyVision_B()
 {
     // para melhor funcionamento dessa função, tem que executar o extIOs.updateInputState() antes.
     return extIOs.checkInputState(PIN_SUNNYVISION_B);
+}
+
+bool sunnyvisionEstaEmFuncionamento()
+{
+    return extIOs.checkInputState(PIN_SUNNYVISION_INTT);
 }
 
 void t_ihm(void *p)
@@ -582,7 +589,7 @@ void atualizaTextoMenuModoDeFuncionamento()
     ihm.signalVariableChange();
 }
 
-void enviaMensagemDeTesteParaImpressora()
+void enviaMensagemDeTesteParaImpressora() // SBPL
 {
     msgBuffer_out = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // mensagem simples, texto = ABCD e quantidade = 2.
     // msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ "; // mensagem um
@@ -591,19 +598,19 @@ void enviaMensagemDeTesteParaImpressora()
 
 void chamaEtiquetaUm()
 {
-    Serial.println("@Linha1#");
+    Serial.println("@Linha1#"); // para o Bartender
     // msgBuffer_out = "\eA\eCC1\eYR,1\eQ1\eZ"; // mensagem um
     // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
 void chamaEtiquetaDois()
 {
-    Serial.println("@Linha2#");
+    Serial.println("@Linha2#");  // para o Bartender
     // msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ"; // mensagem dois
     // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
-void t_enviaMensagem(void *p)
+void t_enviaMensagem(void *p) // SBPL
 {
     xSemaphoreTake(mutex_rs485, portMAX_DELAY);
     ihm.liquidC.envio485(msgBuffer_out); // to do: separar rs485 da lib da ihm, para que o software principal possa utilizar o RS485 separado.
@@ -1080,9 +1087,9 @@ void imprimeFalhaNaIhm()
     {
         codFalha.concat("SENSORES");
     }
-    else if (checkFault(FALHA_IHM))
+    else if (checkFault(FALHA_CAMERA))
     {
-        codFalha.concat("IHM");
+        codFalha.concat("CAMERA");
     }
     else if (checkFault(FALHA_PORTA_ABERTA))
     {

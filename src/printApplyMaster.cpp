@@ -73,7 +73,7 @@ void loop()
       flag_referenciou = false;
       flag_cicloEmAndamento = false;
       fsm_substate = fase2;
-      delay(100);              // pra garantir que vai printar EMERGENCIA na ihm antes de desligar a Serial.
+      delay(100); // pra garantir que vai printar EMERGENCIA na ihm antes de desligar a Serial.
     }
     else if (fsm_substate == fase2)
     {
@@ -210,28 +210,37 @@ void loop()
       }
       else if (modoDeFuncionamento == DiversosProdutos)
       {
-        if (sensorDeProdutoOuStart.checkPulse())
+        if (sunnyvisionEstaEmFuncionamento())
         {
-          Serial.println("falha: sem fila.");
-          setFault(FALHA_IMPRESSORA);
-          changeFsmState(ESTADO_FALHA);
-        }
-        else if (filaDeProdutos.isEmpty() != true)
-        {
-          tiposDeProduto proximoProduto;
-          proximoProduto = filaDeProdutos.peek();
-          filaDeProdutos.pop();
-          preparaAplicacaoDependendoDoProduto(proximoProduto);
+          if (sensorDeProdutoOuStart.checkPulse())
+          {
+            Serial.println("falha: sem fila.");
+            setFault(FALHA_IMPRESSORA);
+            changeFsmState(ESTADO_FALHA);
+          }
+          else if (filaDeProdutos.isEmpty() != true)
+          {
+            tiposDeProduto proximoProduto;
+            proximoProduto = filaDeProdutos.peek();
+            filaDeProdutos.pop();
+            preparaAplicacaoDependendoDoProduto(proximoProduto);
 
-          if (proximoProduto == BigBag)
-          {
-            ihm.showStatus2msg("BIG BAG");
-            changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+            if (proximoProduto == BigBag)
+            {
+              ihm.showStatus2msg("BIG BAG");
+              changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+            }
+            else
+            {
+              changeFsmState(ESTADO_POSICIONANDO);
+            }
           }
-          else
-          {
-            changeFsmState(ESTADO_POSICIONANDO);
-          }
+        }
+        else
+        {
+          ihm.showStatus2msg("CAMERA DESLIGADA");
+          changeFsmState(ESTADO_FALHA);
+          setFault(FALHA_CAMERA);
         }
       }
     }
