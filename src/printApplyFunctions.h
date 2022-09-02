@@ -273,6 +273,7 @@ void enviaSinalFimDeAplicacao();
 void t_fimDeAplicacao(void *);
 
 bool sunnyvisionEstaEmFuncionamento();
+void t_checaComunicacaoComOBartender(void *p);
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -339,10 +340,10 @@ void preparaAplicacaoDependendoDoProduto(tiposDeProduto tipoProduto)
 
 void t_filaDoSunnyVision(void *p)
 {
-    const int16_t intervalo = 5;                 // ms
+    const int16_t intervalo = 5; // ms
 
     uint32_t timer_sunnyvision = 0;
-    const int16_t intervaloEntreProdutos = 1000; // ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
+    const int16_t intervaloEntreProdutos = 1000;          // ms. Essa variavel também é o tempo máximo que o sinal pode ficar ligado. Se passar desse valor o produto vai vir duplicado.
     uint16_t tempoMinimoParaDeteccaoDoSunnyVision = 1000; // ms
 
     while (1)
@@ -453,7 +454,7 @@ void t_botoesIhm(void *p)
         bt = ihm.requestButtons();
         xSemaphoreGive(mutex_rs485);
 
-                if (bt == TIMEOUT)
+        if (bt == TIMEOUT)
         {
             Serial.println("timeout ihm");
         }
@@ -605,12 +606,49 @@ void chamaEtiquetaUm()
 
 void chamaEtiquetaDois()
 {
-    Serial.println("@Linha2#");  // para o Bartender
+    Serial.println("@Linha2#"); // para o Bartender
     // msgBuffer_out = "\eA\eCC1\eYR,2\eQ1\eZ"; // mensagem dois
     // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
+bool checaComunicacaoComOBartender()
+{
+    xTaskCreatePinnedToCore(t_checaComunicacaoComOBartender, "task checa bartender", 2056, NULL, PRIORITY_2, NULL, CORE_0);
+    
+    return true; // to do: aguarda retorno.
+}
 
+void t_checaComunicacaoComOBartender(void *p)
+{
+    bool flag_respostaRecebida = false;
+    uint32_t timer_heartbeat = 0;
+    const uint16_t timeout = 1000; // ms
+
+    Serial.println("@HeartBeat#");
+
+    while (flag_respostaRecebida == true || millis() - timer_heartbeat >= timeout)
+    {
+        timer_heartbeat = millis();
+
+        if (Serial.available())
+        {
+            char *msgReceived;
+            uint16_t index = 0;
+            while (Serial.available())
+            {
+                char c = Serial.read();
+                msgReceived[index] = c;
+                index++;
+            }
+
+            if (strcmp(msgReceived, "@OK#"))
+            {
+                Serial.println("connection with bartender is alive.");
+            }
+        }
+    }
+    vTaskDelete(NULL);
+}
 
 void t_enviaMensagem(void *p) // SBPL
 {
