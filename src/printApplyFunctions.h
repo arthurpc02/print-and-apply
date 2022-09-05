@@ -614,7 +614,7 @@ void chamaEtiquetaDois()
 bool checaComunicacaoComOBartender()
 {
     xTaskCreatePinnedToCore(t_checaComunicacaoComOBartender, "task checa bartender", 2056, NULL, PRIORITY_2, NULL, CORE_0);
-    
+    Serial.println("created heartbeat task");
     return true; // to do: aguarda retorno.
 }
 
@@ -623,6 +623,7 @@ void t_checaComunicacaoComOBartender(void *p)
     bool flag_respostaRecebida = false;
     uint32_t timer_heartbeat = 0;
     const uint16_t timeout = 1000; // ms
+    const uint16_t maximumCaractersInAMessage = 10;
 
     Serial.println("@HeartBeat#");
 
@@ -634,19 +635,29 @@ void t_checaComunicacaoComOBartender(void *p)
         {
             char *msgReceived;
             uint16_t index = 0;
-            while (Serial.available())
+
+            free(msgReceived);
+            msgReceived = (char *)malloc(maximumCaractersInAMessage * sizeof(char));
+
+            Serial.print("c: ");
+            while (Serial.available() && index < maximumCaractersInAMessage)
             {
                 char c = Serial.read();
+                Serial.print(c);
                 msgReceived[index] = c;
                 index++;
             }
+            Serial.println();
 
             if (strcmp(msgReceived, "@OK#"))
             {
                 Serial.println("connection with bartender is alive.");
+                flag_respostaRecebida = true;
+                vTaskDelete(NULL);
             }
         }
     }
+    Serial.println("timeout bartender");
     vTaskDelete(NULL);
 }
 
@@ -1387,6 +1398,8 @@ void t_debug(void *p)
         // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_B));
         // Serial.print(" SV_INTT: ");
         // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_INTT));
+
+        checaComunicacaoComOBartender();
 
         Serial.println();
         delay(2000);
