@@ -113,6 +113,7 @@ bool flag_referenciou = false;
 bool flag_cicloEmAndamento = false;
 bool flag_debugEnabled = true;
 bool flag_manutencao = false;
+bool flag_bartenderConnectionIsAlive = true;
 bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
                                               // Quando a conexao é reestabelecida, é necessário ignorar esse botoes que foram pressionados enquanto nao tinha conexão.
                                               // Por esse motivo a flag_zeraBotoes foi criada.
@@ -274,6 +275,8 @@ void t_fimDeAplicacao(void *);
 
 bool sunnyvisionEstaEmFuncionamento();
 void t_checaComunicacaoComOBartender(void *p);
+bool temConexaoComBartender();
+void clearSerialBuffer();
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -285,6 +288,7 @@ void createTasks()
     xTaskCreatePinnedToCore(t_emergencia, "emergencia task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_blink, "blink task", 1024, NULL, PRIORITY_1, NULL, CORE_0);
     xTaskCreatePinnedToCore(t_filaDoSunnyVision, "fila do sunnyvision task", 2048, NULL, PRIORITY_3, &h_filaDoSunnyVision, CORE_0);
+    xTaskCreatePinnedToCore(t_checaComunicacaoComOBartender, "task checa bartender", 2056, NULL, PRIORITY_1, NULL, CORE_0);
 
     if (flag_debugEnabled)
         xTaskCreatePinnedToCore(t_debug, "Debug task", 2048, NULL, PRIORITY_1, NULL, CORE_0);
@@ -611,54 +615,98 @@ void chamaEtiquetaDois()
     // xTaskCreatePinnedToCore(t_enviaMensagem, "msg task", 1024, NULL, PRIORITY_2, NULL, CORE_0);
 }
 
-bool checaComunicacaoComOBartender()
+bool temConexaoComBartender()
 {
-    xTaskCreatePinnedToCore(t_checaComunicacaoComOBartender, "task checa bartender", 2056, NULL, PRIORITY_2, NULL, CORE_0);
-    Serial.println("created heartbeat task");
-    return true; // to do: aguarda retorno.
+    return flag_bartenderConnectionIsAlive;
 }
 
 void t_checaComunicacaoComOBartender(void *p)
 {
-    bool flag_respostaRecebida = false;
-    uint32_t timer_heartbeat = 0;
-    const uint16_t timeout = 1000; // ms
+    const uint16_t intervaloDaTask = 200;
+
+    const uint16_t frequenciaDoTesteDeConexao = 5000;
+    static uint32_t timer_frequenciaDoTesteDeConexao = 0;
+
+    static uint32_t fsm_checaComunicacaoComOBartender = fase1;
+
     const uint16_t maximumCaractersInAMessage = 10;
 
-    Serial.println("@HeartBeat#");
+    const uint16_t timeout = 2000; // ms
+    static uint32_t timer_heartbeat = 0;
 
-    while (flag_respostaRecebida == true || millis() - timer_heartbeat >= timeout)
+    char *msgReceived = (char *)malloc(maximumCaractersInAMessage * sizeof(char));
+
+    while (1)
     {
-        timer_heartbeat = millis();
+        delay(intervaloDaTask);
 
-        if (Serial.available())
+        if (fsm_checaComunicacaoComOBartender == fase1)
         {
-            char *msgReceived;
-            uint16_t index = 0;
-
-            free(msgReceived);
-            msgReceived = (char *)malloc(maximumCaractersInAMessage * sizeof(char));
-
-            Serial.print("c: ");
-            while (Serial.available() && index < maximumCaractersInAMessage)
+            if (millis() - timer_frequenciaDoTesteDeConexao >= frequenciaDoTesteDeConexao)
             {
-                char c = Serial.read();
-                Serial.print(c);
-                msgReceived[index] = c;
-                index++;
-            }
-            Serial.println();
-
-            if (strcmp(msgReceived, "@OK#"))
-            {
-                Serial.println("connection with bartender is alive.");
-                flag_respostaRecebida = true;
-                vTaskDelete(NULL);
+                clearSerialBuffer();
+                Serial.println("@HeartBeat#");
+                timer_heartbeat = millis();
+                fsm_checaComunicacaoComOBartender = fase2;
             }
         }
+        else if (fsm_checaComunicacaoComOBartender == fase2)
+        {
+            if (Serial.available())
+            {
+                uint16_t index = 0;
+
+                Serial.print("c: ");
+                while (Serial.available() && index < (maximumCaractersInAMessage - 1)) // o -1 é pra guardar espaço para o terminador da string.
+                {
+                    char c = Serial.read();
+                    // Serial.print(c, HEX);Serial.print(" ");
+                    msgReceived[index] = c;
+                    index++;
+                }
+                Serial.println();
+
+                msgReceived[index] = 0x00;
+
+                // Serial.print("msg received: ");
+                // for(int i = 0; i < maximumCaractersInAMessage; i++)
+                // {
+                //     Serial.print(msgReceived[i], HEX);Serial.print(" ");
+                // }
+                // Serial.println();
+
+                const char stringResposta[5] = {'@', 'O', 'K', '#', '\0'}; // pode ser que não precise do \0 no final.
+
+                if (strcmp(msgReceived, stringResposta) == 0)
+                {
+                    Serial.println("connection with bartender is alive.");
+                    flag_bartenderConnectionIsAlive = true;
+                }
+                else
+                {
+                    Serial.println("erro msg do bartender");
+                }
+                fsm_checaComunicacaoComOBartender = fase3;
+            }
+            else if (millis() - timer_heartbeat >= timeout)
+            {
+                flag_bartenderConnectionIsAlive = false;
+                Serial.println("timeout bartender");
+                fsm_checaComunicacaoComOBartender = fase3;
+            }
+        }
+        else if (fsm_checaComunicacaoComOBartender == fase3)
+        {
+            timer_frequenciaDoTesteDeConexao = millis();
+            fsm_checaComunicacaoComOBartender = fase1;
+        }
     }
-    Serial.println("timeout bartender");
-    vTaskDelete(NULL);
+}
+
+void clearSerialBuffer()
+{
+    while (Serial.available())
+        Serial.read();
 }
 
 void t_enviaMensagem(void *p) // SBPL
@@ -1399,7 +1447,7 @@ void t_debug(void *p)
         // Serial.print(" SV_INTT: ");
         // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_INTT));
 
-        checaComunicacaoComOBartender();
+        temConexaoComBartender();
 
         Serial.println();
         delay(2000);
