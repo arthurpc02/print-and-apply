@@ -210,41 +210,49 @@ void loop()
       }
       else if (modoDeFuncionamento == DiversosProdutos)
       {
-        if (sunnyvisionEstaEmFuncionamento())
+        if (temConexaoComBartender())
         {
-          if (sensorDeProdutoOuStart.checkPulse())
+          if (sunnyvisionEstaEmFuncionamento())
           {
-            Serial.println("falha: sem fila.");
-            setFault(FALHA_IMPRESSORA);
-            changeFsmState(ESTADO_FALHA);
-          }
-          else if (filaDeProdutos.isEmpty() != true)
-          {
-            tiposDeProduto proximoProduto;
-            proximoProduto = filaDeProdutos.peek();
-            filaDeProdutos.pop();
-            preparaAplicacaoDependendoDoProduto(proximoProduto);
+            if (sensorDeProdutoOuStart.checkPulse())
+            {
+              Serial.println("falha: sem fila.");
+              setFault(FALHA_IMPRESSORA);
+              changeFsmState(ESTADO_FALHA);
+            }
+            else if (filaDeProdutos.isEmpty() != true)
+            {
+              tiposDeProduto proximoProduto;
+              proximoProduto = filaDeProdutos.peek();
+              filaDeProdutos.pop();
+              preparaAplicacaoDependendoDoProduto(proximoProduto);
 
-            if (proximoProduto == BigBag)
-            {
-              ihm.showStatus2msg("BIG BAG");
-              changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+              if (proximoProduto == BigBag)
+              {
+                ihm.showStatus2msg("BIG BAG");
+                changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+              }
+              else
+              {
+                changeFsmState(ESTADO_POSICIONANDO);
+              }
             }
-            else
-            {
-              changeFsmState(ESTADO_POSICIONANDO);
-            }
+          }
+          else
+          {
+            ihm.showStatus2msg("CAMERA DESLIGADA");
+            changeFsmState(ESTADO_FALHA);
+            setFault(FALHA_CAMERA);
           }
         }
         else
         {
-          ihm.showStatus2msg("CAMERA DESLIGADA");
+          ihm.showStatus2msg("SEM BARTENDER");
           changeFsmState(ESTADO_FALHA);
-          setFault(FALHA_CAMERA);
+          setFault(FALHA_BARTENDER);
         }
       }
     }
-
     break;
   }
   case ESTADO_AGUARDA_BIGBAG_PASSAR:

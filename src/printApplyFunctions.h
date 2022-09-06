@@ -27,7 +27,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define FALHA_IMPRESSORA (1 << 4)
 #define FALHA_PORTA_ABERTA (1 << 5)
 #define FALHA_APLICACAO (1 << 6)
-#define FALHA_DESCONHECIDA (1 << 7)
+#define FALHA_BARTENDER (1 << 7)
 
 enum Estado
 {
@@ -1197,6 +1197,10 @@ void imprimeFalhaNaIhm()
     else if (checkFault(FALHA_APLICACAO))
     {
         codFalha.concat("APLICACAO");
+    }
+    else if (checkFault(FALHA_BARTENDER))
+    {
+        codFalha.concat("BARTENDER");
     }
     else
     {
