@@ -36,7 +36,11 @@ enum Estado
     ESTADO_PRONTO_PARA_COMECAR,
     ESTADO_REFERENCIANDO,
     ESTADO_APLICACAO,
+    ESTADO_DECIDE_IMPRESSAO,
     ESTADO_POSICIONANDO,
+    ESTADO_IMPRIME_ETIQUETA,
+    ESTADO_APLICA,
+    ESTADO_AGUARDA_START,
     ESTADO_FALHA,
     ESTADO_AGUARDA_BIGBAG_PASSAR,
     ESTADO_TESTE_DE_IMPRESSAO,
@@ -83,6 +87,12 @@ enum modoDeFuncionamento
 {
     Padrao,
     DiversosProdutos,
+};
+
+enum modoDeImpressao
+{
+    Imediato,
+    AguardaStart,
 };
 
 TaskHandle_t h_eeprom;
@@ -143,6 +153,7 @@ int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
 int32_t printTest = 0;
 int32_t modoDeFuncionamento = Padrao;
+int32_t modoDeImpressao = Imediato;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
