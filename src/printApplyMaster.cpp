@@ -87,6 +87,7 @@ void loop()
         ihm.desligaLEDvermelho();
         // changeFsmState(ESTADO_TESTE_DE_IMPRESSAO);
         clearAllFaults();
+
         changeFsmState(ESTADO_STOP);
       }
     }
@@ -220,7 +221,7 @@ void loop()
               setFault(FALHA_IMPRESSORA);
               changeFsmState(ESTADO_FALHA);
             }
-            else if (filaDeProdutos.isEmpty() != true)
+            else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
             {
               tiposDeProduto proximoProduto;
               proximoProduto = filaDeProdutos.peek();
@@ -416,7 +417,6 @@ void loop()
     {
       if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
-
         timer_atrasoSensorProduto = millis(); //
         fsm_substate = fase2;
       }
