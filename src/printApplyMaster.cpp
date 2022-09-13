@@ -436,7 +436,6 @@ void loop()
   }
   case ESTADO_AGUARDA_START:
   {
-    static uint32_t timer_atrasoSensorProduto = 0;
     static bool flag_pause = false;
 
     if (evento == EVT_PARADA_EMERGENCIA)
@@ -487,7 +486,6 @@ void loop()
   }
   case ESTADO_APLICA:
   {
-    static uint32_t timer_atrasoSensorProduto = 0;
     static uint32_t timer_finalizaAplicacao = 0;
     static bool flag_pause = false;
 

@@ -110,6 +110,7 @@ checkSensorPulse sunnyVision_A = checkSensorPulse(PIN_SUNNYVISION_A, 1);
 
 // Outros:
 uint16_t quantidadeDeMenusDeManutencao = 1;
+uint32_t timer_atrasoSensorProduto = 0; // global
 
 String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // \e é ESC ou 0x1B
 String msgBuffer_out;
@@ -129,7 +130,7 @@ bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ih
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
 int32_t produto = 1;
-int32_t atrasoSensorProduto = 100; // ms
+int32_t atrasoSensorProduto = 100; // ms, começa a contar depois do START.
 int32_t posicaoDeAguardarProduto_dcmm = 1200;
 int32_t distanciaProduto_dcmm = 950;
 int32_t velocidadeDeTrabalho_dcmm = 4000;
