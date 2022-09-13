@@ -89,8 +89,8 @@ enum modoDeFuncionamento
 
 enum modoDeImpressao
 {
-    Imediato,
-    AguardaStart,
+    AntesDoStart,
+    DepoisDoStart,
 };
 
 TaskHandle_t h_eeprom;
@@ -151,7 +151,7 @@ int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
 int32_t printTest = 0;
 int32_t modoDeFuncionamento = Padrao;
-int32_t modoDeImpressao = Imediato;
+int32_t modoDeImpressao = AntesDoStart;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;

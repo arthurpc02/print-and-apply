@@ -332,11 +332,11 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        if (modoDeImpressao == Imediato)
+        if (modoDeImpressao == AntesDoStart)
         {
           changeFsmState(ESTADO_IMPRIME_ETIQUETA);
         }
-        else if (modoDeImpressao == AguardaStart)
+        else if (modoDeImpressao == DepoisDoStart)
         {
           changeFsmState(ESTADO_AGUARDA_START);
         }
@@ -403,12 +403,12 @@ void loop()
         else
         {
           delay(tempoExtraAguardandoEtiqueta);
-          if (modoDeImpressao == AguardaStart)
+          if (modoDeImpressao == DepoisDoStart)
           {
             ihm.showStatus2msg("APLICA"); // nesse modo de impressão, logo depois de imprimir a etiqueta ela já é aplicada.
             changeFsmState(ESTADO_APLICA);
           }
-          else if (modoDeImpressao == Imediato)
+          else if (modoDeImpressao == AntesDoStart)
           {
             braco_moveTo(posicaoDeAguardarProduto_dcmm);
             fsm_substate = fase4;
@@ -468,11 +468,11 @@ void loop()
       if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
       {
         timer_atrasoSensorProduto = millis(); //
-        if (modoDeImpressao == Imediato)
+        if (modoDeImpressao == AntesDoStart)
         {
           changeFsmState(ESTADO_APLICA);
         }
-        else if (modoDeImpressao == AguardaStart)
+        else if (modoDeImpressao == DepoisDoStart)
         {
           changeFsmState(ESTADO_IMPRIME_ETIQUETA);
         }
