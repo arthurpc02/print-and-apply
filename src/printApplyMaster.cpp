@@ -207,7 +207,7 @@ void loop()
 
       if (modoDeFuncionamento == Padrao)
       {
-        changeFsmState(ESTADO_POSICIONANDO);
+        changeFsmState(ESTADO_DECIDE_IMPRESSAO);
       }
       else if (modoDeFuncionamento == DiversosProdutos)
       {
@@ -235,7 +235,7 @@ void loop()
               }
               else
               {
-                changeFsmState(ESTADO_POSICIONANDO);
+                changeFsmState(ESTADO_DECIDE_IMPRESSAO);
               }
             }
           }
@@ -385,8 +385,6 @@ void loop()
   }
   case ESTADO_DECIDE_IMPRESSAO:
   {
-    static bool flag_pause = false;
-
     if (evento == EVT_PARADA_EMERGENCIA)
     {
       changeFsmState(ESTADO_EMERGENCIA);
@@ -407,7 +405,7 @@ void loop()
 
     if (evento == EVT_PLAY_PAUSE)
     {
-      flag_pause = true;
+      changeFsmState(ESTADO_STOP);
       break;
     }
 
@@ -486,8 +484,16 @@ void loop()
         else
         {
           delay(tempoExtraAguardandoEtiqueta);
-          braco_moveTo(posicaoDeAguardarProduto_dcmm);
-          fsm_substate = fase4;
+          if (modoDeImpressao == AguardaStart)
+          {
+            ihm.showStatus2msg("APLICA"); // nesse modo de impressão, logo depois de imprimir a etiqueta ela já é aplicada.
+            changeFsmState(ESTADO_APLICACAO);
+          }
+          else if (modoDeImpressao == Imediato)
+          {
+            braco_moveTo(posicaoDeAguardarProduto_dcmm);
+            fsm_substate = fase4;
+          }
         }
       }
       else if (evento == EVT_FALHA)
@@ -502,16 +508,9 @@ void loop()
       {
         ihm.ligaLEDverde();
         delay(1);
-        if (modoDeImpressao == Imediato)
-        {
-          ihm.showStatus2msg("AGUARDANDO START");
-          changeFsmState(ESTADO_AGUARDA_START);
-        }
-        else if (modoDeImpressao == AguardaStart)
-        {
-          ihm.showStatus2msg("APLICA"); // nesse modo de impressão, logo depois de imprimir a etiqueta ela já é aplicada.
-          changeFsmState(ESTADO_APLICACAO);
-        }
+
+        ihm.showStatus2msg("AGUARDANDO START");
+        changeFsmState(ESTADO_AGUARDA_START);
       }
     }
     break;
@@ -557,7 +556,6 @@ void loop()
         else if (modoDeImpressao == AguardaStart)
         {
           changeFsmState(ESTADO_IMPRIME_ETIQUETA);
-          fsm_substate = fase2;
         }
       }
       else if (flag_pause)
@@ -690,26 +688,13 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      if (sensorDeProdutoOuStart.checkPulse() || evento == EVT_HOLD_PLAY_PAUSE)
-      {
-        timer_atrasoSensorProduto = millis(); //
-        fsm_substate = fase2;
-      }
-      else if (flag_pause)
-      {
-        flag_pause = false;
-        changeFsmState(ESTADO_STOP);
-      }
-    }
-    else if (fsm_substate == fase2)
-    {
       if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
       {
         braco_moveTo(posicaoLimite_dcmm);
-        fsm_substate = fase3;
+        fsm_substate = fase2;
       }
     }
-    else if (fsm_substate == fase3)
+    else if (fsm_substate == fase2)
     {
       if (sensorDeAplicacaoDetectouProduto())
       {
@@ -724,7 +709,7 @@ void loop()
           // atualiza a distancia do braco para que ele pare bem em cima do produto. (se o parâmetro tiver sido configurado corretamente)
           braco_move(distanciaProduto_dcmm);
         }
-        fsm_substate = fase4;
+        fsm_substate = fase3;
       }
       else if (braco.distanceToGo() == 0)
       {
@@ -733,17 +718,17 @@ void loop()
         changeFsmState(ESTADO_STOP);
       }
     }
-    else if (fsm_substate == fase4)
+    else if (fsm_substate == fase3)
     {
       if (braco.distanceToGo() == 0)
       {
         timer_finalizaAplicacao = millis();
-        fsm_substate = fase5;
+        fsm_substate = fase4;
         desligaVentilador();
         incrementaContadores();
       }
     }
-    else if (fsm_substate == fase5)
+    else if (fsm_substate == fase4)
     {
       if (millis() - timer_finalizaAplicacao > tempoFinalizarAplicacao)
       {
