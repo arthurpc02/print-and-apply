@@ -302,87 +302,6 @@ void loop()
     }
     break;
   }
-  case ESTADO_POSICIONANDO:
-  {
-    static bool flag_pause = false;
-    const int16_t tempoExtraAguardandoEtiqueta = 200; // ms
-
-    if (evento == EVT_PARADA_EMERGENCIA)
-    {
-      changeFsmState(ESTADO_EMERGENCIA);
-      break;
-    }
-    else if (checkFault(0))
-    {
-      if (checkFault(FALHA_IMPRESSORA))
-      {
-        // não faz nada
-      }
-      else
-      {
-        changeFsmState(ESTADO_STOP);
-        break;
-      }
-    }
-
-    if (evento == EVT_PLAY_PAUSE)
-    {
-      flag_pause = true;
-      break;
-    }
-
-    if (fsm_substate == fase1)
-    {
-      if (braco.distanceToGo() == 0)
-      {
-        braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
-        braco_moveTo(posicaoDePegarEtiqueta_dcmm);
-        ligaVentilador();
-        fsm_substate = fase2;
-      }
-    }
-    else if (fsm_substate == fase2)
-    {
-      if (braco.distanceToGo() == 0)
-      {
-        imprimeEtiqueta();
-        fsm_substate = fase3;
-      }
-    }
-    else if (fsm_substate == fase3)
-    {
-      if (evento == EVT_IMPRESSAO_CONCLUIDA)
-      {
-        if (flag_pause)
-        {
-          flag_pause = false;
-          changeFsmState(ESTADO_STOP);
-        }
-        else
-        {
-          delay(tempoExtraAguardandoEtiqueta);
-          braco_moveTo(posicaoDeAguardarProduto_dcmm);
-          fsm_substate = fase4;
-        }
-      }
-      else if (evento == EVT_FALHA)
-      {
-        setFault(FALHA_IMPRESSAO);
-        Serial.println("falha impressora");
-      }
-    }
-    else if (fsm_substate == fase4)
-    {
-      if (braco.distanceToGo() == 0)
-      {
-        ihm.ligaLEDverde();
-        delay(1);
-        ihm.showStatus2msg("AGUARDANDO PRODUTO");
-        changeFsmState(ESTADO_APLICACAO);
-      }
-    }
-    break;
-  }
   case ESTADO_DECIDE_IMPRESSAO:
   {
     if (evento == EVT_PARADA_EMERGENCIA)
@@ -487,7 +406,7 @@ void loop()
           if (modoDeImpressao == AguardaStart)
           {
             ihm.showStatus2msg("APLICA"); // nesse modo de impressão, logo depois de imprimir a etiqueta ela já é aplicada.
-            changeFsmState(ESTADO_APLICACAO);
+            changeFsmState(ESTADO_APLICA);
           }
           else if (modoDeImpressao == Imediato)
           {
@@ -567,96 +486,6 @@ void loop()
     break;
   }
   case ESTADO_APLICA:
-  {
-    static uint32_t timer_atrasoSensorProduto = 0;
-    static uint32_t timer_finalizaAplicacao = 0;
-    static bool flag_pause = false;
-
-    if (evento == EVT_PARADA_EMERGENCIA)
-    {
-      changeFsmState(ESTADO_EMERGENCIA);
-      break;
-    }
-    else if (checkFault(0))
-    {
-      if (checkFault(FALHA_IMPRESSORA))
-      {
-        // não faz nada
-      }
-      else
-      {
-        changeFsmState(ESTADO_STOP);
-        break;
-      }
-    }
-
-    if (evento == EVT_PLAY_PAUSE)
-    {
-      flag_pause = true;
-      break;
-    }
-
-    if (fsm_substate == fase1)
-    {
-      if (millis() - timer_atrasoSensorProduto >= atrasoSensorProduto)
-      {
-        braco_moveTo(posicaoLimite_dcmm);
-        fsm_substate = fase2;
-      }
-    }
-    else if (fsm_substate == fase2)
-    {
-      if (sensorDeAplicacaoDetectouProduto())
-      {
-        Serial.println("detectou produto");
-        if (distanciaProduto_dcmm < rampa_dcmm)
-        {
-          // to do: provavelmente haverá colisão nesse caso aqui, então o ideal seria nao permitir configurar a distancia do produto menor que a rampa.
-          braco.stop();
-        }
-        else
-        {
-          // atualiza a distancia do braco para que ele pare bem em cima do produto. (se o parâmetro tiver sido configurado corretamente)
-          braco_move(distanciaProduto_dcmm);
-        }
-        fsm_substate = fase3;
-      }
-      else if (braco.distanceToGo() == 0)
-      {
-        setFault(FALHA_APLICACAO);
-        Serial.println("erro de aplicação");
-        changeFsmState(ESTADO_STOP);
-      }
-    }
-    else if (fsm_substate == fase3)
-    {
-      if (braco.distanceToGo() == 0)
-      {
-        timer_finalizaAplicacao = millis();
-        fsm_substate = fase4;
-        desligaVentilador();
-        incrementaContadores();
-      }
-    }
-    else if (fsm_substate == fase4)
-    {
-      if (millis() - timer_finalizaAplicacao > tempoFinalizarAplicacao)
-      {
-        enviaSinalFimDeAplicacao();
-        if (flag_pause)
-        {
-          flag_pause = false;
-          changeFsmState(ESTADO_STOP);
-        }
-        else
-        {
-          changeFsmState(ESTADO_REFERENCIANDO);
-        }
-      }
-    }
-    break;
-  }
-  case ESTADO_APLICACAO:
   {
     static uint32_t timer_atrasoSensorProduto = 0;
     static uint32_t timer_finalizaAplicacao = 0;

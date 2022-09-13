@@ -35,9 +35,7 @@ enum Estado
     ESTADO_STOP,
     ESTADO_PRONTO_PARA_COMECAR,
     ESTADO_REFERENCIANDO,
-    ESTADO_APLICACAO,
     ESTADO_DECIDE_IMPRESSAO,
-    ESTADO_POSICIONANDO,
     ESTADO_IMPRIME_ETIQUETA,
     ESTADO_APLICA,
     ESTADO_AGUARDA_START,
@@ -153,7 +151,7 @@ int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
 int32_t printTest = 0;
 int32_t modoDeFuncionamento = Padrao;
-int32_t modoDeImpressao = AguardaStart;
+int32_t modoDeImpressao = Imediato;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
