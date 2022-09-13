@@ -151,7 +151,7 @@ int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
 int32_t printTest = 0;
 int32_t modoDeFuncionamento = Padrao;
-int32_t modoDeImpressao = AntesDoStart;
+int32_t modoDeImpressao = DepoisDoStart;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
@@ -191,6 +191,7 @@ Menu menu_aceleracaoRebobinador = Menu("Acel Rebobinador", PARAMETRO, &aceleraca
 Menu menu_enviaMensagem = Menu("Envia Mensagem", PARAMETRO, &enviaMensagem, " ", 1u, 0u, 1u, NULL);
 Menu menu_printTest = Menu("Print Test", PARAMETRO, &printTest, " ", 1u, 0u, 1u, NULL);
 Menu menu_modoDeFuncionamento = Menu("Modo de Funcionamento", PARAMETRO_STRING, &modoDeFuncionamento, " ", 1u, 0u, 1u, NULL);
+Menu menu_modoDeImpressao = Menu("Modo de Impressao", PARAMETRO_STRING, &modoDeImpressao, " ", 1u, 0u, 1u, NULL);
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -244,6 +245,7 @@ void incrementaContadores();
 void habilitaConfiguracaoPelaIhm();
 void desabilitaConfiguracaoPelaIhm();
 void atualizaTextoMenuModoDeFuncionamento();
+void atualizaTextoMenumodoDeImpressao();
 
 void enviaEvento(Evento event);
 Evento recebeEventos();
@@ -443,6 +445,7 @@ void t_ihm(void *p)
     liberaMenusDaIhm();
     ihm.goToMenu(&menu_contadorDeCiclos);
     atualizaTextoMenuModoDeFuncionamento();
+    atualizaTextoMenumodoDeImpressao();
 
     while (1)
     {
@@ -518,6 +521,10 @@ void t_botoesIhm(void *p)
                 {
                     atualizaTextoMenuModoDeFuncionamento();
                 }
+                else if (checkMenu == &menu_modoDeImpressao)
+                {
+                    atualizaTextoMenumodoDeImpressao();
+                }
             }
             else if (bt == BOTAO_ESQUERDA)
             {
@@ -554,6 +561,10 @@ void t_botoesIhm(void *p)
                 else if (checkMenu == &menu_modoDeFuncionamento)
                 {
                     atualizaTextoMenuModoDeFuncionamento();
+                }
+                else if (checkMenu == &menu_modoDeImpressao)
+                {
+                    atualizaTextoMenumodoDeImpressao();
                 }
             }
             else if (bt == BOTAO_DIREITA)
@@ -600,6 +611,11 @@ void t_botoesIhm(void *p)
 void atualizaTextoMenuModoDeFuncionamento()
 {
     *menu_modoDeFuncionamento.getVariavel() == Padrao ? menu_modoDeFuncionamento.changeMsg("Padrao") : menu_modoDeFuncionamento.changeMsg("Diversos Produtos");
+    ihm.signalVariableChange();
+}
+void atualizaTextoMenumodoDeImpressao()
+{
+    *menu_modoDeImpressao.getVariavel() == AntesDoStart ? menu_modoDeImpressao.changeMsg("Antes do START") : menu_modoDeImpressao.changeMsg("Depois do START");
     ihm.signalVariableChange();
 }
 
@@ -743,12 +759,13 @@ void liberaMenusDaIhm()
 
 void liberaMenusDeManutencao()
 {
-    quantidadeDeMenusDeManutencao = 15; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
+    quantidadeDeMenusDeManutencao = 16; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
     ihm.addMenuToIndex(&menu_simulaEtiqueta);
     ihm.addMenuToIndex(&menu_habilitaPortasDeSeguranca);
     ihm.addMenuToIndex(&menu_modoDeFuncionamento);
+    ihm.addMenuToIndex(&menu_modoDeImpressao);
     ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmm);
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
     ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
@@ -1247,6 +1264,7 @@ void saveParametersToEEPROM()
     EEPROM.put(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
     EEPROM.put(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
     EEPROM.put(EPR_modoDeFuncionamento, modoDeFuncionamento);
+    EEPROM.put(EPR_modoDeImpressao, modoDeImpressao);
     EEPROM.put(EPR_potenciaVentilador, potenciaVentilador);
     // EEPROM.put(EPR_startNF, startNF);
 
@@ -1274,6 +1292,7 @@ void loadParametersFromEEPROM()
     EEPROM.get(EPR_aceleracaoRebobinador, aceleracaoRebobinador);
     EEPROM.get(EPR_habilitaPortasDeSeguranca, habilitaPortasDeSeguranca);
     EEPROM.get(EPR_modoDeFuncionamento, modoDeFuncionamento);
+    EEPROM.get(EPR_modoDeImpressao, modoDeImpressao);
     EEPROM.get(EPR_potenciaVentilador, potenciaVentilador);
     // EEPROM.get(EPR_startNF, startNF);
     loadProdutoFromEEPROM(produto);

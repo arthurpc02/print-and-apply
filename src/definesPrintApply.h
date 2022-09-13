@@ -31,6 +31,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 #define EPR_potenciaVentilador 48
 #define EPR_rampaReferenciacao_dcmm 52
 #define EPR_modoDeFuncionamento 56
+#define EPR_modoDeImpressao 60
 
 // PARÂMETROS ESPECÍFICOS
 #define EPR_atrasoSensorProduto 0
