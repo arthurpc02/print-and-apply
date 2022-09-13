@@ -103,7 +103,7 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      delay(500);
+      // delay(500);
       braco.stop();
       fsm_substate = fase2;
     }
@@ -458,7 +458,7 @@ void loop()
 
     if (evento == EVT_PLAY_PAUSE)
     {
-      flag_pause = true;
+      changeFsmState(ESTADO_STOP);
       break;
     }
 
@@ -475,11 +475,6 @@ void loop()
         {
           changeFsmState(ESTADO_IMPRIME_ETIQUETA);
         }
-      }
-      else if (flag_pause)
-      {
-        flag_pause = false;
-        changeFsmState(ESTADO_STOP);
       }
     }
     break;
