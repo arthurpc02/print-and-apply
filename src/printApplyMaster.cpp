@@ -207,7 +207,7 @@ void loop()
 
       if (modoDeFuncionamento == Padrao)
       {
-        if (sinalImpressoraOnline.checkState()) // configurar impressora para MODE3 na função EXT 9PIN SELECT
+        if (impressoraPronta()) // configurar impressora para MODE3 na função EXT 9PIN SELECT
         {
           changeFsmState(ESTADO_DECIDE_IMPRESSAO);
         }
@@ -225,7 +225,7 @@ void loop()
         {
           if (sunnyvisionEstaEmFuncionamento())
           {
-            if (sinalImpressoraOnline.checkState()) // configurar impressora para MODE2 na função EXT 9PIN SELECT
+            if (impressoraPronta()) // configurar impressora para MODE2 na função EXT 9PIN SELECT
             {
               if (sensorDeProdutoOuStart.checkPulse())
               {

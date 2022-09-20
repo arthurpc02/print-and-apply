@@ -290,6 +290,8 @@ void t_checaComunicacaoComOBartender(void *p);
 bool temConexaoComBartender();
 void clearSerialBuffer();
 
+bool impressoraPronta();
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void createTasks()
@@ -308,6 +310,15 @@ void createTasks()
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
+bool impressoraPronta()
+{
+    return sinalImpressoraOnline.checkState();
+    // quando a impressora funcionar em modo "padrao" (com buffer de impressao na SATO),
+    // tem que utilizar o EXT 9PIN SELECT no modo 3.
+    // E quando utilizar a impressora em modo "diversos produtos" (bartender seleciona qual etiqueta
+    // e envia uma a uma), tem que utilizar o EXT 9PIN SELECT no modo 2.
+}
+
 void resetaFilaDeProdutos()
 {
     Serial.println("reseta fila de produtos");
