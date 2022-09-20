@@ -270,7 +270,7 @@ void loop()
     {
       if (checkFault(FALHA_IMPRESSORA))
       {
-        // não faz nada
+        // não faz nada. Porque se fizer, teremos problema na última impressão.
       }
       else
       {

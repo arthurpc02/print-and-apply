@@ -1466,7 +1466,8 @@ void t_debug(void *p)
         Serial.print(braco.currentPosition());
         Serial.print(" fila_count: ");
         Serial.print(filaDeProdutos.count);
-        // Serial.println(" @Linha2");
+        Serial.print(" sato: ");
+        Serial.print(sinalImpressoraOnline.checkState());
 
         // Serial.print(" SV_A: ");
         // Serial.print(sunnyVision_A.checkState());
@@ -1479,8 +1480,6 @@ void t_debug(void *p)
         // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_B));
         // Serial.print(" SV_INTT: ");
         // Serial.print(extIOs.checkInputState(PIN_SUNNYVISION_INTT));
-
-        temConexaoComBartender();
 
         Serial.println();
         delay(2000);
