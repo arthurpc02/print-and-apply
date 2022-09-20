@@ -215,28 +215,38 @@ void loop()
         {
           if (sunnyvisionEstaEmFuncionamento())
           {
-            if (sensorDeProdutoOuStart.checkPulse())
+            if (sinalImpressoraOnline.checkState()) // configurar impressora para MODE2 na função EXT 9PIN SELECT
             {
-              Serial.println("falha: sem fila.");
+              if (sensorDeProdutoOuStart.checkPulse())
+              {
+                Serial.println("falha: sem fila.");
+                setFault(FALHA_IMPRESSAO);
+                changeFsmState(ESTADO_FALHA);
+              }
+              else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
+              {
+                tiposDeProduto proximoProduto;
+                proximoProduto = filaDeProdutos.peek();
+                filaDeProdutos.pop();
+                preparaAplicacaoDependendoDoProduto(proximoProduto);
+
+                if (proximoProduto == BigBag)
+                {
+                  ihm.showStatus2msg("BIG BAG");
+                  changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+                }
+                else
+                {
+                  changeFsmState(ESTADO_DECIDE_IMPRESSAO);
+                }
+              }
+            }
+            else
+            {
+               // configurar impressora para MODE2 na função EXT 9PIN SELECT
+              Serial.println("falha: impressora pausada.");
               setFault(FALHA_IMPRESSORA);
               changeFsmState(ESTADO_FALHA);
-            }
-            else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
-            {
-              tiposDeProduto proximoProduto;
-              proximoProduto = filaDeProdutos.peek();
-              filaDeProdutos.pop();
-              preparaAplicacaoDependendoDoProduto(proximoProduto);
-
-              if (proximoProduto == BigBag)
-              {
-                ihm.showStatus2msg("BIG BAG");
-                changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
-              }
-              else
-              {
-                changeFsmState(ESTADO_DECIDE_IMPRESSAO);
-              }
             }
           }
           else
