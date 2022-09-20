@@ -52,7 +52,10 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // SATO / impressora:
 #define PIN_PREND PIN_HSDI4
-#define PIN_IMPRESSORA_ONLINE PIN_DI1
+#define PIN_IMPRESSORA_ONLINE PIN_DI1 // quando a impressora funcionar em modo "padrao" (com buffer de impressao na SATO),
+                                      // tem que utilizar o EXT 9PIN SELECT no modo 3.
+                                      // E quando utilizar a impressora em modo "diversos produtos" (bartender seleciona qual etiqueta
+                                      // e envia uma a uma), tem que utilizar o EXT 9PIN SELECT no modo 2.
 
 #define PIN_PRIN PIN_DO1
 #define PIN_PRIN2 PIN_DO2

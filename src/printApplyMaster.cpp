@@ -207,7 +207,17 @@ void loop()
 
       if (modoDeFuncionamento == Padrao)
       {
-        changeFsmState(ESTADO_DECIDE_IMPRESSAO);
+        if (sinalImpressoraOnline.checkState()) // configurar impressora para MODE3 na função EXT 9PIN SELECT
+        {
+          changeFsmState(ESTADO_DECIDE_IMPRESSAO);
+        }
+        else
+        {
+          // configurar impressora para MODE2 na função EXT 9PIN SELECT
+          Serial.println("falha: impressora pausada.");
+          setFault(FALHA_IMPRESSORA);
+          changeFsmState(ESTADO_FALHA);
+        }
       }
       else if (modoDeFuncionamento == DiversosProdutos)
       {
@@ -243,7 +253,7 @@ void loop()
             }
             else
             {
-               // configurar impressora para MODE2 na função EXT 9PIN SELECT
+              // configurar impressora para MODE2 na função EXT 9PIN SELECT
               Serial.println("falha: impressora pausada.");
               setFault(FALHA_IMPRESSORA);
               changeFsmState(ESTADO_FALHA);
