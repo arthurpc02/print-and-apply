@@ -230,7 +230,7 @@ void loop()
               if (sensorDeProdutoOuStart.checkPulse())
               {
                 Serial.println("falha: sem fila.");
-                setFault(FALHA_IMPRESSAO);
+                setFault(FALHA_IMPRESSORA);
                 changeFsmState(ESTADO_FALHA);
               }
               else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
@@ -437,7 +437,7 @@ void loop()
       }
       else if (evento == EVT_FALHA)
       {
-        setFault(FALHA_IMPRESSAO);
+        setFault(FALHA_IMPRESSORA);
         Serial.println("falha impressora");
       }
     }

@@ -999,7 +999,7 @@ void t_printEtiqueta(void *p)
             }
             else
             {
-                setFault(FALHA_IMPRESSAO);
+                setFault(FALHA_IMPRESSORA);
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
                 rebobinador.stop();
@@ -1015,7 +1015,7 @@ void t_printEtiqueta(void *p)
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
-                setFault(FALHA_IMPRESSAO);
+                setFault(FALHA_IMPRESSORA);
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
                 rebobinador.stop();
@@ -1035,7 +1035,7 @@ void t_printEtiqueta(void *p)
             }
             else if (millis() - timer_duracaoDaImpressao >= timeout_duracaoDaImpressao)
             {
-                setFault(FALHA_IMPRESSAO);
+                setFault(FALHA_IMPRESSORA);
                 enviaEvento(EVT_FALHA);
                 desligaPrint();
                 rebobinador.stop();
@@ -1127,6 +1127,7 @@ void desabilitaMotores()
 bool checkFault(uint8_t faultCode = 0)
 {
     // to do: criar classe FAULT
+    // to do: fazer registrador trabalhar com mais de 8 falhas.
     if (faultCode == 0)
     {
         return (faultRegister > 0);
@@ -1212,13 +1213,9 @@ void imprimeFalhaNaIhm()
     {
         codFalha.concat("EMERGENCIA");
     }
-    else if (checkFault(FALHA_IMPRESSAO))
-    {
-        codFalha.concat("IMPRESSAO");
-    }
     else if (checkFault(FALHA_IMPRESSORA))
     {
-        codFalha.concat("IMPRESSORA OFFLINE");
+        codFalha.concat("IMPRESSORA");
     }
     else if (checkFault(FALHA_SENSORES))
     {
