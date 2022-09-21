@@ -774,10 +774,10 @@ void liberaMenusDeManutencao()
     quantidadeDeMenusDeManutencao = 16; // atualize a quantidade de menus de manutencao, para nao ter erros na funcao bloqueiaMenusDeManutencao()
                                         // essa variavel é necessária porque os menus são removidos um a um.
 
-    ihm.addMenuToIndex(&menu_simulaEtiqueta);
-    ihm.addMenuToIndex(&menu_habilitaPortasDeSeguranca);
+    ihm.addMenuToIndex(&menu_printTest);
     ihm.addMenuToIndex(&menu_modoDeFuncionamento);
-    ihm.addMenuToIndex(&menu_modoDeImpressao);
+    ihm.addMenuToIndex(&menu_modoDeImpressao); // to do: mudar nome para "comando START" ou algo do tipo, pq tem mais a ver com o start do que com a impressao.
+    ihm.addMenuToIndex(&menu_habilitaPortasDeSeguranca);
     ihm.addMenuToIndex(&menu_velocidadeDeReferenciacao_dcmm);
     ihm.addMenuToIndex(&menu_posicaoDePegarEtiqueta_dcmm);
     ihm.addMenuToIndex(&menu_posicaoLimite_dcmm);
@@ -789,7 +789,7 @@ void liberaMenusDeManutencao()
     ihm.addMenuToIndex(&menu_velocidadeRebobinador);
     ihm.addMenuToIndex(&menu_aceleracaoRebobinador);
     // ihm.addMenuToIndex(&menu_enviaMensagem);
-    ihm.addMenuToIndex(&menu_printTest);
+    ihm.addMenuToIndex(&menu_simulaEtiqueta);
     ihm.addMenuToIndex(&menu_contadorTotal);
 
     flag_manutencao = true;
