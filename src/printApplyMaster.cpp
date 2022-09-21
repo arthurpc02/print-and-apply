@@ -680,6 +680,50 @@ void loop()
     }
     break;
   }
+  case ESTADO_FALHA:
+  {
+    static uint32_t timer_verificaoDeFalhas = 0;
+    const uint16_t tempoVerificacaoDeFalhas = 7000; // ms
+
+    if (evento == EVT_PARADA_EMERGENCIA)
+    {
+      changeFsmState(ESTADO_EMERGENCIA);
+      break;
+    }
+
+    // to do: sempre passar pelo estado de falha antes de ir para o estado emergencia
+
+    if (fsm_substate == fase1)
+    {
+      vTaskResume(h_eeprom);
+      abreIntertravamento();
+      flag_cicloEmAndamento = false;
+      flag_referenciou = false;
+      delay(1);
+      ihm.ligaLEDvermelho();
+      delay(1);
+      ihm.desligaLEDverde();
+      desligaTodosOutputs();
+      imprimeFalhaNaIhm();
+      timer_verificaoDeFalhas = millis();
+      fsm_substate = fase2;
+    }
+    else if (fsm_substate == fase2)
+    {
+      if (evento == EVT_HOLD_PLAY_PAUSE)
+      {
+        ihm.desligaLEDvermelho();
+        clearAllFaults();
+        changeFsmState(ESTADO_STOP);
+      }
+
+      if (millis() - timer_verificaoDeFalhas >= tempoVerificacaoDeFalhas)
+      {
+        fsm_substate = fase1;
+      }
+    }
+    break;
+  }
   case ESTADO_TESTE_DO_BRACO:
   {
     if (evento == EVT_PARADA_EMERGENCIA)
@@ -783,50 +827,7 @@ void loop()
     }
     break;
   }
-  case ESTADO_FALHA:
-  {
-    static uint32_t timer_verificaoDeFalhas = 0;
-    const uint16_t tempoVerificacaoDeFalhas = 7000; // ms
 
-    if (evento == EVT_PARADA_EMERGENCIA)
-    {
-      changeFsmState(ESTADO_EMERGENCIA);
-      break;
-    }
-
-    // to do: sempre passar pelo estado de falha antes de ir para o estado emergencia
-
-    if (fsm_substate == fase1)
-    {
-      vTaskResume(h_eeprom);
-      abreIntertravamento();
-      flag_cicloEmAndamento = false;
-      flag_referenciou = false;
-      delay(1);
-      ihm.ligaLEDvermelho();
-      delay(1);
-      ihm.desligaLEDverde();
-      desligaTodosOutputs();
-      imprimeFalhaNaIhm();
-      timer_verificaoDeFalhas = millis();
-      fsm_substate = fase2;
-    }
-    else if (fsm_substate == fase2)
-    {
-      if (evento == EVT_HOLD_PLAY_PAUSE)
-      {
-        ihm.desligaLEDvermelho();
-        clearAllFaults();
-        changeFsmState(ESTADO_STOP);
-      }
-
-      if (millis() - timer_verificaoDeFalhas >= tempoVerificacaoDeFalhas)
-      {
-        fsm_substate = fase1;
-      }
-    }
-    break;
-  }
   case ESTADO_TESTE_COMUNICACAO:
   {
     if (fsm_substate == fase1)
