@@ -177,11 +177,11 @@ Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &v
 // to do: menu de falhas.
 Menu menu_simulaEtiqueta = Menu("Simula Etiqueta", PARAMETRO, &flag_simulaEtiqueta, " ", 1u, 0u, 1u, NULL);
 Menu menu_habilitaPortasDeSeguranca = Menu("Portas de Seguranca", PARAMETRO, &habilitaPortasDeSeguranca, " ", 1u, 0u, 1u, NULL);
-Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
+Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 2000u);
 Menu menu_potenciaVentilador = Menu("Potencia Ventilador", PARAMETRO, &potenciaVentilador, "%", 1u, 10u, 100u);
 Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 5, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoLimite_dcmm = Menu("Posicao Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
-Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
+Menu menu_posicaoDeRepouso_dcmm = Menu("Posicao Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 100u, 100u, 15000u, NULL, 1);
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
 Menu menu_rampaReferenciacao_dcmm = Menu("Rampa Ref", PARAMETRO, &rampaReferenciacao_dcmm, "mm", 5u, 10u, 200u, NULL, 1);
