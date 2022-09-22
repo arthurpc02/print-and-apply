@@ -230,7 +230,7 @@ void loop()
               if (sensorDeProdutoOuStart.checkPulse())
               {
                 Serial.println("falha: sem fila.");
-                setFault(FALHA_IMPRESSORA);
+                setFault(FALHA_OUTRA);
                 changeFsmState(ESTADO_FALHA);
               }
               else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
@@ -724,7 +724,7 @@ void loop()
     }
     break;
   }
-  case ESTADO_TESTE_DO_BRACO:
+  case ESTADO_TESTE_DO_BRACO: // to do: deletar estados de teste que eu nao estou utilizando mais
   {
     if (evento == EVT_PARADA_EMERGENCIA)
     {
@@ -827,7 +827,6 @@ void loop()
     }
     break;
   }
-
   case ESTADO_TESTE_COMUNICACAO:
   {
     if (fsm_substate == fase1)

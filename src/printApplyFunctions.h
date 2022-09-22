@@ -21,7 +21,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // cada falha do equipamento é armazenada em um bit diferente do faultRegister
 #define FALHA_EMERGENCIA (1 << 0)
-#define FALHA_IMPRESSAO (1 << 1)
+#define FALHA_OUTRA (1 << 1)
 #define FALHA_SENSORES (1 << 2)
 #define FALHA_CAMERA (1 << 3)
 #define FALHA_IMPRESSORA (1 << 4)
@@ -157,7 +157,6 @@ int32_t modoDeImpressao = DepoisDoStart;
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
 const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
-
 const float resolucaoNaCalibracao = 20.4803; // steps/dcmm
 const uint32_t pprNaCalibracao = 25000;      // pulsos/revolucao
 
@@ -169,7 +168,7 @@ const float resolucao = braco_ppr * resolucaoNaCalibracao / pprNaCalibracao; // 
 // menus:
 Menu menu_contadorDeCiclos = Menu("Contador", READONLY, &contadorDeCiclos);
 Menu menu_produto = Menu("Produto", PARAMETRO, &produto, " ", 1u, 1u, (unsigned)(EPR_maxProdutos));
-Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 5000u, &produto);
+Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorProduto, "ms", 10u, 10u, 25000u, &produto);
 Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda Produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 10u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 100u, 100u, 15000u, &produto, 1);
@@ -181,7 +180,7 @@ Menu menu_habilitaPortasDeSeguranca = Menu("Portas de Seguranca", PARAMETRO, &ha
 Menu menu_tempoFinalizarAplicacao = Menu("Finalizar Aplicacao", PARAMETRO, &tempoFinalizarAplicacao, "ms", 10u, 20u, 500u);
 Menu menu_potenciaVentilador = Menu("Potencia Ventilador", PARAMETRO, &potenciaVentilador, "%", 1u, 10u, 100u);
 Menu menu_posicaoDePegarEtiqueta_dcmm = Menu("Pos Pega Etiqueta", PARAMETRO, &posicaoDePegarEtiqueta_dcmm, "mm", 5, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
-Menu menu_posicaoLimite_dcmm = Menu("Pos Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
+Menu menu_posicaoLimite_dcmm = Menu("Posicao Limite", PARAMETRO, &posicaoLimite_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_posicaoDeRepouso_dcmm = Menu("Pos Repouso", PARAMETRO, &posicaoDeRepouso_dcmm, "mm", 10, 20, tamanhoMaximoDoBraco_dcmm, NULL, 1);
 Menu menu_velocidadeDeReferenciacao_dcmm = Menu("Veloc Referenciacao", PARAMETRO, &velocidadeDeReferenciacao_dcmm, "mm/s", 100u, 100u, 15000u, NULL, 1);
 Menu menu_rampa_dcmm = Menu("Rampa", PARAMETRO, &rampa_dcmm, "mm", 5u, 10u, 500u, NULL, 1);
@@ -1216,6 +1215,10 @@ void imprimeFalhaNaIhm()
     else if (checkFault(FALHA_IMPRESSORA))
     {
         codFalha.concat("IMPRESSORA");
+    }
+    else if (checkFault(FALHA_OUTRA))
+    {
+        codFalha.concat("OUTRA");
     }
     else if (checkFault(FALHA_SENSORES))
     {
