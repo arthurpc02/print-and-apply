@@ -127,6 +127,7 @@ bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ih
                                               // Quando a conexao é reestabelecida, é necessário ignorar esse botoes que foram pressionados enquanto nao tinha conexão.
                                               // Por esse motivo a flag_zeraBotoes foi criada.
 
+
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
 int32_t produto = 1;
@@ -146,7 +147,7 @@ int32_t rampaReferenciacao_dcmm = 190; // to do: fazer menu e colocar na eeprom
 int32_t flag_simulaEtiqueta = false;
 int32_t velocidadeRebobinador = 9600;
 int32_t aceleracaoRebobinador = 12000;
-int32_t habilitaPortasDeSeguranca = 0;
+int32_t habilitaPortasDeSeguranca = 1;
 int32_t potenciaVentilador = 35; // porcentagem
 int32_t contadorTotal = 0;       // to do: mudar nome para contadorTotal
 int32_t enviaMensagem = 0;
@@ -156,7 +157,7 @@ int32_t modoDeImpressao = DepoisDoStart;
 
 // parâmetros de instalação (só podem ser alterados na compilação do software):
 const int32_t tamanhoMaximoDoBraco_dcmm = 4450;
-const uint32_t rebobinador_ppr = 3200; // pulsos/revolucao
+const uint32_t rebobinador_ppr = 3200;       // pulsos/revolucao
 const float resolucaoNaCalibracao = 20.4803; // steps/dcmm
 const uint32_t pprNaCalibracao = 25000;      // pulsos/revolucao
 
@@ -311,7 +312,14 @@ void createTasks()
 //////////////////////////////////////////////////////////////////////
 bool impressoraPronta()
 {
-    return sinalImpressoraOnline.checkState();
+    if (flag_simulaEtiqueta)
+    {
+        return true;
+    }
+    else
+    {
+        return sinalImpressoraOnline.checkState();
+    }
     // quando a impressora funcionar em modo "padrao" (com buffer de impressao na SATO),
     // tem que utilizar o EXT 9PIN SELECT no modo 3.
     // E quando utilizar a impressora em modo "diversos produtos" (bartender seleciona qual etiqueta
