@@ -122,11 +122,10 @@ bool flag_referenciou = false;
 bool flag_cicloEmAndamento = false;
 bool flag_debugEnabled = true;
 bool flag_manutencao = false;
-bool flag_bartenderConnectionIsAlive = true;
+bool flag_bartenderConnectionIsAlive = false;
 bool flag_habilitaConfiguracaoPelaIhm = true; // se true, todos os botões da ihm serão processados. Se false, apenas play/stop serão processados.
                                               // Quando a conexao é reestabelecida, é necessário ignorar esse botoes que foram pressionados enquanto nao tinha conexão.
                                               // Por esse motivo a flag_zeraBotoes foi criada.
-
 
 // parâmetros comuns:
 int32_t contadorDeCiclos = 0;
@@ -668,7 +667,7 @@ void t_checaComunicacaoComOBartender(void *p)
 {
     const uint16_t intervaloDaTask = 200;
 
-    const uint16_t frequenciaDoTesteDeConexao = 5000;
+    const uint16_t frequenciaDoTesteDeConexao = 4000;
     static uint32_t timer_frequenciaDoTesteDeConexao = 0;
 
     static uint32_t fsm_checaComunicacaoComOBartender = fase1;
@@ -677,6 +676,8 @@ void t_checaComunicacaoComOBartender(void *p)
 
     const uint16_t timeout = 4000; // ms
     static uint32_t timer_heartbeat = 0;
+    uint16_t tentativas = 0;
+    const uint16_t limiteDeTentativas = 3;
 
     char *msgReceived = (char *)malloc(maximumCaractersInAMessage * sizeof(char));
 
@@ -734,7 +735,15 @@ void t_checaComunicacaoComOBartender(void *p)
             }
             else if (millis() - timer_heartbeat >= timeout)
             {
-                flag_bartenderConnectionIsAlive = false;
+                if (tentativas >= (limiteDeTentativas - 1))
+                {
+                    flag_bartenderConnectionIsAlive = false;
+                    tentativas = 0;
+                }
+                else
+                {
+                    tentativas++;
+                }
                 Serial.println("timeout bartender");
                 fsm_checaComunicacaoComOBartender = fase3;
             }
