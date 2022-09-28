@@ -439,6 +439,7 @@ void loop()
       {
         setFault(FALHA_IMPRESSORA);
         Serial.println("falha impressora");
+        changeFsmState(ESTADO_STOP);
       }
     }
     else if (fsm_substate == fase4)
