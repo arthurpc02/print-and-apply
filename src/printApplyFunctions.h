@@ -675,7 +675,7 @@ void t_checaComunicacaoComOBartender(void *p)
 
     const uint16_t maximumCaractersInAMessage = 10;
 
-    const uint16_t timeout = 2000; // ms
+    const uint16_t timeout = 4000; // ms
     static uint32_t timer_heartbeat = 0;
 
     char *msgReceived = (char *)malloc(maximumCaractersInAMessage * sizeof(char));
