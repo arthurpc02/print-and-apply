@@ -213,7 +213,7 @@ void loop()
         }
         else
         {
-          // configurar impressora para MODE2 na função EXT 9PIN SELECT
+          // configurar impressora para MODE3 na função EXT 9PIN SELECT
           Serial.println("falha: impressora pausada.");
           setFault(FALHA_IMPRESSORA);
           changeFsmState(ESTADO_FALHA);
