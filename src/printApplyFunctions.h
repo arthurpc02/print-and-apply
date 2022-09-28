@@ -111,6 +111,7 @@ checkSensorPulse sunnyVision_A = checkSensorPulse(PIN_SUNNYVISION_A, 1);
 // Outros:
 uint16_t quantidadeDeMenusDeManutencao = 1;
 uint32_t timer_atrasoSensorProduto = 0; // global
+int32_t produtosNaFila = 0;
 
 String mensagemTeste = "\eA\eV100\eH200\eP3\eL0403\eXMABCD\eQ2\eZ"; // \e é ESC ou 0x1B
 String msgBuffer_out;
@@ -172,6 +173,7 @@ Menu menu_atrasoSensorProduto = Menu("Atraso Produto", PARAMETRO, &atrasoSensorP
 Menu menu_posicaoDeAguardarProduto_dcmm = Menu("Pos Aguarda Produto", PARAMETRO, &posicaoDeAguardarProduto_dcmm, "mm", 10, 10, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_distanciaProduto_dcmm = Menu("Distancia Produto", PARAMETRO, &distanciaProduto_dcmm, "mm", 10u, 10u, tamanhoMaximoDoBraco_dcmm, &produto, 1);
 Menu menu_velocidadeDeTrabalho_dcmm = Menu("Velocidade Aplicacao", PARAMETRO, &velocidadeDeTrabalho_dcmm, "mm/s", 100u, 100u, 15000u, &produto, 1);
+Menu menu_produtosNaFila = Menu("Produtos na fila", READONLY, &produtosNaFila, " ");
 
 // menus de manutencao:
 // to do: menu de falhas.
@@ -524,6 +526,11 @@ void t_botoesIhm(void *p)
                 {
                     contadorDeCiclos = 0;
                 }
+                else if (checkMenu == &menu_produtosNaFila)
+                {
+                    produtosNaFila = 0;
+                    resetaFilaDeProdutos();
+                }
                 else if (checkMenu == &menu_enviaMensagem)
                 {
                     // enviaMensagemDeTesteParaImpressora();
@@ -564,6 +571,11 @@ void t_botoesIhm(void *p)
                 else if (checkMenu == &menu_contadorDeCiclos)
                 {
                     contadorDeCiclos = 0;
+                }
+                else if (checkMenu == &menu_produtosNaFila)
+                {
+                    produtosNaFila = 0;
+                    resetaFilaDeProdutos();
                 }
                 else if (checkMenu == &menu_enviaMensagem)
                 {
@@ -783,6 +795,7 @@ void liberaMenusDaIhm()
     ihm.addMenuToIndex(&menu_posicaoDeAguardarProduto_dcmm);
     ihm.addMenuToIndex(&menu_distanciaProduto_dcmm);
     ihm.addMenuToIndex(&menu_velocidadeDeTrabalho_dcmm);
+    ihm.addMenuToIndex(&menu_produtosNaFila);
 }
 
 void liberaMenusDeManutencao()
