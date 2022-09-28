@@ -988,7 +988,7 @@ void t_printEtiqueta(void *p)
 
     uint16_t fsm_print = fase1;
     uint32_t timer_duracaoDaImpressao = 0;
-    const uint16_t timeout_duracaoDaImpressao = 2500;
+    const uint16_t timeout_duracaoDaImpressao = 3500;
 
     while (1)
     {
