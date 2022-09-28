@@ -57,7 +57,6 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      resetaFilaDeProdutos();
       desabilitaMotores();
       desligaTodosOutputs();
       vTaskResume(h_eeprom);
@@ -128,7 +127,6 @@ void loop()
           break;
         }
         abreIntertravamento();
-        resetaFilaDeProdutos();
         ihm.desligaLEDverde();
         delay(1);
         ihm.showStatus2msg("EM PAUSA");
