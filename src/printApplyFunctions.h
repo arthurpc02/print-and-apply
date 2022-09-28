@@ -614,7 +614,7 @@ void t_botoesIhm(void *p)
                 if (flag_manutencao == false)
                 {
                     liberaMenusDeManutencao();
-                    ihm.goToMenu(&menu_simulaEtiqueta);
+                    ihm.goToMenu(&menu_printTest);
                     ihm.showStatus2msg("MANUTENCAO LIBERADA");
                 }
             }
