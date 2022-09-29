@@ -225,17 +225,7 @@ void loop()
           {
             if (impressoraPronta()) // configurar impressora para MODE2 na função EXT 9PIN SELECT
             {
-              if (sensorDeProdutoOuStart.checkPulse())
-              {
-                Serial.println("falha: sem fila.");
-                setFault(FALHA_OUTRA);
-                changeFsmState(ESTADO_FALHA);
-              }
-              else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
-              {
-
-                changeFsmState(ESTADO_DECIDE_IMPRESSAO);
-              }
+              changeFsmState(ESTADO_DECIDE_IMPRESSAO);
             }
             else
             {
@@ -395,20 +385,29 @@ void loop()
       {
         if (modoDeFuncionamento == DiversosProdutos)
         {
-          tiposDeProduto proximoProduto;
-          proximoProduto = filaDeProdutos.peek();
-          filaDeProdutos.pop();
-          preparaAplicacaoDependendoDoProduto(proximoProduto);
-
-          if (proximoProduto == BigBag)
+          if (filaDeProdutos.isEmpty()) // tem produtos na fila?
           {
-            ihm.showStatus2msg("BIG BAG");
-            changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+            Serial.println("falha: sem fila.");
+            setFault(FALHA_OUTRA);
+            changeFsmState(ESTADO_STOP);
           }
           else
           {
-            imprimeEtiqueta();
-            fsm_substate = fase3;
+            tiposDeProduto proximoProduto;
+            proximoProduto = filaDeProdutos.peek();
+            filaDeProdutos.pop();
+            preparaAplicacaoDependendoDoProduto(proximoProduto);
+
+            if (proximoProduto == BigBag)
+            {
+              ihm.showStatus2msg("BIG BAG");
+              changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+            }
+            else
+            {
+              imprimeEtiqueta();
+              fsm_substate = fase3;
+            }
           }
         }
         else
