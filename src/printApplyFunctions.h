@@ -21,7 +21,7 @@ placa industrial V2.0 comunicando com a IHM - v1.0 */
 
 // cada falha do equipamento é armazenada em um bit diferente do faultRegister
 #define FALHA_EMERGENCIA (1 << 0)
-#define FALHA_OUTRA (1 << 1)
+#define FALHA_FILA (1 << 1)
 #define FALHA_SENSORES (1 << 2)
 #define FALHA_CAMERA (1 << 3)
 #define FALHA_IMPRESSORA (1 << 4)
@@ -278,6 +278,7 @@ void t_enviaMensagem(void *p);
 
 void t_filaDoSunnyVision(void *p);
 void resetaFilaDeProdutos();
+void tiraProximoProdutoDaFila();
 bool checkSunnyVision_A();
 bool checkSunnyVision_B();
 
@@ -331,6 +332,12 @@ void resetaFilaDeProdutos()
 {
     Serial.println("reseta fila de produtos");
     filaDeProdutos.clear();
+}
+
+void tiraProximoProdutoDaFila()
+{
+    filaDeProdutos.pop();
+    produtosNaFila = filaDeProdutos.count;
 }
 
 void enviaSinalFimDeAplicacao()
@@ -398,6 +405,7 @@ void t_filaDoSunnyVision(void *p)
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
                 filaDeProdutos.push(BigBag);
+                produtosNaFila = filaDeProdutos.count;
                 Serial.println("big bag");
                 delay(intervaloEntreProdutos);
                 timer_sunnyvision = millis();
@@ -408,6 +416,7 @@ void t_filaDoSunnyVision(void *p)
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
                 filaDeProdutos.push(Linha2);
+                produtosNaFila = filaDeProdutos.count;
                 Serial.println("linha 2");
                 delay(intervaloEntreProdutos);
                 timer_sunnyvision = millis();
@@ -418,6 +427,7 @@ void t_filaDoSunnyVision(void *p)
             if (millis() - timer_sunnyvision >= tempoMinimoParaDeteccaoDoSunnyVision)
             {
                 filaDeProdutos.push(Linha1);
+                produtosNaFila = filaDeProdutos.count;
                 delay(intervaloEntreProdutos);
                 Serial.println("linha 1");
                 timer_sunnyvision = millis();
@@ -528,8 +538,7 @@ void t_botoesIhm(void *p)
                 }
                 else if (checkMenu == &menu_produtosNaFila)
                 {
-                    produtosNaFila = 0;
-                    resetaFilaDeProdutos();
+                    tiraProximoProdutoDaFila();
                 }
                 else if (checkMenu == &menu_enviaMensagem)
                 {
@@ -574,8 +583,7 @@ void t_botoesIhm(void *p)
                 }
                 else if (checkMenu == &menu_produtosNaFila)
                 {
-                    produtosNaFila = 0;
-                    resetaFilaDeProdutos();
+                    tiraProximoProdutoDaFila();
                 }
                 else if (checkMenu == &menu_enviaMensagem)
                 {
@@ -1246,9 +1254,9 @@ void imprimeFalhaNaIhm()
     {
         codFalha.concat("IMPRESSORA");
     }
-    else if (checkFault(FALHA_OUTRA))
+    else if (checkFault(FALHA_FILA))
     {
-        codFalha.concat("OUTRA");
+        codFalha.concat("S/ PRODUTOS");
     }
     else if (checkFault(FALHA_SENSORES))
     {

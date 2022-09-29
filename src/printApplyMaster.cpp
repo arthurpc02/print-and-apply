@@ -143,12 +143,18 @@ void loop()
       if (evento == EVT_HOLD_PLAY_PAUSE)
       {
         vTaskSuspend(h_eeprom);
-        voltaParaPrimeiroMenu();
+        if (modoDeFuncionamento == Padrao)
+        {
+          voltaParaPrimeiroMenu();
+        }
+        else
+        {
+          ihm.goToMenu(&menu_produtosNaFila);
+        }
         habilitaMotoresEAguardaEstabilizar();
         braco_setup(velocidadeDeTrabalho_dcmm, rampaReferenciacao_dcmm);
         rebobinador_setup(velocidadeRebobinador, aceleracaoRebobinador);
         torre_ligaLuzVermelha();
-
         if (flag_manutencao)
         {
           bloqueiaMenusDeManutencao();
@@ -376,15 +382,15 @@ void loop()
         if (filaDeProdutos.isEmpty()) // tem produtos na fila?
         {
           Serial.println("falha: sem fila.");
-          setFault(FALHA_OUTRA);
+          setFault(FALHA_FILA);
           changeFsmState(ESTADO_STOP);
         }
         else
         {
           tiposDeProduto proximoProduto;
           proximoProduto = filaDeProdutos.peek();
-          filaDeProdutos.pop();
           preparaAplicacaoDependendoDoProduto(proximoProduto);
+          tiraProximoProdutoDaFila();
 
           if (proximoProduto == BigBag)
           {
