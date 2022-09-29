@@ -233,20 +233,8 @@ void loop()
               }
               else if (filaDeProdutos.isEmpty() != true) // tem produtos na fila?
               {
-                tiposDeProduto proximoProduto;
-                proximoProduto = filaDeProdutos.peek();
-                filaDeProdutos.pop();
-                preparaAplicacaoDependendoDoProduto(proximoProduto);
 
-                if (proximoProduto == BigBag)
-                {
-                  ihm.showStatus2msg("BIG BAG");
-                  changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
-                }
-                else
-                {
-                  changeFsmState(ESTADO_DECIDE_IMPRESSAO);
-                }
+                changeFsmState(ESTADO_DECIDE_IMPRESSAO);
               }
             }
             else
@@ -405,8 +393,29 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        imprimeEtiqueta();
-        fsm_substate = fase3;
+        if (modoDeFuncionamento == DiversosProdutos)
+        {
+          tiposDeProduto proximoProduto;
+          proximoProduto = filaDeProdutos.peek();
+          filaDeProdutos.pop();
+          preparaAplicacaoDependendoDoProduto(proximoProduto);
+
+          if (proximoProduto == BigBag)
+          {
+            ihm.showStatus2msg("BIG BAG");
+            changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+          }
+          else
+          {
+            imprimeEtiqueta();
+            fsm_substate = fase3;
+          }
+        }
+        else
+        {
+          imprimeEtiqueta();
+          fsm_substate = fase3;
+        }
       }
     }
     else if (fsm_substate == fase3)
