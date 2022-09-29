@@ -371,11 +371,34 @@ void loop()
 
     if (fsm_substate == fase1)
     {
-      if (braco.distanceToGo() == 0)
+      if (modoDeFuncionamento == DiversosProdutos)
       {
-        braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
-        braco_moveTo(posicaoDePegarEtiqueta_dcmm);
-        ligaVentilador();
+        if (filaDeProdutos.isEmpty()) // tem produtos na fila?
+        {
+          Serial.println("falha: sem fila.");
+          setFault(FALHA_OUTRA);
+          changeFsmState(ESTADO_STOP);
+        }
+        else
+        {
+          tiposDeProduto proximoProduto;
+          proximoProduto = filaDeProdutos.peek();
+          filaDeProdutos.pop();
+          preparaAplicacaoDependendoDoProduto(proximoProduto);
+
+          if (proximoProduto == BigBag)
+          {
+            ihm.showStatus2msg("BIG BAG");
+            changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
+          }
+          else
+          {
+            fsm_substate = fase2;
+          }
+        }
+      }
+      else
+      {
         fsm_substate = fase2;
       }
     }
@@ -383,41 +406,21 @@ void loop()
     {
       if (braco.distanceToGo() == 0)
       {
-        if (modoDeFuncionamento == DiversosProdutos)
-        {
-          if (filaDeProdutos.isEmpty()) // tem produtos na fila?
-          {
-            Serial.println("falha: sem fila.");
-            setFault(FALHA_OUTRA);
-            changeFsmState(ESTADO_STOP);
-          }
-          else
-          {
-            tiposDeProduto proximoProduto;
-            proximoProduto = filaDeProdutos.peek();
-            filaDeProdutos.pop();
-            preparaAplicacaoDependendoDoProduto(proximoProduto);
-
-            if (proximoProduto == BigBag)
-            {
-              ihm.showStatus2msg("BIG BAG");
-              changeFsmState(ESTADO_AGUARDA_BIGBAG_PASSAR);
-            }
-            else
-            {
-              imprimeEtiqueta();
-              fsm_substate = fase3;
-            }
-          }
-        }
-        else
-        {
-          imprimeEtiqueta();
-          fsm_substate = fase3;
-        }
+        braco_setup(velocidadeDeTrabalho_dcmm, rampa_dcmm);
+        braco_moveTo(posicaoDePegarEtiqueta_dcmm);
+        ligaVentilador();
+        fsm_substate = fase3;
       }
     }
     else if (fsm_substate == fase3)
+    {
+      if (braco.distanceToGo() == 0)
+      {
+        imprimeEtiqueta();
+        fsm_substate = fase4;
+      }
+    }
+    else if (fsm_substate == fase4)
     {
       if (evento == EVT_IMPRESSAO_CONCLUIDA)
       {
