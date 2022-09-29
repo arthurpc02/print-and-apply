@@ -528,7 +528,7 @@ void t_botoesIhm(void *p)
                 }
                 else if (checkMenu == &menu_produtosNaFila)
                 {
-                    produtosNaFila++;
+                    produtosNaFila = 0;
                     resetaFilaDeProdutos();
                 }
                 else if (checkMenu == &menu_enviaMensagem)
@@ -574,7 +574,7 @@ void t_botoesIhm(void *p)
                 }
                 else if (checkMenu == &menu_produtosNaFila)
                 {
-                    produtosNaFila++;
+                    produtosNaFila = 0;
                     resetaFilaDeProdutos();
                 }
                 else if (checkMenu == &menu_enviaMensagem)
