@@ -149,7 +149,7 @@ void loop()
         }
         else
         {
-          ihm.goToMenu(&menu_produtosNaFila);
+          ihm.goToMenu(&menu_produtosNaFila); 
         }
         habilitaMotoresEAguardaEstabilizar();
         braco_setup(velocidadeDeTrabalho_dcmm, rampaReferenciacao_dcmm);
