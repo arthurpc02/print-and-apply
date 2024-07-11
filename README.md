@@ -6,4 +6,4 @@ The hardware is an ESP32 mounted in a PCB designed by me. The PCB interfaces ESP
 
 <p align="left"> <a href="[https://www.youtube.com/@arthurpc02]([https://youtu.be/vXXFXEplgdo?si=SmpnFkRqYCdWM27m](https://www.youtube.com/@arthurpc02))" target="_blank" rel="noreferrer"> <picture> <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/socials/youtube-dark.svg" /> <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/socials/youtube.svg" /> <img src="https://raw.githubusercontent.com/danielcranney/readme-generator/main/public/icons/socials/youtube.svg" width="32" height="32" /> </picture> </a></p>
 This was developed when I worked at Virkan Solutions. Check a video of the machine:
-[https://www.youtube.com/@arthurpc02](url)
+https://youtu.be/vXXFXEplgdo?si=Kc-KPnNjWbwScNdc
